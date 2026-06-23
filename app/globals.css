@@ -40,7 +40,14 @@
   }
 
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-clay-300/70 bg-paper/70 px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-cocoa-700 backdrop-blur;
+    @apply inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-cocoa-600;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 30px;
+    height: 1px;
+    flex-shrink: 0;
+    background-color: #c9a27e;
   }
 
   .display-1 {

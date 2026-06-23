@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#FBF7F1" />
+<title>Crinea — Ta routine cheveux, à partir d'une simple photo.</title>
+<meta name="description" content="Prends-toi en photo, reçois une routine capillaire de 30 jours faite pour tes cheveux, et essaie des coupes avant de passer chez le coiffeur." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --cream:#FBF7F1; --paper:#fff; --sand:#F3E9DC; --latte:#EADBC7;
+    --clay200:#E7D3BB; --clay300:#D8BD9D; --clay400:#C9A27E; --clay500:#B5895E; --clay600:#9A6F49;
+    --cocoa600:#7E5C40; --cocoa700:#5F4632; --cocoa800:#43321F; --ink:#2C211A;
+    --sans:"Inter",system-ui,sans-serif; --display:"Fraunces",Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    background:var(--cream); color:var(--ink); font-family:var(--sans);
+    line-height:1.5; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  a{text-decoration:none;color:inherit}
+  ul{list-style:none}
+  ::selection{background:#D8BD9D;color:#2C211A}
+  img,svg{display:block}
+
+  body::before{
+    content:"";position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 20px}
+  @media(min-width:640px){.wrap{padding:0 32px}}
+
+  .display{font-family:var(--display);font-weight:300;letter-spacing:-.02em;line-height:1.0}
+  .italic{font-style:italic;color:var(--cocoa700)}
+
+  /* eyebrow éditorial — filet + texte, plus de pilule */
+  .eyebrow{display:inline-flex;align-items:center;gap:14px;font-size:12px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.24em;color:var(--cocoa600)}
+  .eyebrow::before{content:"";width:30px;height:1px;background:var(--clay400);flex-shrink:0}
+  .eyebrow svg{width:14px;height:14px;stroke:var(--clay500);fill:none}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;
+    padding:14px 24px;font-size:14px;font-weight:500;cursor:pointer;transition:all .3s ease;border:none;font-family:inherit}
+  .btn-primary{background:var(--ink);color:var(--cream)}
+  .btn-primary:hover{transform:translateY(-2px);background:var(--cocoa800);box-shadow:0 24px 60px -28px rgba(67,50,31,.5)}
+  .btn-ghost{border:1px solid var(--clay300);background:rgba(255,255,255,.5);color:var(--cocoa700)}
+  .btn-ghost:hover{border-color:var(--clay400);background:var(--paper)}
+  .btn .arrow{transition:transform .3s}
+  .btn:hover .arrow{transform:translateX(2px)}
+
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none}
+
+  /* ── NAV ── */
+  header{position:fixed;inset:0 0 auto 0;z-index:40}
+  .nav{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:12px auto 0;
+    padding:10px 16px;border-radius:999px;border:1px solid transparent;transition:all .5s ease}
+  .nav.scrolled{border-color:rgba(231,211,187,.8);background:rgba(251,247,241,.8);
+    box-shadow:0 24px 60px -28px rgba(67,50,31,.28);backdrop-filter:blur(12px);margin-left:16px;margin-right:16px}
+  @media(min-width:1024px){.nav.scrolled{margin-left:auto;margin-right:auto}}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--clay300)}
+  .brand .name{font-family:var(--display);font-size:20px;font-weight:500;letter-spacing:-.01em}
+  .nav-links{display:none;align-items:center;gap:4px}
+  @media(min-width:768px){.nav-links{display:flex}}
+  .nav-links a{padding:8px 14px;border-radius:999px;font-size:14px;color:var(--cocoa700);transition:all .2s}
+  .nav-links a:hover{background:rgba(243,233,220,.7);color:var(--ink)}
+  .nav-cta{display:none}
+  @media(min-width:640px){.nav-cta{display:inline-flex;padding:10px 20px}}
+  .burger{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--clay300);background:none;cursor:pointer}
+  @media(min-width:768px){.burger{display:none}}
+  .burger span{display:block;width:20px;height:2px;background:var(--ink);transition:.3s}
+  .burger span+span{margin-top:5px}
+  .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger.open span:nth-child(2){opacity:0}
+  .burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .mobile-menu{margin:8px 16px 0;border-radius:24px;border:1px solid var(--clay200);
+    background:rgba(251,247,241,.97);padding:12px;box-shadow:0 24px 60px -28px rgba(67,50,31,.28);
+    backdrop-filter:blur(10px);display:none}
+  .mobile-menu.show{display:block;animation:fadeDown .25s ease}
+  @media(min-width:768px){.mobile-menu{display:none!important}}
+  .mobile-menu a{display:block;padding:12px 16px;border-radius:16px;font-size:16px;color:var(--cocoa700)}
+  .mobile-menu a:hover{background:rgba(243,233,220,.7);color:var(--ink)}
+  .mobile-menu .btn{margin-top:8px;width:100%}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+  /* ── HERO ── */
+  .hero{position:relative;overflow:hidden;padding-top:128px;
+    background:radial-gradient(120% 120% at 0% 0%,#FDF9F4 0%,#F8EFE3 45%,#F1E2CF 100%)}
+  @media(min-width:640px){.hero{padding-top:148px}}
+  .blob{position:absolute;border-radius:50%;filter:blur(64px);pointer-events:none}
+  .blob1{left:-128px;top:40px;width:320px;height:320px;background:rgba(231,211,187,.5)}
+  .blob2{right:-96px;top:160px;width:384px;height:384px;background:rgba(234,219,199,.5)}
+  .strand-deco{position:absolute;right:-40px;top:-24px;width:520px;height:520px;color:rgba(201,162,126,.4);pointer-events:none}
+  .hero-grid{position:relative;display:grid;gap:56px;align-items:center;padding-bottom:88px}
+  @media(min-width:1024px){.hero-grid{grid-template-columns:1fr 1fr;padding-bottom:120px}}
+  .hero-copy{position:relative;z-index:10;max-width:560px}
+  .hero h1{margin-top:8px;font-size:clamp(2.8rem,8vw,4.4rem);color:var(--ink);text-wrap:balance}
+  .underline{position:relative;white-space:nowrap}
+  .underline svg{position:absolute;left:0;bottom:-8px;width:100%;color:var(--clay400)}
+  .hero p.lead{margin-top:26px;max-width:520px;font-size:18px;line-height:1.7;color:var(--cocoa700)}
+  .hero-actions{margin-top:36px;display:flex;flex-direction:column;gap:12px}
+  @media(min-width:640px){.hero-actions{flex-direction:row;align-items:center}}
+  .hero-meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--cocoa600)}
+  .hero-meta span{display:flex;align-items:center;gap:8px}
+  .hero-meta .dot{width:6px;height:6px;border-radius:50%;background:var(--clay500)}
+
+  /* ── CARROUSEL ── */
+  .carousel{position:relative;z-index:10;width:100%;max-width:520px;margin:0 auto}
+  .carousel-stage{position:relative}
+  .carousel-back{position:absolute;inset:22px -16px -18px 20px;border-radius:28px;z-index:0;
+    background:linear-gradient(135deg,var(--latte),var(--clay200));transform:rotate(-2.5deg);opacity:.75}
+  .carousel-back2{position:absolute;inset:12px 10px -8px -14px;border-radius:28px;z-index:0;
+    background:linear-gradient(135deg,var(--clay200),var(--sand));transform:rotate(2deg);opacity:.55}
+  .carousel-frame{position:relative;z-index:1;aspect-ratio:16/9;border-radius:24px;overflow:hidden;
+    border:6px solid var(--paper);box-shadow:0 30px 70px -34px rgba(67,50,31,.55)}
+  .cslide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.0);
+    transition:opacity .8s ease}
+  .cslide.active{opacity:1;transform:scale(1.07);transition:opacity .8s ease,transform 3.4s ease-out}
+  .carousel-count{position:absolute;top:14px;right:14px;z-index:2;font-size:11px;font-weight:600;
+    letter-spacing:.12em;color:var(--cream);background:rgba(44,33,26,.55);backdrop-filter:blur(4px);
+    padding:5px 10px;border-radius:999px}
+  .carousel-foot{display:flex;align-items:center;gap:16px;margin-top:22px;padding:0 4px}
+  .dots{display:flex;gap:8px}
+  .dot-c{width:8px;height:8px;padding:0;border:none;border-radius:50%;background:var(--clay300);cursor:pointer;transition:all .35s ease}
+  .dot-c.active{width:24px;border-radius:999px;background:var(--cocoa700)}
+  .cprogress{flex:1;height:3px;background:var(--clay200);border-radius:999px;overflow:hidden}
+  .cprogress span{display:block;height:100%;width:0;background:var(--cocoa700);border-radius:999px}
+  .carousel-caption{margin-top:18px;padding-left:4px;display:flex;align-items:center;gap:12px}
+  .carousel-caption b{font-family:var(--display);font-weight:400;font-style:italic;font-size:22px;color:var(--ink)}
+  .carousel-caption .ln{width:26px;height:1px;background:var(--clay400);flex-shrink:0}
+
+  /* ── MARQUEE ── */
+  .marquee{position:relative;display:flex;overflow:hidden;border-top:1px solid rgba(231,211,187,.7);
+    border-bottom:1px solid rgba(231,211,187,.7);background:rgba(243,233,220,.4);padding:20px 0;
+    -webkit-mask-image:linear-gradient(to right,transparent,#000 8%,#000 92%,transparent);
+    mask-image:linear-gradient(to right,transparent,#000 8%,#000 92%,transparent)}
+  .marquee-track{display:flex;animation:marquee 28s linear infinite;flex-shrink:0}
+  .marquee-strip{display:flex;align-items:center;gap:40px;padding:0 20px;flex-shrink:0}
+  .marquee-strip span{font-family:var(--display);font-weight:300;font-size:20px;letter-spacing:-.01em;color:rgba(95,70,50,.8);white-space:nowrap}
+  .marquee-strip .star{color:var(--clay400)}
+  @keyframes marquee{to{transform:translateX(-50%)}}
+
+  /* ── SECTIONS ── */
+  section.block{padding:96px 0}
+  @media(min-width:640px){section.block{padding:128px 0}}
+  .section-head{max-width:660px}
+  .section-head.center{margin:0 auto;text-align:center}
+  .section-head.center .eyebrow{justify-content:center}
+  h2.title{margin-top:22px;font-size:clamp(2.25rem,5vw,3rem);color:var(--ink);text-wrap:balance}
+  .lead2{margin-top:20px;font-size:18px;line-height:1.7;color:var(--cocoa700)}
+
+  /* steps */
+  .steps{margin-top:64px;display:grid;gap:20px}
+  @media(min-width:768px){.steps{grid-template-columns:repeat(3,1fr)}}
+  .step{position:relative;display:flex;flex-direction:column;border:1px solid rgba(231,211,187,.7);
+    background:rgba(255,255,255,.7);border-radius:2rem;padding:30px;transition:all .35s;overflow:hidden}
+  .step::after{content:"";position:absolute;inset:auto -40px -40px auto;width:140px;height:140px;border-radius:50%;
+    background:radial-gradient(circle,rgba(216,189,157,.35),transparent 70%);opacity:0;transition:opacity .35s}
+  .step:hover{transform:translateY(-4px);background:var(--paper);box-shadow:0 24px 60px -28px rgba(67,50,31,.28)}
+  .step:hover::after{opacity:1}
+  .step-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+  .step .si{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:var(--sand);color:var(--cocoa700);transition:all .3s}
+  .step:hover .si{background:var(--clay300);color:var(--ink)}
+  .step .num{font-family:var(--display);font-size:30px;font-weight:300;color:var(--clay300)}
+  .step h3{margin-top:24px;font-family:var(--display);font-weight:400;font-size:24px;color:var(--ink);position:relative;z-index:1}
+  .step p{margin-top:12px;font-size:15.6px;line-height:1.6;color:var(--cocoa700);position:relative;z-index:1}
+
+  /* feature split */
+  .feat{display:grid;gap:56px;align-items:center}
+  @media(min-width:1024px){.feat{grid-template-columns:1fr 1fr}}
+  .bg-cream{background:var(--cream)} .bg-sand{background:rgba(243,233,220,.4)}
+  .panel{position:relative;border:1px solid rgba(231,211,187,.7);border-radius:2.75rem;padding:32px;
+    box-shadow:0 24px 60px -28px rgba(67,50,31,.28)}
+  .panel.warm{background:radial-gradient(120% 120% at 0% 0%,#FDF9F4 0%,#F8EFE3 45%,#F1E2CF 100%)}
+  .panel-head{display:flex;align-items:center;justify-content:space-between}
+  .panel-head .t{font-family:var(--display);font-size:20px;color:var(--ink)}
+  .panel-head .b{background:var(--paper);padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500;color:var(--cocoa700)}
+  .week-row{display:flex;align-items:center;gap:16px;border:1px solid rgba(231,211,187,.7);
+    background:rgba(255,255,255,.8);border-radius:16px;padding:12px 16px;margin-top:12px;transition:transform .3s}
+  .week-row:hover{transform:translateX(4px)}
+  .week-row .d{width:36px;font-size:14px;font-weight:600;color:var(--cocoa600)}
+  .week-row .l{flex:1;font-size:14px;font-weight:500;color:var(--ink)}
+  .check{display:grid;place-items:center;width:24px;height:24px;border-radius:50%}
+  .check.done{background:var(--cocoa700);color:var(--cream)}
+  .check.todo{border:1px solid var(--clay300);color:var(--clay400)}
+  .feat ul.bullets{margin-top:28px;display:flex;flex-direction:column;gap:12px}
+  .feat ul.bullets li{display:flex;align-items:flex-start;gap:12px;color:var(--cocoa800)}
+  .feat ul.bullets .mb{margin-top:2px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--clay300);color:var(--ink);flex-shrink:0}
+
+  /* ── CATALOGUE COUPES ── */
+  .catalogue{position:relative;max-width:400px;margin:0 auto}
+  .cat-tilt{position:absolute;inset:18px -14px -16px 16px;border-radius:30px;z-index:0;
+    background:linear-gradient(135deg,var(--latte),var(--clay200));transform:rotate(-2.5deg);opacity:.7}
+  .cat-frame{position:relative;z-index:1;border-radius:26px;overflow:hidden;border:6px solid var(--paper);
+    box-shadow:0 30px 70px -34px rgba(67,50,31,.55)}
+  .cat-frame img{width:100%;height:auto;display:block}
+  .cat-frame::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to bottom,transparent 70%,rgba(44,33,26,.45))}
+  .cat-chip{position:absolute;z-index:2;left:18px;bottom:18px;display:inline-flex;align-items:center;gap:8px;
+    background:rgba(251,247,241,.92);backdrop-filter:blur(4px);padding:9px 14px;border-radius:999px;
+    font-size:13px;font-weight:600;color:var(--ink);box-shadow:0 10px 24px -14px rgba(67,50,31,.5)}
+  .cat-chip svg{width:15px;height:15px;stroke:var(--cocoa700);fill:none}
+  .cat-float{position:absolute;z-index:2;top:16px;right:-10px;background:var(--ink);color:var(--cream);
+    padding:8px 14px;border-radius:14px;font-size:12px;box-shadow:0 16px 36px -20px rgba(67,50,31,.6);
+    animation:float 6s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+  /* 30-day grid */
+  .cal{margin:48px auto 0;max-width:768px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  @media(min-width:640px){.cal{grid-template-columns:repeat(10,1fr);gap:10px}}
+  .cell{aspect-ratio:1;display:grid;place-items:center;border-radius:12px;font-size:14px;font-weight:500;transition:transform .2s}
+  .cell:hover{transform:translateY(-3px)}
+  .cell.done{background:var(--clay300);color:var(--ink)}
+  .cell.todo{border:1px solid var(--clay200);background:rgba(255,255,255,.7);color:var(--clay400)}
+  .cell.active{background:var(--ink);color:var(--cream);box-shadow:0 18px 40px -24px rgba(67,50,31,.35);
+    outline:2px solid var(--clay400);outline-offset:2px}
+  .legend{margin:28px auto 0;display:flex;flex-wrap:wrap;justify-content:center;gap:20px;font-size:13px;color:var(--cocoa600)}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+  .lg-done{background:var(--clay300)} .lg-now{background:var(--ink)} .lg-todo{border:1px solid var(--clay300)}
+
+  /* pricing */
+  .price-card{position:relative;overflow:hidden;max-width:448px;margin:48px auto 0;border:1px solid rgba(201,162,126,.6);
+    background:var(--paper);border-radius:2.75rem;padding:40px;box-shadow:0 24px 60px -28px rgba(67,50,31,.28)}
+  .price-card .strand-deco{right:-64px;top:-40px;width:288px;height:288px;color:rgba(216,189,157,.5)}
+  .price-card .pp{position:relative}
+  .price-card .pt{font-family:var(--display);font-size:20px;color:var(--ink)}
+  .price-amt{margin-top:16px;display:flex;align-items:flex-end;gap:8px}
+  .price-amt .v{font-family:var(--display);font-weight:300;font-size:60px;color:var(--ink)}
+  .price-amt .per{padding-bottom:8px;color:var(--cocoa600)}
+  .price-note{margin-top:8px;font-size:12px;font-style:italic;color:var(--clay600)}
+  .price-card .btn{margin-top:28px;width:100%}
+  .price-card ul{margin-top:32px;display:flex;flex-direction:column;gap:14px}
+  .price-card li{display:flex;align-items:flex-start;gap:12px;color:var(--cocoa800);font-size:15.6px}
+  .price-card .mb{margin-top:2px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--clay300);color:var(--ink);flex-shrink:0}
+
+  /* faq */
+  .faq{display:grid;gap:48px}
+  @media(min-width:1024px){.faq{grid-template-columns:.8fr 1.2fr}}
+  .faq-list .item{border-top:1px solid var(--clay200)}
+  .faq-list .item:first-child{border-top:none}
+  .faq-q{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;
+    padding:20px 0;text-align:left;background:none;border:none;cursor:pointer;font-family:inherit}
+  .faq-q .qt{font-family:var(--display);font-size:20px;color:var(--ink)}
+  .faq-q .pm{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:1px solid var(--clay300);
+    color:var(--cocoa700);flex-shrink:0;transition:all .3s}
+  .item.open .faq-q .pm{transform:rotate(45deg);background:var(--ink);color:var(--cream)}
+  .faq-a{overflow:hidden;max-height:0;transition:max-height .35s ease}
+  .faq-a p{padding:0 40px 24px 0;line-height:1.7;color:var(--cocoa700)}
+
+  /* final cta */
+  .final{padding:0 20px 64px}
+  @media(min-width:640px){.final{padding:0 32px 64px}}
+  .final-inner{position:relative;overflow:hidden;max-width:1120px;margin:0 auto;background:var(--ink);
+    border-radius:2.75rem;padding:80px 24px;text-align:center}
+  @media(min-width:640px){.final-inner{padding:112px 24px}}
+  .final .strand-deco{color:rgba(181,137,94,.4)}
+  .final .s1{left:-64px;top:0;width:420px;height:420px}
+  .final .s2{right:-64px;bottom:0;top:auto;width:420px;height:420px;transform:rotate(180deg)}
+  .final .inner-copy{position:relative;max-width:640px;margin:0 auto}
+  .final h2{font-family:var(--display);font-weight:300;font-size:clamp(2.25rem,6vw,3.75rem);color:var(--cream);text-wrap:balance}
+  .final p{margin:24px auto 0;max-width:512px;font-size:18px;color:var(--clay200)}
+  .final .btn-light{margin-top:36px;background:var(--cream);color:var(--ink);padding:16px 28px}
+  .final .btn-light:hover{transform:translateY(-2px);background:var(--paper);box-shadow:0 0 0 1px rgba(201,162,126,.25),0 30px 80px -40px rgba(95,70,50,.45)}
+
+  /* footer */
+  footer{border-top:1px solid var(--clay200);background:var(--cream)}
+  .foot{padding:56px 0}
+  .foot-top{display:flex;flex-direction:column;gap:40px}
+  @media(min-width:768px){.foot-top{flex-direction:row;align-items:flex-start;justify-content:space-between}}
+  .foot-brand{max-width:384px}
+  .foot-brand p{margin-top:16px;font-size:14px;line-height:1.6;color:var(--cocoa700)}
+  .foot-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:40px}
+  @media(min-width:640px){.foot-cols{grid-template-columns:repeat(3,1fr)}}
+  .foot-col .ct{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--clay600)}
+  .foot-col ul{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+  .foot-col a{font-size:14px;color:var(--cocoa700);transition:color .2s}
+  .foot-col a:hover{color:var(--ink)}
+  .foot-bottom{margin-top:48px;border-top:1px solid var(--clay200);padding-top:24px;
+    display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--cocoa600)}
+  @media(min-width:640px){.foot-bottom{flex-direction:row;align-items:center;justify-content:space-between}}
+  .foot-bottom .muted{color:var(--clay600)}
+
+  /* reveal animation */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+    .reveal{opacity:1;transform:none}
+    .cslide.active{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<header>
+  <div class="nav" id="nav">
+    <a href="#top" class="brand">
+      <span class="mark">
+        <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M9 27c-1.5-6 0-11 3-15S17 4 16 5c-1.6 1.6-2 5 0 8s4 5 1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M16 28c2.2-5 1.4-9-.4-12.4S12 9 13 8c1.5 1.4 4.2 2.6 5.4 6s.6 8.6-2.4 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M22 27c2-5.5 2.6-10 .6-13.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="name">Crinea</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#methode">Comment ça marche</a>
+      <a href="#app">L'app</a>
+      <a href="#coupes">Coupes</a>
+      <a href="#tarif">Tarif</a>
+    </nav>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="#tarif" class="btn btn-primary nav-cta">Commencer</a>
+      <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#methode">Comment ça marche</a>
+    <a href="#app">L'app</a>
+    <a href="#coupes">Coupes</a>
+    <a href="#tarif">Tarif</a>
+    <a href="#tarif" class="btn btn-primary">Commencer</a>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section id="top" class="hero">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <svg class="strand-deco" viewBox="0 0 480 480" fill="none" aria-hidden="true">
+    <path d="M40 20 C 120 120, -20 220, 100 320 S 60 460, 140 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
+    <path d="M58 20 C 138 120, -2 220, 118 320 S 78 460, 158 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".45"/>
+    <path d="M76 20 C 156 120, 16 220, 136 320 S 96 460, 176 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".4"/>
+    <path d="M94 20 C 174 120, 34 220, 154 320 S 114 460, 194 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".35"/>
+    <path d="M112 20 C 192 120, 52 220, 172 320 S 132 460, 212 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".3"/>
+  </svg>
+
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <h1 class="display reveal">Tes cheveux,
+        <span class="underline"><span class="italic">un rituel</span>
+          <svg viewBox="0 0 220 12" fill="none" aria-hidden="true">
+            <path d="M3 8C50 3 130 3 217 6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </span> de 30 jours.
+      </h1>
+      <p class="lead reveal">Prends-toi en photo chaque jour. Crinea analyse tes cheveux et te construit une routine sur-mesure pour qu'ils redeviennent sains — et te laisse essayer des coupes avant le coiffeur.</p>
+      <div class="hero-actions reveal">
+        <a href="#tarif" class="btn btn-primary">Commencer
+          <svg class="icon arrow" viewBox="0 0 24 24"><path d="M5 12h14m0 0-5.5-5.5M19 12l-5.5 5.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#methode" class="btn btn-ghost">Voir comment ça marche</a>
+      </div>
+      <div class="hero-meta reveal">
+        <span><span class="dot"></span>Web app — pensée pour mobile</span>
+        <span><span class="dot"></span>Sans installation</span>
+      </div>
+    </div>
+
+    <div class="carousel reveal" id="carousel" aria-roledescription="carrousel" aria-label="Vos résultats avant après">
+      <div class="carousel-stage">
+        <div class="carousel-back"></div>
+        <div class="carousel-back2"></div>
+        <div class="carousel-frame">
+          <img class="cslide active" src="__IMG:result-1.jpg__" alt="Avant / après — résultat capillaire 1" />
+          <img class="cslide" src="__IMG:result-2.jpg__" alt="Avant / après — résultat capillaire 2" loading="lazy" />
+          <img class="cslide" src="__IMG:result-3.jpg__" alt="Avant / après — résultat capillaire 3" loading="lazy" />
+          <img class="cslide" src="__IMG:result-4.jpg__" alt="Avant / après — résultat capillaire 4" loading="lazy" />
+          <span class="carousel-count" id="ccount">01 / 04</span>
+        </div>
+      </div>
+      <div class="carousel-foot">
+        <div class="dots" id="cdots"></div>
+        <div class="cprogress"><span id="cbar"></span></div>
+      </div>
+      <div class="carousel-caption"><span class="ln"></span><b>Des résultats. Pas des promesses.</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MARQUEE ── -->
+<div class="marquee">
+  <div class="marquee-track" id="marquee"></div>
+</div>
+
+<!-- ── MÉTHODE ── -->
+<section id="methode" class="block bg-cream">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow reveal">La méthode</span>
+      <h2 class="title display reveal">Trois gestes. Un cheveu qui reprend vie.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-top">
+          <span class="si"><svg class="icon" viewBox="0 0 24 24"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2c.5 0 1-.3 1.3-.7l.8-1.2c.3-.4.7-.6 1.2-.6h4c.5 0 .9.2 1.2.6l.8 1.2c.3.4.8.7 1.3.7h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-8Z" stroke-width="1.6"/><circle cx="12" cy="12.5" r="3.2" stroke-width="1.6"/></svg></span>
+          <span class="num">01</span>
+        </div>
+        <h3>Prends-toi en photo</h3>
+        <p>Une photo suffit. Tous les jours, tu captures l'état de tes cheveux directement depuis l'app web — aucune installation.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-top">
+          <span class="si"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3c.6 4.2 1.8 5.4 6 6-4.2.6-5.4 1.8-6 6-.6-4.2-1.8-5.4-6-6 4.2-.6 5.4-1.8 6-6Z" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+          <span class="num">02</span>
+        </div>
+        <h3>Reçois ta routine</h3>
+        <p>On analyse la photo et on génère ta routine du jour, pensée pour 30 jours, afin de retrouver des cheveux sains et faciles à coiffer.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-top">
+          <span class="si"><svg class="icon" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.6" stroke-width="1.6"/><circle cx="6" cy="17" r="2.6" stroke-width="1.6"/><path d="M8.2 8.4 20 17M8.2 15.6 20 7M11 12l2.4-1.8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="num">03</span>
+        </div>
+        <h3>Essaie des coupes</h3>
+        <p>Teste différentes coupes sur ton visage. Tu choisis celle qui te va, tu la montres au coiffeur — pas besoin d'expliquer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── APP ── -->
+<section id="app" class="block bg-cream" style="padding-top:0">
+  <div class="wrap feat">
+    <div class="reveal" style="order:2">
+      <div class="panel warm">
+        <div class="panel-head"><span class="t">Cette semaine</span><span class="b">4 / 7 jours</span></div>
+        <div class="week-row"><span class="d">Lun</span><span class="l">Bain d'huile</span><span class="check done"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        <div class="week-row"><span class="d">Mar</span><span class="l">Hydratation légère</span><span class="check done"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        <div class="week-row"><span class="d">Mer</span><span class="l">Repos du cuir chevelu</span><span class="check done"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        <div class="week-row"><span class="d">Jeu</span><span class="l">Masque protéiné</span><span class="check done"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        <div class="week-row"><span class="d">Ven</span><span class="l">Soin des pointes</span><span class="check todo"></span></div>
+      </div>
+    </div>
+    <div style="order:1;max-width:512px">
+      <span class="eyebrow reveal">L'app web</span>
+      <h2 class="title display reveal">Une routine qui s'ajuste, jour après jour.</h2>
+      <p class="lead2 reveal">Pas une liste figée. Chaque photo affine la suivante : la routine s'adapte à l'évolution réelle de tes cheveux sur tout le cycle. Tout se passe dans le navigateur, optimisé pour ton téléphone — rien à télécharger.</p>
+      <ul class="bullets reveal">
+        <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Routine quotidienne générée à partir de ta photo</span></li>
+        <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Suivi de progression sur 30 jours</span></li>
+        <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Pensée mobile, accessible depuis n'importe quel navigateur</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── COUPES ── -->
+<section id="coupes" class="block bg-sand">
+  <div class="wrap feat">
+    <div style="max-width:512px">
+      <span class="eyebrow reveal"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.6" stroke-width="1.6"/><circle cx="6" cy="17" r="2.6" stroke-width="1.6"/><path d="M8.2 8.4 20 17M8.2 15.6 20 7M11 12l2.4-1.8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Essaie avant de couper</span>
+      <h2 class="title display reveal">Trouve la coupe qui te va. Montre-la, c'est tout.</h2>
+      <p class="lead2 reveal">Parcours un catalogue de coupes et essaie-les sur ta propre photo. Tu gardes celle qui te correspond, et tu la montres simplement à ton coiffeur — plus besoin de trouver les mots. Ta routine s'adapte ensuite pour entretenir la coupe choisie.</p>
+      <ul class="bullets reveal">
+        <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Un large choix de coupes, du dégradé au mi-long</span></li>
+        <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Un visuel clair à montrer au coiffeur, sans expliquer</span></li>
+      </ul>
+    </div>
+    <div class="reveal">
+      <div class="catalogue">
+        <div class="cat-tilt"></div>
+        <div class="cat-frame">
+          <img src="__IMG:hairstyles.jpg__" alt="Catalogue de coupes de cheveux à essayer" loading="lazy" />
+          <span class="cat-chip">
+            <svg viewBox="0 0 24 24"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2c.5 0 1-.3 1.3-.7l.8-1.2c.3-.4.7-.6 1.2-.6h4c.5 0 .9.2 1.2.6l.8 1.2c.3.4.8.7 1.3.7h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-8Z" stroke-width="1.6"/><circle cx="12" cy="12.5" r="3.2" stroke-width="1.6"/></svg>
+            Essaie-les sur ta photo
+          </span>
+        </div>
+        <span class="cat-float">+ de choix chaque mois</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 30 JOURS ── -->
+<section class="block bg-cream">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow reveal"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke-width="1.6" stroke-linecap="round"/></svg>Le cycle de 30 jours</span>
+      <h2 class="title display reveal">Un programme complet, pas un conseil au hasard.</h2>
+      <p class="lead2 reveal">Chaque cycle dure 30 jours. À la fin, tu peux en relancer un nouveau pour aller plus loin — la suite se construit sur ce que tu as déjà accompli.</p>
+    </div>
+    <div class="cal reveal" id="cal"></div>
+    <div class="legend reveal">
+      <span><i class="lg-done"></i>Jours accomplis</span>
+      <span><i class="lg-now"></i>Aujourd'hui</span>
+      <span><i class="lg-todo"></i>À venir</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── TARIF ── -->
+<section id="tarif" class="block bg-sand">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow reveal">Tarif</span>
+      <h2 class="title display reveal">Un cycle. Un prix clair.</h2>
+      <p class="lead2 reveal">Tu paies pour un cycle de 30 jours. Envie de continuer ? Tu relances un nouveau cycle quand tu le souhaites.</p>
+    </div>
+    <div class="price-card reveal">
+      <svg class="strand-deco" viewBox="0 0 480 480" fill="none" aria-hidden="true">
+        <path d="M40 20 C 120 120, -20 220, 100 320 S 60 460, 140 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
+        <path d="M76 20 C 156 120, 16 220, 136 320 S 96 460, 176 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".4"/>
+        <path d="M112 20 C 192 120, 52 220, 172 320 S 132 460, 212 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".3"/>
+      </svg>
+      <div class="pp">
+        <p class="pt">Cycle Crinea</p>
+        <div class="price-amt"><span class="v">9,90 €</span><span class="per">/ cycle de 30 jours</span></div>
+        <p class="price-note">Tarif indicatif — à ajuster avant le lancement.</p>
+        <a href="#top" class="btn btn-primary">Commencer
+          <svg class="icon arrow" viewBox="0 0 24 24"><path d="M5 12h14m0 0-5.5-5.5M19 12l-5.5 5.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <ul>
+          <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Un cycle complet de 30 jours</span></li>
+          <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Routine quotidienne générée par photo</span></li>
+          <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Suivi de progression jour après jour</span></li>
+          <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Essayage de coupes illimité</span></li>
+          <li><span class="mb"><svg class="icon" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 6.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Accès depuis n'importe quel navigateur</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="block bg-cream">
+  <div class="wrap faq">
+    <div>
+      <span class="eyebrow reveal">Questions</span>
+      <h2 class="title display reveal">Ce qu'on te demande le plus souvent.</h2>
+    </div>
+    <div class="faq-list" id="faq">
+      <div class="item open">
+        <button class="faq-q"><span class="qt">Comment fonctionne le diagnostic par photo ?</span><span class="pm"><svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="1.8" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Tu te prends en photo depuis l'app web. À partir de cette image, on construit une routine adaptée à l'état de tes cheveux, et tu reprends une photo chaque jour pour affiner la suite.</p></div>
+      </div>
+      <div class="item">
+        <button class="faq-q"><span class="qt">Que se passe-t-il après les 30 jours ?</span><span class="pm"><svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="1.8" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Le cycle se termine. Tu peux en relancer un nouveau quand tu veux pour continuer ta progression — rien n'est prélevé automatiquement, c'est toi qui décides.</p></div>
+      </div>
+      <div class="item">
+        <button class="faq-q"><span class="qt">L'essayage de coupes, ça sert à quoi ?</span><span class="pm"><svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="1.8" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>À visualiser différentes coupes sur ta propre photo avant de te décider. Tu gardes celle qui te plaît et tu la montres simplement à ton coiffeur, sans avoir à l'expliquer.</p></div>
+      </div>
+      <div class="item">
+        <button class="faq-q"><span class="qt">Faut-il installer une application ?</span><span class="pm"><svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="1.8" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Non. Crinea est une application web, pensée et optimisée pour le mobile. Tu y accèdes depuis ton navigateur, sans rien télécharger.</p></div>
+      </div>
+      <div class="item">
+        <button class="faq-q"><span class="qt">Mes photos sont-elles privées ?</span><span class="pm"><svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="1.8" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><p>Tes photos servent uniquement à générer ta routine et tes essais de coupes. Elles t'appartiennent.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA FINAL ── -->
+<section class="final">
+  <div class="final-inner">
+    <svg class="strand-deco s1" viewBox="0 0 480 480" fill="none" aria-hidden="true">
+      <path d="M40 20 C 120 120, -20 220, 100 320 S 60 460, 140 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>
+      <path d="M94 20 C 174 120, 34 220, 154 320 S 114 460, 194 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".35"/>
+    </svg>
+    <svg class="strand-deco s2" viewBox="0 0 480 480" fill="none" aria-hidden="true">
+      <path d="M40 20 C 120 120, -20 220, 100 320 S 60 460, 140 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".4"/>
+      <path d="M94 20 C 174 120, 34 220, 154 320 S 114 460, 194 470" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".25"/>
+    </svg>
+    <div class="inner-copy">
+      <h2 class="reveal">Commence ton premier cycle dès aujourd'hui.</h2>
+      <p class="reveal">Une photo, et Crinea s'occupe du reste — jour après jour, pendant 30 jours.</p>
+      <a href="#tarif" class="btn btn-light reveal">Commencer
+        <svg class="icon arrow" viewBox="0 0 24 24"><path d="M5 12h14m0 0-5.5-5.5M19 12l-5.5 5.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="wrap foot">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a href="#top" class="brand">
+          <span class="mark"><svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M9 27c-1.5-6 0-11 3-15S17 4 16 5c-1.6 1.6-2 5 0 8s4 5 1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 28c2.2-5 1.4-9-.4-12.4S12 9 13 8c1.5 1.4 4.2 2.6 5.4 6s.6 8.6-2.4 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M22 27c2-5.5 2.6-10 .6-13.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <span class="name">Crinea</span>
+        </a>
+        <p>Ta routine cheveux, à partir d'une simple photo.</p>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <p class="ct">Produit</p>
+          <ul><li><a href="#methode">Comment ça marche</a></li><li><a href="#app">L'app</a></li><li><a href="#coupes">Coupes</a></li><li><a href="#tarif">Tarif</a></li></ul>
+        </div>
+        <div class="foot-col">
+          <p class="ct">Ressources</p>
+          <ul><li><a href="#">Confidentialité</a></li><li><a href="#">Conditions</a></li><li><a href="#">Contact</a></li></ul>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <p>© <span id="year"></span> Crinea. Tous droits réservés.</p>
+      <p class="muted">Application web — conçue pour le mobile.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 16);
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+
+  const burger = document.getElementById('burger');
+  const menu = document.getElementById('mobileMenu');
+  burger.addEventListener('click', () => {
+    const open = menu.classList.toggle('show');
+    burger.classList.toggle('open', open);
+    burger.setAttribute('aria-expanded', open);
+  });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    menu.classList.remove('show'); burger.classList.remove('open'); burger.setAttribute('aria-expanded','false');
+  }));
+
+  // marquee
+  const words = ["Hydratation","Coupe sur-mesure","Routine quotidienne","Cuir chevelu","Pousse","Brillance","Soin ciblé","30 jours","Diagnostic photo"];
+  const stripHTML = '<div class="marquee-strip">' + words.map(w => `<span>${w}</span><span class="star">✦</span>`).join('') + '</div>';
+  document.getElementById('marquee').innerHTML = stripHTML + stripHTML;
+
+  // calendrier 30 jours
+  const current = 12;
+  let cal = '';
+  for (let d=1; d<=30; d++){
+    const cls = d===current ? 'active' : d<current ? 'done' : 'todo';
+    cal += `<div class="cell ${cls}">${d}</div>`;
+  }
+  document.getElementById('cal').innerHTML = cal;
+
+  // FAQ accordéon
+  document.querySelectorAll('#faq .item').forEach(item => {
+    const ans = item.querySelector('.faq-a');
+    if (item.classList.contains('open')) ans.style.maxHeight = ans.scrollHeight + 'px';
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('#faq .item').forEach(o => {
+        o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = null;
+      });
+      if (!isOpen){ item.classList.add('open'); ans.style.maxHeight = ans.scrollHeight + 'px'; }
+    });
+  });
+
+  // ── CARROUSEL (auto 3 s) ──
+  (function(){
+    const root = document.getElementById('carousel');
+    const slides = [...root.querySelectorAll('.cslide')];
+    const dotsWrap = document.getElementById('cdots');
+    const bar = document.getElementById('cbar');
+    const counter = document.getElementById('ccount');
+    const DUR = 3000;
+    let idx = 0, timer = null;
+
+    slides.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'dot-c' + (i===0 ? ' active' : '');
+      b.setAttribute('aria-label', 'Voir le résultat ' + (i+1));
+      b.addEventListener('click', () => go(i));
+      dotsWrap.appendChild(b);
+    });
+    const dots = [...dotsWrap.children];
+    const pad = n => String(n).padStart(2,'0');
+
+    function restartBar(){
+      if(!bar) return;
+      bar.style.transition = 'none'; bar.style.width = '0%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        bar.style.transition = 'width ' + DUR + 'ms linear'; bar.style.width = '100%';
+      }));
+    }
+    function render(){
+      slides.forEach((s,i) => s.classList.toggle('active', i===idx));
+      dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+      counter.textContent = pad(idx+1) + ' / ' + pad(slides.length);
+      restartBar();
+    }
+    function go(i){ idx = (i + slides.length) % slides.length; render(); schedule(); }
+    function schedule(){ clearInterval(timer); timer = setInterval(() => go(idx+1), DUR); }
+
+    render(); schedule();
+    root.addEventListener('mouseenter', () => clearInterval(timer));
+    root.addEventListener('mouseleave', schedule);
+    document.addEventListener('visibilitychange', () => document.hidden ? clearInterval(timer) : schedule());
+  })();
+
+  // reveal au scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:0.12, rootMargin:'-40px'});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

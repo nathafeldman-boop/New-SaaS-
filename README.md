@@ -44,6 +44,22 @@ components/
 lib/site.ts         # configuration centrale (nom, textes, tarif)
 ```
 
+## Version `index.html` autonome
+
+`index.html` est une version **un seul fichier** (CSS + JS embarqués, images en
+base64) — ouvrable directement dans le navigateur. Ne l'édite pas à la main :
+modifie le template `index.html.tmpl`, place tes images dans `public/results/`,
+puis régénère :
+
+```bash
+python3 scripts/build-index.py
+```
+
+Le carrousel de la hero utilise les visuels « AVANT / APRÈS » de
+`public/results/result-*.jpg`, et la section coupes affiche
+`public/results/hairstyles.jpg`. Pour changer ces images, remplace les fichiers
+(même nom) et relance le script.
+
 ## Notes
 
 - Aucun faux témoignage ni faux chiffre : tout le contenu décrit le produit, rien d'inventé.

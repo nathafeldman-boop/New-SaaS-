@@ -2,12 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Reveal } from "./Reveal";
-import {
-  FaceLine,
-  IconCalendar,
-  IconCheck,
-  IconScissors,
-} from "./Illustrations";
+import { IconCalendar, IconCamera, IconCheck, IconScissors } from "./Illustrations";
 
 export function Features() {
   return (
@@ -105,8 +100,6 @@ function AppFeature() {
 }
 
 /* ── Essayage de coupes ─────────────────────────────────────── */
-const styles = ["Dégradé", "Mi-long", "Frange", "Bouclé", "Court", "Lisse"];
-
 function CoupesFeature() {
   return (
     <div id="coupes" className="bg-sand/40 py-24 sm:py-28">
@@ -125,41 +118,49 @@ function CoupesFeature() {
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mt-5 text-lg leading-relaxed text-cocoa-700">
-              Essaie plusieurs coupes sur ta propre photo et garde celle qui te
-              correspond. Plus besoin de trouver les mots chez le coiffeur : tu
-              montres le résultat, il comprend tout de suite. Et ta routine
-              s'adapte pour entretenir la coupe choisie.
+              Parcours un catalogue de coupes et essaie-les sur ta propre photo.
+              Tu gardes celle qui te correspond, et tu la montres simplement à
+              ton coiffeur — plus besoin de trouver les mots. Ta routine s'adapte
+              ensuite pour entretenir la coupe choisie.
             </p>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <ul className="mt-7 space-y-3">
+              {[
+                "Un large choix de coupes, du dégradé au mi-long",
+                "Un visuel clair à montrer au coiffeur, sans expliquer",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-cocoa-800">
+                  <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-clay-300 text-ink">
+                    <IconCheck className="h-3 w-3" />
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </Reveal>
         </div>
 
         <Reveal>
-          <div className="relative mx-auto max-w-md rounded-5xl border border-clay-200/70 bg-paper p-7 shadow-soft">
-            <div className="grid grid-cols-3 gap-3">
-              {styles.map((s, i) => (
-                <motion.div
-                  key={s}
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06, duration: 0.4 }}
-                  className={`flex flex-col items-center gap-2 rounded-2xl border p-3 ${
-                    i === 0
-                      ? "border-cocoa-700 bg-clay-200/60"
-                      : "border-clay-200 bg-cream"
-                  }`}
-                >
-                  <div className="aspect-square w-full overflow-hidden rounded-xl bg-gradient-to-b from-clay-200 to-clay-300">
-                    <FaceLine className="h-full w-full text-cocoa-800/80" />
-                  </div>
-                  <span className="text-xs font-medium text-cocoa-700">{s}</span>
-                </motion.div>
-              ))}
+          <div className="relative mx-auto max-w-[400px]">
+            {/* carte inclinée en fond */}
+            <div className="absolute -bottom-4 -right-3.5 left-4 top-[18px] -rotate-[2.5deg] rounded-[30px] bg-gradient-to-br from-latte to-clay-200 opacity-70" />
+            <div className="relative overflow-hidden rounded-[26px] border-[6px] border-paper shadow-[0_30px_70px_-34px_rgba(67,50,31,0.55)]">
+              <img
+                src="/results/hairstyles.jpg"
+                alt="Catalogue de coupes de cheveux à essayer"
+                loading="lazy"
+                className="block w-full"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent from-70% to-ink/45" />
+              <span className="absolute bottom-[18px] left-[18px] inline-flex items-center gap-2 rounded-full bg-cream/90 px-3.5 py-2 text-[13px] font-semibold text-ink shadow-[0_10px_24px_-14px_rgba(67,50,31,0.5)] backdrop-blur-sm">
+                <IconCamera className="h-3.5 w-3.5 text-cocoa-700" />
+                Essaie-les sur ta photo
+              </span>
             </div>
-            <div className="mt-5 flex items-center justify-between rounded-2xl bg-ink px-4 py-3 text-cream">
-              <span className="text-sm">Coupe sélectionnée · Dégradé</span>
-              <span className="text-xs text-clay-300">À montrer au coiffeur</span>
-            </div>
+            <span className="absolute -right-2.5 top-4 animate-float rounded-[14px] bg-ink px-3.5 py-2 text-xs text-cream shadow-[0_16px_36px_-20px_rgba(67,50,31,0.6)]">
+              + de choix chaque mois
+            </span>
           </div>
         </Reveal>
       </div>
