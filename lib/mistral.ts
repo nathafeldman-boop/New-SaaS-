@@ -49,8 +49,9 @@ async function chatJSON<T>(
       max_tokens: maxTokens,
       response_format: { type: "json_object" },
     }),
-    // évite de bloquer une route trop longtemps
-    signal: AbortSignal.timeout(60_000),
+    // garde-fou : on coupe AVANT le timeout de la fonction (60 s) pour
+    // toujours renvoyer du JSON (repli démo) plutôt qu'une page d'erreur 504.
+    signal: AbortSignal.timeout(45_000),
   });
 
   if (!res.ok) {
@@ -132,18 +133,41 @@ export async function recommendCuts(
 }
 
 /* ── Génération de la routine 30 jours ───────────────────────── */
+// Pour rester rapide et fiable (pas de timeout serverless), on demande à
+// Mistral un PLAN COMPACT — un cycle de 7 jours réutilisable + des thèmes
+// hebdomadaires — puis on le déplie en 30 jours côté serveur.
+type RoutinePlan = {
+  title: string;
+  overview: string;
+  weeklyTips: string[];
+  weeks: string[]; // thème de chaque semaine
+  pattern: { phase: string; title: string; focus: string; steps: string[] }[]; // 7 jours
+};
+
+const fallbackPattern: RoutinePlan["pattern"] = [
+  { phase: "Nettoyage", title: "Lavage doux", focus: "Assainir sans agresser", steps: ["Shampoing doux", "Eau tiède", "Sécher en tamponnant"] },
+  { phase: "Hydratation", title: "Masque nourrissant", focus: "Réparer les longueurs", steps: ["Masque sur longueurs", "Pose 10 min", "Rincer à l'eau fraîche"] },
+  { phase: "Repos", title: "Jour léger", focus: "Laisser respirer le cuir chevelu", steps: ["Pas de chaleur", "Brossage doux", "Photo du jour"] },
+  { phase: "Soin", title: "Huile sur pointes", focus: "Sceller l'hydratation", steps: ["1 goutte d'huile", "Sur les pointes"] },
+  { phase: "Coiffage", title: "Définition", focus: "Structurer le mouvement", steps: ["Produit léger", "Coiffer aux doigts"] },
+  { phase: "Hydratation", title: "Spray hydratant", focus: "Entretenir l'hydratation", steps: ["Brume hydratante", "Répartir sur longueurs"] },
+  { phase: "Repos", title: "Récupération", focus: "Préparer la semaine suivante", steps: ["Taie en satin", "Photo du jour"] },
+];
+
 export async function generateRoutine(
   analysis: HairAnalysis,
   chosenCut: string,
 ): Promise<Routine> {
   const system =
-    "Tu es un coach capillaire. Tu construis une routine SUR 30 JOURS pour des " +
-    "cheveux sains, adaptée à l'analyse et à la coupe choisie. Réponds STRICTEMENT " +
-    "en JSON français, sans texte autour. Schéma : " +
+    "Tu es un coach capillaire. À partir d'une analyse et d'une coupe choisie, tu " +
+    "conçois une routine de 30 jours. Pour rester concis, tu renvoies un CYCLE de 7 " +
+    "jours réutilisable + un thème par semaine. Réponds STRICTEMENT en JSON français, " +
+    "sans texte autour. Schéma : " +
     '{"title": string, "overview": string, "weeklyTips": string[3..5], ' +
-    '"days": [{"day": number 1..30, "phase": string, "title": string, ' +
-    '"focus": string, "steps": string[2..4]}] (exactement 30 jours, jour 1 à 30)}. ' +
-    "Varie les jours (lavage, hydratation, repos, soin, coiffage) et reste réaliste.";
+    '"weeks": string[4..5] (thème de chaque semaine), ' +
+    '"pattern": [{"phase": string, "title": string, "focus": string, ' +
+    '"steps": string[2..3]}] (EXACTEMENT 7 jours, variés : lavage, hydratation, ' +
+    "repos, soin, coiffage)}. Reste réaliste et adapté à l'analyse.";
 
   const messages: Message[] = [
     { role: "system", content: system },
@@ -154,9 +178,32 @@ export async function generateRoutine(
         JSON.stringify(analysis) +
         "\nCoupe choisie : " +
         chosenCut +
-        "\nGénère la routine complète de 30 jours.",
+        "\nDonne le cycle de 7 jours et les thèmes hebdomadaires.",
     },
   ];
 
-  return chatJSON<Routine>(TEXT_MODEL, messages, 6000);
+  const plan = await chatJSON<RoutinePlan>(TEXT_MODEL, messages, 1600);
+
+  // dépliage en 30 jours
+  const pattern = plan.pattern?.length ? plan.pattern : fallbackPattern;
+  const weeks = plan.weeks?.length ? plan.weeks : [];
+  const days = Array.from({ length: 30 }, (_, i) => {
+    const day = i + 1;
+    const base = pattern[i % pattern.length];
+    const wk = weeks.length ? weeks[Math.min(Math.floor(i / 7), weeks.length - 1)] : "";
+    return {
+      day,
+      phase: base.phase,
+      title: base.title,
+      focus: wk ? `${wk} · ${base.focus}` : base.focus,
+      steps: base.steps,
+    };
+  });
+
+  return {
+    title: plan.title || "Ta routine 30 jours",
+    overview: plan.overview || "",
+    weeklyTips: plan.weeklyTips ?? [],
+    days,
+  };
 }
