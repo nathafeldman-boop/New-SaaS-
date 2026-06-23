@@ -50,7 +50,7 @@ export function Pricing() {
                 {siteConfig.price.note}
               </p>
 
-              <a href="#top" className="btn-primary group mt-7 w-full">
+              <a href="/scan" className="btn-primary group mt-7 w-full">
                 {siteConfig.cta.primary}
                 <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </a>

@@ -65,7 +65,7 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.25, ease }}
             className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
-            <a href="#tarif" className="btn-primary group">
+            <a href="/scan" className="btn-primary group">
               {siteConfig.cta.primary}
               <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>

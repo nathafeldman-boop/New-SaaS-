@@ -47,7 +47,7 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a href="#tarif" className="btn-primary hidden px-5 py-2.5 sm:inline-flex">
+          <a href="/scan" className="btn-primary hidden px-5 py-2.5 sm:inline-flex">
             {siteConfig.cta.primary}
           </a>
           <button
@@ -94,7 +94,7 @@ export function Nav() {
               </a>
             ))}
             <a
-              href="#tarif"
+              href="/scan"
               onClick={() => setOpen(false)}
               className="btn-primary mt-2 w-full"
             >

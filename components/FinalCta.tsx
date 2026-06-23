@@ -24,7 +24,7 @@ export function FinalCta() {
           </Reveal>
           <Reveal delay={0.16}>
             <a
-              href="#tarif"
+              href="/scan"
               className="group mt-9 inline-flex items-center justify-center gap-2 rounded-full bg-cream px-7 py-4 text-sm font-medium text-ink transition-all duration-300 hover:-translate-y-0.5 hover:bg-paper hover:shadow-glow"
             >
               {siteConfig.cta.primary}
