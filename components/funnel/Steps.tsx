@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import {
@@ -352,9 +352,29 @@ export function Capture({ update, next, back }: StepProps) {
 }
 
 /* ── 4. Analyse ───────────────────────────────────────────────── */
+const SCAN_STEPS = [
+  "Lecture de la fibre capillaire",
+  "Détection du type de cheveux",
+  "Analyse du cuir chevelu",
+  "Évaluation de l'hydratation",
+  "Repérage des pointes abîmées",
+  "Préparation de tes recommandations",
+];
+
+const DETECT_POINTS = [
+  { l: "32%", t: "16%" },
+  { l: "64%", t: "13%" },
+  { l: "48%", t: "26%" },
+  { l: "26%", t: "34%" },
+  { l: "70%", t: "32%" },
+];
+
 export function Analyzing({ data, update, next }: StepProps) {
   const started = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [pct, setPct] = useState(6);
+  const done = useRef(false);
 
   async function run() {
     setError(null);
@@ -367,7 +387,9 @@ export function Analyzing({ data, update, next }: StepProps) {
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec de l'analyse");
       update({ analysis: json.data, analysisDemo: json.demo });
-      setTimeout(next, 400);
+      done.current = true;
+      setPct(100);
+      setTimeout(next, 700);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
     }
@@ -380,36 +402,128 @@ export function Analyzing({ data, update, next }: StepProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // messages qui défilent
+  useEffect(() => {
+    const t = setInterval(
+      () => setStepIdx((i) => (i + 1) % SCAN_STEPS.length),
+      1600,
+    );
+    return () => clearInterval(t);
+  }, []);
+
+  // progression simulée jusqu'à 92 % puis 100 % à la fin
+  useEffect(() => {
+    const t = setInterval(() => {
+      setPct((p) => (done.current ? 100 : p < 92 ? p + Math.random() * 7 : p));
+    }, 480);
+    return () => clearInterval(t);
+  }, []);
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-md text-center">
+        <p className="font-display text-2xl text-ink">L'analyse a échoué</p>
+        <p className="mt-2 text-sm text-cocoa-600">{error}</p>
+        <button
+          onClick={() => {
+            started.current = true;
+            run();
+          }}
+          className="btn-primary mt-6"
+        >
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-md text-center">
-      {data.photo && (
-        <div className="relative mx-auto mb-8 aspect-square w-40 overflow-hidden rounded-3xl border border-clay-200">
+    <div className="mx-auto flex max-w-md flex-col items-center text-center">
+      <div className="relative mx-auto aspect-[3/4] w-full max-w-[300px] overflow-hidden rounded-[2rem] border border-clay-200 bg-sand shadow-soft">
+        {data.photo && (
           <img src={data.photo} alt="" className="h-full w-full object-cover" />
-          <motion.div
-            className="absolute inset-x-0 h-[3px] bg-cocoa-700/80 shadow-[0_0_12px_2px_rgba(95,70,50,0.5)]"
-            initial={{ top: 0 }}
-            animate={{ top: ["0%", "100%", "0%"] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        )}
+
+        {/* voile + grille de scan */}
+        <div className="absolute inset-0 bg-gradient-to-b from-cocoa-800/15 via-transparent to-cocoa-800/30" />
+        <div
+          className="absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px)",
+            backgroundSize: "30px 30px",
+          }}
+        />
+
+        {/* coins réticule */}
+        <span className="absolute left-3 top-3 h-6 w-6 rounded-tl-md border-l-2 border-t-2 border-cream/80" />
+        <span className="absolute right-3 top-3 h-6 w-6 rounded-tr-md border-r-2 border-t-2 border-cream/80" />
+        <span className="absolute bottom-3 left-3 h-6 w-6 rounded-bl-md border-b-2 border-l-2 border-cream/80" />
+        <span className="absolute bottom-3 right-3 h-6 w-6 rounded-br-md border-b-2 border-r-2 border-cream/80" />
+
+        {/* bande de scan lumineuse */}
+        <motion.div
+          className="absolute inset-x-0 h-1/3"
+          initial={{ top: "-33%" }}
+          animate={{ top: ["-33%", "100%"] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, rgba(201,162,126,0.28), transparent)",
+          }}
+        >
+          <span className="absolute inset-x-0 bottom-0 h-[2px] bg-cream shadow-[0_0_14px_3px_rgba(201,162,126,0.75)]" />
+        </motion.div>
+
+        {/* points de détection */}
+        {DETECT_POINTS.map((p, i) => (
+          <motion.span
+            key={i}
+            className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cream/90"
+            style={{ left: p.l, top: p.t }}
+            animate={{ scale: [1, 1.9, 1], opacity: [0.9, 0.15, 0.9] }}
+            transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.35 }}
           />
+        ))}
+
+        {/* chip "Analyse IA" */}
+        <div className="absolute left-3 top-3 flex translate-y-8 items-center gap-1.5 rounded-full bg-ink/55 px-2.5 py-1 text-[11px] font-medium text-cream backdrop-blur">
+          <motion.span
+            className="h-1.5 w-1.5 rounded-full bg-clay-300"
+            animate={{ opacity: [1, 0.25, 1] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
+          Analyse IA
         </div>
-      )}
-      {error ? (
-        <div>
-          <p className="font-display text-xl text-ink">L'analyse a échoué</p>
-          <p className="mt-2 text-sm text-cocoa-600">{error}</p>
-          <button
-            onClick={() => {
-              started.current = true;
-              run();
-            }}
-            className="btn-primary mt-6"
+
+        {/* pourcentage */}
+        <div className="absolute bottom-3 right-3 rounded-full bg-ink/55 px-2.5 py-1 text-[11px] font-semibold text-cream backdrop-blur">
+          {Math.min(100, Math.round(pct))}%
+        </div>
+      </div>
+
+      {/* message défilant + barre */}
+      <div className="mt-8 h-7">
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={stepIdx}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4 }}
+            className="font-display text-xl text-ink sm:text-2xl"
           >
-            Réessayer
-          </button>
-        </div>
-      ) : (
-        <Loader label="Analyse de tes cheveux…" />
-      )}
+            {SCAN_STEPS[stepIdx]}…
+          </motion.p>
+        </AnimatePresence>
+      </div>
+      <div className="mt-5 h-1.5 w-60 max-w-full overflow-hidden rounded-full bg-clay-200">
+        <motion.span
+          className="block h-full rounded-full bg-cocoa-700"
+          animate={{ width: `${Math.min(100, pct)}%` }}
+          transition={{ ease: "easeOut", duration: 0.5 }}
+        />
+      </div>
     </div>
   );
 }
