@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { LogoMark } from "@/components/Illustrations";
 import { siteConfig } from "@/lib/site";
 import type { FunnelData, StepProps } from "./types";
 import {
@@ -65,9 +64,7 @@ export function Funnel() {
       <header className="sticky top-0 z-30 border-b border-clay-200/70 bg-cream/80 backdrop-blur-md">
         <div className="container-page flex items-center justify-between py-3.5">
           <a href="/" className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-clay-300">
-              <LogoMark className="h-4.5 w-4.5" />
-            </span>
+            <img src="/brand/mark.png" alt={siteConfig.name} className="h-8 w-8 object-contain" />
             <span className="font-display text-lg font-medium text-ink">
               {siteConfig.name}
             </span>

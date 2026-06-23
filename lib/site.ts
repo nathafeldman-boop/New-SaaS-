@@ -4,11 +4,11 @@
 // ──────────────────────────────────────────────────────────────────────────
 
 export const siteConfig = {
-  name: "Crinea", // ← Nom provisoire. Remplace-le par le nom définitif.
-  tagline: "Ta routine cheveux, à partir d'une simple photo.",
+  name: "Capilytix",
+  tagline: "Ton coach capillaire IA",
   description:
     "Prends-toi en photo, reçois une routine capillaire de 30 jours faite pour tes cheveux, et essaie des coupes avant de passer chez le coiffeur.",
-  url: "https://crinea.app",
+  url: "https://new-saa-s.vercel.app",
   // Tarif provisoire — remplace par ton prix réel quand il est fixé.
   price: {
     amount: "9,90 €",

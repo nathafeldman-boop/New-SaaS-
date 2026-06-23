@@ -1,34 +1,40 @@
 "use client";
 
-import { Reveal, revealItem } from "./Reveal";
-import { IconCamera, IconSparkle, IconScissors } from "./Illustrations";
 import { motion } from "framer-motion";
+import { Reveal } from "./Reveal";
+import { IconCamera, IconScissors, IconSparkle, StrandFlow } from "./Illustrations";
+
+const ease = [0.22, 1, 0.36, 1] as const;
 
 const steps = [
   {
     n: "01",
     icon: IconCamera,
+    word: "Capture",
     title: "Prends-toi en photo",
-    text: "Une photo suffit. Tous les jours, tu captures l'état de tes cheveux directement depuis l'app web — aucune installation.",
+    text: "Une photo suffit. Chaque jour, tu captures l'état réel de tes cheveux depuis l'app web — aucune installation.",
   },
   {
     n: "02",
     icon: IconSparkle,
+    word: "Analyse",
     title: "Reçois ta routine",
-    text: "On analyse la photo et on génère ta routine du jour, pensée pour 30 jours, afin de retrouver des cheveux sains et faciles à coiffer.",
+    text: "On lit ta photo et on génère ta routine du jour, pensée sur 30 jours, pour des cheveux sains et faciles à coiffer.",
   },
   {
     n: "03",
     icon: IconScissors,
+    word: "Style",
     title: "Essaie des coupes",
-    text: "Teste différentes coupes sur ton visage. Tu choisis celle qui te va, tu la montres au coiffeur — pas besoin d'expliquer.",
+    text: "Teste des coupes sur ton visage, garde celle qui te va, et montre-la au coiffeur — sans avoir à l'expliquer.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="methode" className="relative py-24 sm:py-32">
-      <div className="container-page">
+    <section id="methode" className="relative overflow-hidden py-24 sm:py-32">
+      <StrandFlow className="pointer-events-none absolute -left-16 top-24 h-[460px] w-[460px] rotate-180 text-clay-300/30" />
+      <div className="container-page relative">
         <div className="max-w-2xl">
           <Reveal>
             <span className="eyebrow">La méthode</span>
@@ -40,42 +46,52 @@ export function HowItWorks() {
           </Reveal>
         </div>
 
-        <div className="mt-16 grid gap-5 md:grid-cols-3">
+        <ol className="relative mt-16 max-w-3xl">
+          {/* fil conducteur vertical (mèche) */}
+          <motion.span
+            aria-hidden
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1.1, ease }}
+            className="absolute left-7 top-4 bottom-10 w-px origin-top bg-gradient-to-b from-clay-300 via-clay-400 to-clay-200 sm:left-9"
+          />
+
           {steps.map((s, i) => (
-            <Step key={s.n} {...s} last={i === steps.length - 1} />
+            <motion.li
+              key={s.n}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ delay: 0.15 + i * 0.15, duration: 0.6, ease }}
+              className="group relative grid grid-cols-[56px_1fr] gap-6 pb-14 last:pb-0 sm:grid-cols-[72px_1fr] sm:gap-10"
+            >
+              {/* nœud numéroté sur le fil */}
+              <div className="relative z-10 flex justify-center">
+                <span className="grid h-14 w-14 place-items-center rounded-full border border-clay-300 bg-cream font-display text-2xl font-light text-cocoa-700 transition-colors duration-300 group-hover:border-ink group-hover:bg-ink group-hover:text-cream sm:h-[72px] sm:w-[72px] sm:text-3xl">
+                  {s.n}
+                </span>
+              </div>
+
+              {/* contenu, sans carte */}
+              <div className="pt-1.5 sm:pt-3">
+                <div className="flex items-center gap-3 text-cocoa-600">
+                  <s.icon className="h-4 w-4 text-clay-500" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                    {s.word}
+                  </span>
+                </div>
+                <h3 className="mt-3 font-display text-2xl text-ink sm:text-3xl">
+                  {s.title}
+                </h3>
+                <p className="mt-3 max-w-md leading-relaxed text-cocoa-700">
+                  {s.text}
+                </p>
+              </div>
+            </motion.li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
-  );
-}
-
-function Step({
-  n,
-  icon: Icon,
-  title,
-  text,
-}: (typeof steps)[number] & { last: boolean }) {
-  return (
-    <motion.div
-      variants={revealItem}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-80px" }}
-      className="group relative flex flex-col rounded-4xl border border-clay-200/70 bg-paper/70 p-7 transition-all duration-300 hover:-translate-y-1 hover:bg-paper hover:shadow-soft"
-    >
-      <div className="flex items-center justify-between">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-sand text-cocoa-700 transition-colors group-hover:bg-clay-300 group-hover:text-ink">
-          <Icon className="h-6 w-6" />
-        </span>
-        <span className="font-display text-3xl font-light text-clay-300">
-          {n}
-        </span>
-      </div>
-      <h3 className="mt-6 font-display text-2xl text-ink">{title}</h3>
-      <p className="mt-3 text-[0.975rem] leading-relaxed text-cocoa-700">
-        {text}
-      </p>
-    </motion.div>
   );
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site";
-import { LogoMark } from "./Illustrations";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -26,9 +25,7 @@ export function Nav() {
         }`}
       >
         <a href="#top" className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-clay-300">
-            <LogoMark className="h-5 w-5" />
-          </span>
+          <img src="/brand/mark.png" alt={siteConfig.name} className="h-9 w-9 object-contain" />
           <span className="font-display text-xl font-medium tracking-tight text-ink">
             {siteConfig.name}
           </span>

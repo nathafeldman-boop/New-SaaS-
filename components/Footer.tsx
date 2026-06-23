@@ -1,5 +1,4 @@
 import { siteConfig } from "@/lib/site";
-import { LogoMark } from "./Illustrations";
 
 export function Footer() {
   return (
@@ -8,9 +7,7 @@ export function Footer() {
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm">
             <a href="#top" className="flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-clay-300">
-                <LogoMark className="h-5 w-5" />
-              </span>
+              <img src="/brand/mark.png" alt={siteConfig.name} className="h-9 w-9 object-contain" />
               <span className="font-display text-xl font-medium text-ink">
                 {siteConfig.name}
               </span>

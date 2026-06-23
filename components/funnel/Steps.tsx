@@ -129,9 +129,11 @@ export function Intro({ next }: StepProps) {
       >
         <StrandFlow className="pointer-events-none absolute -right-10 -top-8 h-72 w-72 text-clay-400/40" />
         <div className="relative overflow-hidden rounded-[2.5rem] border border-clay-200 bg-grad-warm p-8 shadow-soft">
-          <div className="mx-auto w-40">
-            <FaceLine className="h-auto w-full text-cocoa-800" />
-          </div>
+          <img
+            src="/brand/logo.png"
+            alt="Capilytix"
+            className="mx-auto w-52"
+          />
           <motion.div
             className="absolute inset-x-8 h-[2px] bg-cocoa-700/60"
             initial={{ top: "18%" }}
