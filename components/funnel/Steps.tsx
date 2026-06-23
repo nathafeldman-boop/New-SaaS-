@@ -417,7 +417,8 @@ export function Reveal({ data, next }: StepProps) {
       <div>
         <BeforeAfter src={data.photo} />
         <p className="mt-3 text-center text-xs text-cocoa-600">
-          Projection indicative — le rendu photo final se branche sur un modèle d'image.
+          Glisse le curseur · simulation éclat &amp; vitalité. Le rendu d'une nouvelle
+          coupe se branchera sur un modèle d'image.
         </p>
       </div>
       <div>
@@ -493,42 +494,55 @@ function TagList({
 }
 
 function BeforeAfter({ src }: { src?: string }) {
-  const [pos, setPos] = useState(50);
+  const [pos, setPos] = useState(55);
   const ref = useRef<HTMLDivElement>(null);
-  const drag = (clientX: number) => {
+  const dragging = useRef(false);
+
+  const update = (clientX: number) => {
     const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     setPos(Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100)));
   };
+
   if (!src) return null;
   return (
     <div
       ref={ref}
-      className="relative mx-auto aspect-[4/5] w-full max-w-sm select-none overflow-hidden rounded-[2rem] border border-clay-200 bg-sand"
-      onPointerMove={(e) => e.buttons === 1 && drag(e.clientX)}
-      onPointerDown={(e) => drag(e.clientX)}
+      className="relative mx-auto aspect-[4/5] w-full max-w-sm touch-none select-none overflow-hidden rounded-[2rem] border border-clay-200 bg-sand"
+      onPointerDown={(e) => {
+        dragging.current = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        update(e.clientX);
+      }}
+      onPointerMove={(e) => {
+        if (dragging.current) update(e.clientX);
+      }}
+      onPointerUp={() => (dragging.current = false)}
+      onPointerCancel={() => (dragging.current = false)}
     >
-      {/* APRÈS (projection stylisée) */}
+      {/* APRÈS — cheveux sains : éclat, vibrance, contraste */}
       <img
         src={src}
         alt="Après"
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ filter: "saturate(1.12) contrast(1.06) brightness(1.04)" }}
+        draggable={false}
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        style={{ filter: "saturate(1.45) contrast(1.14) brightness(1.08)" }}
       />
-      <span className="absolute right-3 top-3 rounded-full bg-cocoa-700 px-2.5 py-1 text-xs font-medium text-cream">
+      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-cocoa-700 px-2.5 py-1 text-xs font-medium text-cream">
         Après
       </span>
-      {/* AVANT (recadré par clip-path, image pleine taille) */}
+      {/* AVANT — cheveux ternes : désaturé, mat, plus sombre */}
       <div
-        className="absolute inset-0"
+        className="pointer-events-none absolute inset-0"
         style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
       >
         <img
           src={src}
           alt="Avant"
+          draggable={false}
           className="absolute inset-0 h-full w-full object-cover"
-          style={{ filter: "grayscale(0.25) brightness(0.96)" }}
+          style={{ filter: "grayscale(0.5) saturate(0.55) brightness(0.88) contrast(0.96)" }}
         />
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cream">
           Avant
@@ -536,10 +550,10 @@ function BeforeAfter({ src }: { src?: string }) {
       </div>
       {/* poignée */}
       <div
-        className="absolute inset-y-0 z-10 w-0.5 bg-cream"
+        className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-cream/90 shadow-[0_0_8px_rgba(0,0,0,0.25)]"
         style={{ left: `${pos}%` }}
       >
-        <span className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full border border-clay-300 bg-cream text-cocoa-700 shadow-card">
+        <span className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full border border-clay-300 bg-cream text-cocoa-700 shadow-card">
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none">
             <path d="M9 7 4 12l5 5M15 7l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
