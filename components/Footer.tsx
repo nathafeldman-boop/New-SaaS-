@@ -1,0 +1,76 @@
+import { siteConfig } from "@/lib/site";
+import { LogoMark } from "./Illustrations";
+
+export function Footer() {
+  return (
+    <footer className="border-t border-clay-200 bg-cream">
+      <div className="container-page py-14">
+        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+          <div className="max-w-sm">
+            <a href="#top" className="flex items-center gap-2.5">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-clay-300">
+                <LogoMark className="h-5 w-5" />
+              </span>
+              <span className="font-display text-xl font-medium text-ink">
+                {siteConfig.name}
+              </span>
+            </a>
+            <p className="mt-4 text-sm leading-relaxed text-cocoa-700">
+              {siteConfig.tagline}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
+            <FooterCol
+              title="Produit"
+              links={siteConfig.nav.map((n) => ({ label: n.label, href: n.href }))}
+            />
+            <FooterCol
+              title="Ressources"
+              links={[
+                { label: "Confidentialité", href: "#" },
+                { label: "Conditions", href: "#" },
+                { label: "Contact", href: "#" },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-clay-200 pt-6 text-sm text-cocoa-600 sm:flex-row sm:items-center">
+          <p>
+            © {new Date().getFullYear()} {siteConfig.name}. Tous droits réservés.
+          </p>
+          <p className="text-clay-600">Application web — conçue pour le mobile.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wider text-clay-600">
+        {title}
+      </p>
+      <ul className="mt-4 space-y-3">
+        {links.map((l) => (
+          <li key={l.label}>
+            <a
+              href={l.href}
+              className="text-sm text-cocoa-700 transition-colors hover:text-ink"
+            >
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
