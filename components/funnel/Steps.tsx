@@ -240,19 +240,24 @@ export function Capture({ update, next, back }: StepProps) {
   };
   useEffect(() => () => stopCam(), []);
 
+  // Relie le flux à la balise <video> UNE FOIS qu'elle est montée dans le DOM
+  // (elle n'existe pas tant que camOn est faux → sinon aperçu vide).
+  useEffect(() => {
+    if (camOn && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [camOn]);
+
   async function startCam() {
     setCamError(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 720, height: 960 },
+        video: { facingMode: "user" },
         audio: false,
       });
       streamRef.current = stream;
       setCamOn(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
     } catch {
       setCamError(true);
     }
@@ -292,7 +297,7 @@ export function Capture({ update, next, back }: StepProps) {
             <img src={preview} alt="Aperçu" className="h-full w-full object-cover" />
           ) : camOn ? (
             <>
-              <video ref={videoRef} playsInline muted className="h-full w-full -scale-x-100 object-cover" />
+              <video ref={videoRef} autoPlay playsInline muted className="h-full w-full -scale-x-100 object-cover" />
               <div className="pointer-events-none absolute inset-6 rounded-3xl border-2 border-dashed border-cream/70" />
             </>
           ) : (
