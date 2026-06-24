@@ -752,50 +752,101 @@ function BeforeAfter({
 }
 
 /* ── 6. Paywall ───────────────────────────────────────────────── */
-export function Paywall({ next, back }: StepProps) {
+export function Paywall({ data, next, back }: StepProps) {
+  const a = data.analysis;
+  const concern = a?.concerns?.[0];
+
+  // Accroche personnalisée à partir du diagnostic.
+  const headline = concern
+    ? "Tes cheveux ont un vrai potentiel — il faut juste la bonne méthode."
+    : "Ta transformation commence aujourd'hui.";
+  const sub = a
+    ? `D'après ton diagnostic${a.hairType ? ` (${a.hairType.toLowerCase()})` : ""}, on a construit un programme précis pour ${
+        concern ? `corriger « ${concern.toLowerCase()} »` : "révéler tes cheveux"
+      } jour après jour.`
+    : "Ton analyse est prête. Débloque ta sélection de coupes et ton programme de 30 jours.";
+
   const perks = [
-    "15 coupes sélectionnées pour toi",
-    "Ta routine complète de 30 jours",
-    "Suivi photo jour après jour",
-    "Relance d'un nouveau cycle quand tu veux",
+    { t: "15 coupes générées sur TON visage", d: "essaie-les avant d'aller chez le coiffeur" },
+    { t: "Ton programme jour par jour, 30 jours", d: "une routine précise, pas un PDF générique" },
+    { t: "Suivi photo avant / après quotidien", d: "vois tes cheveux s'améliorer en temps réel" },
+    { t: "Ton score capillaire qui progresse", d: "une preuve concrète, semaine après semaine" },
   ];
+
   return (
     <div className="mx-auto max-w-md">
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-clay-300/60 bg-paper p-8 shadow-soft sm:p-10">
-        <StrandFlow className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/50" />
-        <div className="relative text-center">
-          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-ink text-clay-300">
-            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
-              <rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.6" />
-            </svg>
-          </span>
-          <h2 className="display-2 mt-5 text-3xl text-ink">Débloque ta transformation</h2>
-          <p className="mt-3 text-cocoa-700">
-            Ton analyse est prête. Débloque ta sélection de coupes et ta routine
-            de 30 jours.
-          </p>
-          <div className="mt-6 flex items-end justify-center gap-2">
-            <span className="font-display text-5xl font-light text-ink">
-              {siteConfig.price.amount}
+      <div className="relative overflow-hidden rounded-[2.5rem] border border-clay-300/60 bg-paper p-7 shadow-soft sm:p-9">
+        <StrandFlow className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/40" />
+        <div className="relative">
+          {/* badge diagnostic terminé */}
+          <div className="flex justify-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1 text-xs font-medium text-cocoa-700">
+              <IconCheck className="h-3 w-3 text-ink" />
+              Diagnostic terminé
             </span>
-            <span className="pb-1.5 text-cocoa-600">{siteConfig.price.period}</span>
           </div>
-          <ul className="mt-7 space-y-3 text-left">
+
+          <h2 className="display-2 mt-4 text-center text-[1.7rem] leading-tight text-ink">
+            {headline}
+          </h2>
+          <p className="mx-auto mt-3 max-w-sm text-center text-[0.95rem] text-cocoa-700">
+            {sub}
+          </p>
+
+          {/* ancrage de prix */}
+          <div className="mt-6 flex flex-col items-center">
+            <div className="flex items-end gap-2">
+              {siteConfig.price.original && (
+                <span className="pb-2 text-lg text-cocoa-500 line-through">
+                  {siteConfig.price.original}
+                </span>
+              )}
+              <span className="font-display text-5xl font-light text-ink">
+                {siteConfig.price.amount}
+              </span>
+              <span className="pb-1.5 text-cocoa-600">{siteConfig.price.period}</span>
+            </div>
+            {siteConfig.price.discount && (
+              <span className="mt-2 rounded-full bg-ink px-3 py-1 text-xs font-semibold text-clay-200">
+                Offre de lancement · {siteConfig.price.discount}
+              </span>
+            )}
+          </div>
+
+          {/* value stack */}
+          <ul className="mt-7 space-y-3.5 text-left">
             {perks.map((p) => (
-              <li key={p} className="flex items-start gap-3 text-cocoa-800">
+              <li key={p.t} className="flex items-start gap-3">
                 <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-clay-300 text-ink">
                   <IconCheck className="h-3 w-3" />
                 </span>
-                <span className="text-[0.975rem]">{p}</span>
+                <span>
+                  <span className="block text-[0.95rem] font-medium text-ink">{p.t}</span>
+                  <span className="block text-[0.82rem] text-cocoa-600">{p.d}</span>
+                </span>
               </li>
             ))}
           </ul>
-          <button onClick={next} className="btn-primary group mt-8 w-full">
-            Débloquer ma routine
+
+          <button onClick={next} className="btn-primary group mt-7 w-full">
+            Débloquer mon programme
             <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </button>
-          <button onClick={back} className="mt-3 text-sm text-cocoa-600 hover:underline">
+
+          {/* réassurance / risk reversal */}
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-cocoa-600">
+            <span className="flex items-center gap-1.5">
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none">
+                <rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.6" />
+              </svg>
+              Paiement sécurisé Stripe
+            </span>
+            <span>· Sans engagement</span>
+            <span>· Annulable en 1 clic</span>
+          </div>
+
+          <button onClick={back} className="mt-4 block w-full text-center text-sm text-cocoa-600 hover:underline">
             Revenir au diagnostic
           </button>
         </div>
