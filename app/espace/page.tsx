@@ -11,7 +11,7 @@ export default async function EspacePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/espace");
 
-  const [{ data: profile }, { data: subscription }, { data: entries }] =
+  const [{ data: profile }, { data: subscription }, { data: entries }, { data: catalog }] =
     await Promise.all([
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("subscriptions").select("*").eq("user_id", user.id).single(),
@@ -20,6 +20,10 @@ export default async function EspacePage() {
         .select("*")
         .eq("user_id", user.id)
         .order("day_number", { ascending: true }),
+      supabase
+        .from("cuts_catalog")
+        .select("*")
+        .order("popularity", { ascending: false }),
     ]);
 
   // URLs signées pour les photos (bucket privé).
@@ -60,6 +64,7 @@ export default async function EspacePage() {
       lastCompletedDate={profile?.last_completed_date ?? null}
       subscription={{ status: subscription?.status ?? null, via }}
       entries={signedEntries}
+      catalog={catalog ?? []}
     />
   );
 }

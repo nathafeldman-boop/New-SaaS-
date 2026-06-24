@@ -25,6 +25,17 @@ type Props = {
   lastCompletedDate: string | null;
   subscription: { status: string | null; via: "stripe" | "code" | null };
   entries: Entry[];
+  catalog?: CatalogCut[];
+};
+
+type CatalogCut = {
+  id: string;
+  name: string;
+  vibe: string | null;
+  description: string | null;
+  maintenance: string | null;
+  image_url: string | null;
+  tags: string[] | null;
 };
 
 const TABS = [
@@ -298,29 +309,38 @@ export function Dashboard(props: Props) {
 
           {/* ───── COUPES ───── */}
           {tab === "cuts" && (
-            <div className="space-y-3">
+            <div className="space-y-6">
+              {/* Recommandées pour toi (issues du scan) */}
               {props.program?.cuts?.cuts?.length ? (
-                props.program.cuts.cuts.map((c, i) => (
-                  <motion.div
-                    key={c.id}
-                    variants={fadeUp}
-                    initial="hidden"
-                    animate="show"
-                    custom={i}
-                    className="rounded-4xl bg-paper/80 p-5 shadow-card ring-1 ring-clay-200/60"
-                  >
-                    <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="display-2 text-lg text-ink">{c.name}</h3>
-                      <span className="shrink-0 text-xs text-cocoa-500">{c.vibe}</span>
-                    </div>
-                    <p className="mt-1.5 text-[0.92rem] text-cocoa-700">{c.description}</p>
-                  </motion.div>
-                ))
-              ) : (
-                <p className="rounded-4xl border border-dashed border-clay-300 bg-paper/50 p-8 text-center text-sm text-cocoa-500">
-                  Ta sélection de coupes apparaîtra ici.
+                <section>
+                  <h2 className="display-2 text-xl text-ink">Recommandées pour toi</h2>
+                  <p className="mt-1 text-sm text-cocoa-600">D'après ton diagnostic.</p>
+                  <div className="mt-3 space-y-2">
+                    {props.program.cuts.cuts.slice(0, 5).map((c) => (
+                      <div key={c.id} className="rounded-2xl bg-paper/80 p-4 shadow-card ring-1 ring-clay-200/60">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <h3 className="font-display text-base text-ink">{c.name}</h3>
+                          <span className="shrink-0 text-xs text-cocoa-500">{c.vibe}</span>
+                        </div>
+                        <p className="mt-1 text-[0.88rem] text-cocoa-700">{c.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {/* Le grand catalogue */}
+              <section>
+                <h2 className="display-2 text-xl text-ink">Le catalogue</h2>
+                <p className="mt-1 text-sm text-cocoa-600">
+                  {props.catalog?.length ?? 0} coupes à explorer — trouve ton prochain style.
                 </p>
-              )}
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {(props.catalog ?? []).map((c, i) => (
+                    <CatalogCard key={c.id} cut={c} i={i} />
+                  ))}
+                </div>
+              </section>
             </div>
           )}
 
@@ -502,6 +522,45 @@ function PhotoSlot({
         }}
       />
     </label>
+  );
+}
+
+function CatalogCard({ cut, i }: { cut: CatalogCut; i: number }) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      initial="hidden"
+      animate="show"
+      custom={i % 8}
+      className="overflow-hidden rounded-3xl bg-paper/80 shadow-card ring-1 ring-clay-200/60"
+    >
+      <div className="relative aspect-[4/5] overflow-hidden">
+        {cut.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={cut.image_url} alt={cut.name} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sand to-clay-300/70">
+            <span className="text-3xl opacity-50">✂️</span>
+          </div>
+        )}
+        {cut.vibe && (
+          <span className="absolute left-2 top-2 rounded-full bg-ink/70 px-2 py-0.5 text-[0.62rem] font-medium text-cream backdrop-blur-sm">
+            {cut.vibe}
+          </span>
+        )}
+      </div>
+      <div className="p-3">
+        <h3 className="font-display text-[0.98rem] leading-tight text-ink">{cut.name}</h3>
+        {cut.description && (
+          <p className="mt-1 line-clamp-2 text-[0.78rem] leading-snug text-cocoa-600">
+            {cut.description}
+          </p>
+        )}
+        {cut.maintenance && (
+          <p className="mt-2 text-[0.7rem] text-cocoa-500">🗓 {cut.maintenance}</p>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
