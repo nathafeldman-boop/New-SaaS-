@@ -51,16 +51,16 @@ function LoginInner() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-10">
-      <div className="w-full max-w-sm">
-        <a href="/" className="mb-8 block text-center font-display text-2xl text-ink">
+    <main className="grain relative flex min-h-screen items-center justify-center bg-grad-warm px-5 py-10">
+      <div className="w-full max-w-sm rounded-5xl bg-paper/80 p-8 shadow-soft ring-1 ring-clay-200/60 backdrop-blur-sm">
+        <a href="/" className="mb-7 block text-center font-display text-2xl text-ink">
           {siteConfig.name}
         </a>
 
         <h1 className="mb-1 text-center font-display text-3xl text-ink">
-          {mode === "login" ? "Bon retour 👋" : "Crée ton compte"}
+          {mode === "login" ? "Bon retour" : "Crée ton compte"}
         </h1>
-        <p className="mb-7 text-center text-sm text-ink/60">
+        <p className="mb-7 text-center text-sm text-cocoa-600">
           {mode === "login"
             ? "Connecte-toi pour retrouver ton programme."
             : "Pour suivre ta routine jour après jour."}
@@ -74,7 +74,7 @@ function LoginInner() {
             placeholder="Ton email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none focus:border-ink/40"
+            className="w-full rounded-xl border border-clay-200 bg-cream px-4 py-3 text-ink outline-none transition focus:border-clay-400"
           />
           <input
             type="password"
@@ -84,7 +84,7 @@ function LoginInner() {
             placeholder="Mot de passe (6 caractères min.)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink outline-none focus:border-ink/40"
+            className="w-full rounded-xl border border-clay-200 bg-cream px-4 py-3 text-ink outline-none transition focus:border-clay-400"
           />
 
           {error && <p className="text-sm text-red-600">{error}</p>}
