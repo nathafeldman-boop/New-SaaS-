@@ -256,13 +256,33 @@ export function Dashboard(props: Props) {
                       className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60 backdrop-blur-sm"
                     >
                       <div className="flex items-baseline justify-between">
-                        <h3 className="display-2 text-xl text-ink">Ta photo du jour</h3>
-                        <span className="text-xs text-cocoa-500">avant → après</span>
+                        <div>
+                          <p className="eyebrow">Suivi photo</p>
+                          <h3 className="display-2 mt-2 text-xl text-ink">Ta photo du jour</h3>
+                        </div>
+                        <span className="rounded-full bg-sand px-3 py-1 text-[0.66rem] font-medium text-cocoa-600">
+                          avant → après
+                        </span>
                       </div>
-                      <div className="mt-4 grid grid-cols-2 gap-3">
-                        <PhotoSlot label="Avant" url={beforeUrl} busy={busy} onPick={(f) => uploadPhoto("before", f)} />
-                        <PhotoSlot label="Après" url={afterUrl} busy={busy} onPick={(f) => uploadPhoto("after", f)} />
+                      <div className="mt-5 grid grid-cols-2 gap-3.5">
+                        <PhotoSlot
+                          label="Avant"
+                          hint="Avant ta routine"
+                          url={beforeUrl}
+                          busy={busy}
+                          onPick={(f) => uploadPhoto("before", f)}
+                        />
+                        <PhotoSlot
+                          label="Après"
+                          hint="Après ta routine"
+                          url={afterUrl}
+                          busy={busy}
+                          onPick={(f) => uploadPhoto("after", f)}
+                        />
                       </div>
+                      <p className="mt-3 text-center text-[0.72rem] text-cocoa-400">
+                        Tes photos restent privées — visibles seulement par toi.
+                      </p>
                     </motion.section>
 
                     {/* Validation */}
@@ -617,35 +637,62 @@ function EmptyState() {
 
 function PhotoSlot({
   label,
+  hint,
   url,
   busy,
   done,
   onPick,
 }: {
   label: string;
+  hint: string;
   url: string | null;
   busy: boolean;
   done?: boolean;
   onPick: (f: File) => void;
 }) {
+  const filled = Boolean(url);
   return (
     <label
-      className={`group relative block aspect-[3/4] overflow-hidden rounded-2xl border bg-cream transition ${
-        url ? "border-clay-300" : "border-dashed border-clay-300 hover:border-clay-400"
+      className={`group relative block aspect-[3/4] overflow-hidden rounded-3xl transition-all duration-300 ${
+        filled
+          ? "ring-2 ring-clay-400/70 shadow-card"
+          : "ring-1 ring-clay-200/70 hover:ring-clay-400/70 hover:-translate-y-0.5 hover:shadow-card"
       } ${done ? "cursor-default" : "cursor-pointer"}`}
     >
-      {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt={label} className="h-full w-full object-cover" />
+      {filled ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url!} alt={label} className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/5 to-transparent" />
+          {!done && (
+            <span className="absolute right-2.5 top-2.5 rounded-full bg-cream/95 px-3 py-1 text-[0.62rem] font-semibold text-ink opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100">
+              Changer
+            </span>
+          )}
+          <span className="absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full bg-clay-500 text-sm text-cream shadow-sm transition group-hover:opacity-0">
+            ✓
+          </span>
+        </>
       ) : (
-        <span className="absolute inset-0 grid place-items-center gap-1 text-center text-sm text-cocoa-500">
-          <span className="text-2xl opacity-70 transition group-hover:scale-110">📷</span>
-          <span className="text-xs">Ajouter</span>
-        </span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-b from-sand/70 to-cream px-3 text-center">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-cream text-xl shadow-sm ring-1 ring-clay-200 transition group-hover:scale-105 group-hover:ring-clay-400">
+            📷
+          </span>
+          <span className="text-[0.82rem] font-medium text-cocoa-700">{hint}</span>
+          <span className="text-[0.66rem] text-cocoa-400">Appuie pour ajouter</span>
+        </div>
       )}
-      <span className="absolute bottom-2 left-2 rounded-full bg-ink/75 px-2.5 py-0.5 text-[0.7rem] font-medium text-cream backdrop-blur-sm">
+
+      <span className="absolute bottom-2.5 left-2.5 rounded-full bg-ink/75 px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-wide text-cream backdrop-blur-sm">
         {label}
       </span>
+
+      {busy && (
+        <div className="absolute inset-0 grid place-items-center bg-ink/30 backdrop-blur-[1px]">
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-cream/40 border-t-cream" />
+        </div>
+      )}
+
       <input
         type="file"
         accept="image/*"

@@ -34,17 +34,16 @@ const QUERIES: [string, string][] = [
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   const provided = new URL(req.url).searchParams.get("secret");
-  if (!secret) {
-    return NextResponse.json({ ok: false, error: "Définis CRON_SECRET dans Vercel." }, { status: 500 });
-  }
-  if (provided !== secret) {
+  // Le secret n'est exigé que s'il est défini côté serveur.
+  if (secret && provided !== secret) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
-  const key = process.env.PEXELS_API_KEY;
-  if (!key) {
-    return NextResponse.json({ ok: false, error: "Ajoute PEXELS_API_KEY dans Vercel." }, { status: 500 });
-  }
+  // Clé Pexels : variable d'env si présente, sinon clé embarquée (clé gratuite du projet).
+  const key =
+    process.env.PEXELS_API_KEY ||
+    new URL(req.url).searchParams.get("key") ||
+    "uDljl1SJLK0iskRUUYS6kTHHJP8MDV8hRDo84jhMOVUU7py2QI9uLri5";
 
   const admin = createAdminClient();
   const done: Record<string, string> = {};

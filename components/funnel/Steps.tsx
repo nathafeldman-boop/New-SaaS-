@@ -693,8 +693,18 @@ function BeforeAfter({
         alt="Après"
         draggable={false}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        style={real ? undefined : { filter: "saturate(1.45) contrast(1.14) brightness(1.08)" }}
+        style={real ? undefined : { filter: "saturate(1.4) contrast(1.12) brightness(1.06)" }}
       />
+      {!real && (
+        // sheen chaud pour donner un effet "cheveux sains & brillants"
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 68% 22%, rgba(255,241,214,0.30), transparent 55%)",
+          }}
+        />
+      )}
       <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-cocoa-700 px-2.5 py-1 text-xs font-medium text-cream">
         Après
       </span>
@@ -709,7 +719,7 @@ function BeforeAfter({
           alt="Avant"
           draggable={false}
           className="absolute inset-0 h-full w-full object-cover"
-          style={{ filter: "saturate(0.78) brightness(0.94)" }}
+          style={{ filter: "saturate(0.6) brightness(0.9) contrast(0.96) grayscale(0.14)" }}
         />
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cream">
           Avant
