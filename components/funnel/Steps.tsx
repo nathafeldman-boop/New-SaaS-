@@ -1447,6 +1447,24 @@ export function Generating({ data, update, next }: StepProps) {
 export function RoutineView({ data, restart }: StepProps) {
   const r = data.routine;
   const [open, setOpen] = useState<number | null>(1);
+
+  // Sauvegarde le programme côté compte (idempotent) dès l'arrivée sur la routine.
+  const savedRef = useRef(false);
+  useEffect(() => {
+    if (savedRef.current || !data.routine) return;
+    savedRef.current = true;
+    fetch("/api/program/init", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        analysis: data.analysis,
+        routine: data.routine,
+        cuts: data.cuts,
+        choice: data.choice,
+      }),
+    }).catch(() => {});
+  }, [data.routine, data.analysis, data.cuts, data.choice]);
+
   if (!r) return null;
   return (
     <div className="mx-auto max-w-3xl">
