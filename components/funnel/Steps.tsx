@@ -830,6 +830,10 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Code d'accès (valide l'abonnement sans Stripe).
+  const [code, setCode] = useState("");
+  const [showCode, setShowCode] = useState(false);
+
   useEffect(() => {
     createClient()
       .auth.getUser()
@@ -904,6 +908,61 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
       await startCheckout();
     } catch {
       setError("Une erreur est survenue.");
+    }
+    setBusy(false);
+  }
+
+  // Crée le compte si besoin, puis valide le code d'accès (active l'abonnement).
+  async function redeemCode(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      if (authed === false) {
+        if (!email || !password) {
+          setError("Renseigne ton email et ton mot de passe au-dessus.");
+          setBusy(false);
+          return;
+        }
+        const reg = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }).then((r) => r.json());
+        if (!reg.ok && !reg.exists) {
+          setError(reg.error || "Inscription impossible.");
+          setBusy(false);
+          return;
+        }
+        const { error: signInError } = await createClient().auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (signInError) {
+          setError(
+            reg.exists
+              ? "Cet email a déjà un compte — mauvais mot de passe ?"
+              : signInError.message,
+          );
+          setBusy(false);
+          return;
+        }
+      }
+
+      const r = await fetch("/api/access-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      }).then((res) => res.json());
+
+      if (r.ok) {
+        update({ paid: true });
+        next();
+        return;
+      }
+      setError(r.error || "Code invalide.");
+    } catch {
+      setError("Validation impossible.");
     }
     setBusy(false);
   }
@@ -984,6 +1043,41 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
             </div>
           </>
         )}
+
+        <div className="mt-4 border-t border-clay-200 pt-4">
+          {!showCode ? (
+            <button
+              type="button"
+              onClick={() => {
+                setShowCode(true);
+                setError(null);
+              }}
+              className="block w-full text-center text-sm text-cocoa-600 hover:underline"
+            >
+              J'ai un code d'accès
+            </button>
+          ) : (
+            <form onSubmit={redeemCode} className="space-y-3">
+              {authed === false && (
+                <p className="text-xs text-cocoa-600">
+                  Renseigne ton email et ton mot de passe ci-dessus, puis valide
+                  ton code.
+                </p>
+              )}
+              <input
+                type="text"
+                required
+                placeholder="Code d'accès"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-center uppercase tracking-wider text-ink outline-none focus:border-cocoa-400"
+              />
+              <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
+                {busy ? "Validation…" : "Valider mon code"}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
       <button onClick={back} className="mt-4 block w-full text-center text-sm text-cocoa-600 hover:underline">
         Retour
