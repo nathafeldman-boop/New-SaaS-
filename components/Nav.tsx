@@ -74,29 +74,56 @@ export function Nav() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-            className="mx-4 mt-2 rounded-3xl border border-clay-200 bg-cream/95 p-3 shadow-soft backdrop-blur md:hidden"
+            variants={{
+              hidden: { opacity: 0, y: -8 },
+              show: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.25, staggerChildren: 0.05, delayChildren: 0.05 },
+              },
+            }}
+            initial="hidden"
+            animate="show"
+            exit="hidden"
+            className="mx-4 mt-2 overflow-hidden rounded-3xl border border-clay-200 bg-cream/95 shadow-soft backdrop-blur md:hidden"
           >
-            {siteConfig.nav.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="block rounded-2xl px-4 py-3 text-base text-cocoa-700 hover:bg-sand/70 hover:text-ink"
-              >
-                {item.label}
-              </a>
-            ))}
-            <a
-              href="/scan"
-              onClick={() => setOpen(false)}
-              className="btn-primary mt-2 w-full"
+            <ul className="divide-y divide-clay-200/70">
+              {siteConfig.nav.map((item) => (
+                <motion.li
+                  key={item.href}
+                  variants={{ hidden: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}
+                >
+                  <a
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="group flex items-center justify-between px-5 py-3.5 text-[0.95rem] text-cocoa-700 transition-colors hover:bg-sand/60 hover:text-ink"
+                  >
+                    <span>{item.label}</span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-4 w-4 text-clay-400 transition-transform group-hover:translate-x-0.5"
+                      fill="none"
+                    >
+                      <path
+                        d="M9 6l6 6-6 6"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                </motion.li>
+              ))}
+            </ul>
+            <motion.div
+              variants={{ hidden: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}
+              className="p-3"
             >
-              {siteConfig.cta.primary}
-            </a>
+              <a href="/scan" onClick={() => setOpen(false)} className="btn-primary w-full">
+                {siteConfig.cta.primary}
+              </a>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
