@@ -12,7 +12,9 @@ export const siteConfig = {
   price: {
     amount: "10,90 €",
     period: "/ mois",
-    note: "Abonnement — sans engagement, annulable à tout moment.",
+    original: "13,63 €",
+    discount: "−20 %",
+    note: "Sans engagement — annulable à tout moment.",
   },
   nav: [
     { label: "Comment ça marche", href: "#methode" },
