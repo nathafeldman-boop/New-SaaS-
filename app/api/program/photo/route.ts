@@ -19,6 +19,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Paramètres invalides" }, { status: 400 });
   }
 
+  // Verrou 24h : pas d'envoi de photo tant que le compte à rebours n'est pas écoulé.
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("last_completed_at")
+    .eq("id", user!.id)
+    .single();
+  const last = prof?.last_completed_at ? new Date(prof.last_completed_at).getTime() : 0;
+  if (last && Date.now() < last + 24 * 60 * 60 * 1000) {
+    return NextResponse.json({ ok: false, reason: "cooldown" });
+  }
+
   const base64 = dataUrl.split(",")[1] ?? "";
   const buf = Buffer.from(base64, "base64");
   const path = `${user!.id}/${day}/${kind}.jpg`;

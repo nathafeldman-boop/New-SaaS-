@@ -62,6 +62,7 @@ export default async function EspacePage() {
       score={profile?.hair_score ?? null}
       startedAt={profile?.started_at ?? null}
       lastCompletedDate={profile?.last_completed_date ?? null}
+      lastCompletedAt={profile?.last_completed_at ?? null}
       subscription={{ status: subscription?.status ?? null, via }}
       entries={signedEntries}
       catalog={catalog ?? []}

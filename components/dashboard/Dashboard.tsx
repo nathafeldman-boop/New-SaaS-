@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import { LivingStrands } from "@/components/LivingStrands";
-import type { CutsResult, HairAnalysis, Routine } from "@/lib/funnel-types";
+import type { CutsResult, HairAnalysis, Routine, RoutineDay } from "@/lib/funnel-types";
 
 type Entry = {
   day_number: number;
@@ -23,6 +23,7 @@ type Props = {
   score: number | null;
   startedAt: string | null;
   lastCompletedDate: string | null;
+  lastCompletedAt: string | null;
   subscription: { status: string | null; via: "stripe" | "code" | null };
   entries: Entry[];
   catalog?: CatalogCut[];
@@ -46,8 +47,6 @@ const TABS = [
   { key: "profile", label: "Profil" },
 ] as const;
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
-
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
   show: (i = 0) => ({
@@ -62,13 +61,33 @@ export function Dashboard(props: Props) {
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("today");
   const [day, setDay] = useState(props.currentDay || 1);
   const [score, setScore] = useState(props.score ?? null);
-  const [lastDone, setLastDone] = useState(props.lastCompletedDate);
+  const [lastAt, setLastAt] = useState(props.lastCompletedAt);
+  const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
 
   const started = Boolean(props.startedAt);
-  const validatedToday = lastDone === todayISO();
+  const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  const unlockMs = lastAt ? new Date(lastAt).getTime() + COOLDOWN_MS : 0;
+  const inCooldown = Boolean(lastAt) && now < unlockMs;
+  const ringDay = inCooldown ? Math.max(0, day - 1) : day;
   const routineDay = props.program?.routine?.days?.[Math.max(0, day - 1)];
   const completedCount = props.entries.filter((e) => e.completed).length;
+
+  // Horloge du compte à rebours.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Recharge automatiquement quand le compte à rebours se termine.
+  const refreshedRef = useRef(false);
+  useEffect(() => {
+    if (inCooldown) refreshedRef.current = false;
+    else if (lastAt && !refreshedRef.current) {
+      refreshedRef.current = true;
+      router.refresh();
+    }
+  }, [inCooldown, lastAt, router]);
 
   const todayEntry = props.entries.find((e) => e.day_number === day);
   const [beforeUrl, setBeforeUrl] = useState<string | null>(todayEntry?.beforeUrl ?? null);
@@ -106,8 +125,9 @@ export function Dashboard(props: Props) {
       const r = await fetch("/api/program/complete", { method: "POST" }).then((res) => res.json());
       if (r.ok) {
         setScore(r.score);
-        setLastDone(todayISO());
         setDay(r.nextDay);
+        setLastAt(new Date().toISOString());
+        setNow(Date.now());
         setBeforeUrl(null);
         setAfterUrl(null);
         router.refresh();
@@ -181,14 +201,14 @@ export function Dashboard(props: Props) {
                     {greeting} · {props.email.split("@")[0]}
                   </p>
                   <div className="relative mt-4 flex items-center gap-5">
-                    <Ring value={day} max={30}>
+                    <Ring value={ringDay} max={30}>
                       <span className="text-[0.62rem] uppercase tracking-widest text-clay-300">Jour</span>
-                      <span className="font-display text-4xl leading-none">{day}</span>
+                      <span className="font-display text-4xl leading-none">{ringDay}</span>
                       <span className="text-[0.62rem] text-clay-300">/ 30</span>
                     </Ring>
                     <div className="flex-1">
                       <p className="font-display text-2xl leading-tight">
-                        {validatedToday ? "Journée validée 🌿" : phaseTitle(routineDay?.phase, day)}
+                        {inCooldown ? "Journée validée 🌿" : phaseTitle(routineDay?.phase, day)}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Stat label="Score" value={score != null ? Math.round(score).toString() : "—"} />
@@ -198,72 +218,69 @@ export function Dashboard(props: Props) {
                   </div>
                 </motion.section>
 
-                {/* Routine du jour */}
-                {routineDay && (
-                  <motion.section
-                    variants={fadeUp}
-                    initial="hidden"
-                    animate="show"
-                    custom={1}
-                    className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60 backdrop-blur-sm"
-                  >
-                    <p className="eyebrow">{routineDay.phase || "Routine"}</p>
-                    <h3 className="display-2 mt-3 text-2xl text-ink">{routineDay.title}</h3>
-                    <p className="mt-1.5 text-[0.92rem] text-cocoa-600">{routineDay.focus}</p>
-                    <ul className="mt-5 space-y-3">
-                      {routineDay.steps.map((s, i) => (
-                        <li key={i} className="flex items-start gap-3 text-[0.95rem] text-cocoa-800">
-                          <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-sand font-display text-sm text-cocoa-700">
-                            {i + 1}
-                          </span>
-                          <span className="pt-0.5">{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.section>
-                )}
-
-                {/* Photos avant / après */}
-                <motion.section
-                  variants={fadeUp}
-                  initial="hidden"
-                  animate="show"
-                  custom={2}
-                  className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60 backdrop-blur-sm"
-                >
-                  <div className="flex items-baseline justify-between">
-                    <h3 className="display-2 text-xl text-ink">Ta photo du jour</h3>
-                    <span className="text-xs text-cocoa-500">avant → après</span>
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <PhotoSlot label="Avant" url={beforeUrl} busy={busy} done={validatedToday} onPick={(f) => uploadPhoto("before", f)} />
-                    <PhotoSlot label="Après" url={afterUrl} busy={busy} done={validatedToday} onPick={(f) => uploadPhoto("after", f)} />
-                  </div>
-                </motion.section>
-
-                {/* Validation */}
-                {validatedToday ? (
-                  <div className="rounded-4xl border border-clay-200 bg-sand/50 p-5 text-center">
-                    <p className="font-display text-lg text-ink">Bravo, c'est fait pour aujourd'hui ✨</p>
-                    <p className="mt-1 text-sm text-cocoa-600">
-                      Reviens demain pour débloquer le <strong>Jour {day}</strong>.
-                    </p>
-                  </div>
+                {inCooldown ? (
+                  <CooldownSection unlockMs={unlockMs} now={now} day={day} routineDay={routineDay} />
                 ) : (
-                  <div>
-                    <button
-                      onClick={validateDay}
-                      disabled={busy || !beforeUrl}
-                      className="btn-primary w-full disabled:opacity-50"
-                    >
-                      {busy ? "Un instant…" : "Valider ma journée"}
-                    </button>
-                    {!beforeUrl && (
-                      <p className="mt-2 text-center text-xs text-cocoa-500">
-                        Ajoute au moins ta photo « avant » pour valider.
-                      </p>
+                  <>
+                    {/* Routine du jour */}
+                    {routineDay && (
+                      <motion.section
+                        variants={fadeUp}
+                        initial="hidden"
+                        animate="show"
+                        custom={1}
+                        className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60 backdrop-blur-sm"
+                      >
+                        <p className="eyebrow">{routineDay.phase || "Routine"}</p>
+                        <h3 className="display-2 mt-3 text-2xl text-ink">{routineDay.title}</h3>
+                        <p className="mt-1.5 text-[0.92rem] text-cocoa-600">{routineDay.focus}</p>
+                        <ul className="mt-5 space-y-3">
+                          {routineDay.steps.map((s, i) => (
+                            <li key={i} className="flex items-start gap-3 text-[0.95rem] text-cocoa-800">
+                              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-sand font-display text-sm text-cocoa-700">
+                                {i + 1}
+                              </span>
+                              <span className="pt-0.5">{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </motion.section>
                     )}
-                  </div>
+
+                    {/* Photos avant / après */}
+                    <motion.section
+                      variants={fadeUp}
+                      initial="hidden"
+                      animate="show"
+                      custom={2}
+                      className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60 backdrop-blur-sm"
+                    >
+                      <div className="flex items-baseline justify-between">
+                        <h3 className="display-2 text-xl text-ink">Ta photo du jour</h3>
+                        <span className="text-xs text-cocoa-500">avant → après</span>
+                      </div>
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        <PhotoSlot label="Avant" url={beforeUrl} busy={busy} onPick={(f) => uploadPhoto("before", f)} />
+                        <PhotoSlot label="Après" url={afterUrl} busy={busy} onPick={(f) => uploadPhoto("after", f)} />
+                      </div>
+                    </motion.section>
+
+                    {/* Validation */}
+                    <div>
+                      <button
+                        onClick={validateDay}
+                        disabled={busy || !beforeUrl}
+                        className="btn-primary w-full disabled:opacity-50"
+                      >
+                        {busy ? "Un instant…" : "Valider ma journée"}
+                      </button>
+                      {!beforeUrl && (
+                        <p className="mt-2 text-center text-xs text-cocoa-500">
+                          Ajoute au moins ta photo « avant » pour valider.
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             ))}
@@ -404,6 +421,78 @@ export function Dashboard(props: Props) {
 }
 
 /* ── Sous-composants ──────────────────────────────────────────── */
+
+function CooldownSection({
+  unlockMs,
+  now,
+  day,
+  routineDay,
+}: {
+  unlockMs: number;
+  now: number;
+  day: number;
+  routineDay?: RoutineDay;
+}) {
+  const rem = Math.max(0, unlockMs - now);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const h = Math.floor(rem / 3_600_000);
+  const m = Math.floor(rem / 60_000) % 60;
+  const s = Math.floor(rem / 1000) % 60;
+  const progress = 100 - (rem / 86_400_000) * 100;
+
+  return (
+    <>
+      {/* Compte à rebours */}
+      <motion.section
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        custom={1}
+        className="rounded-5xl bg-ink p-7 text-center text-cream shadow-soft"
+      >
+        <p className="font-display text-lg">Bravo, journée validée ✨</p>
+        <p className="mt-1 text-sm text-clay-300">Prochaine séance débloquée dans</p>
+        <p className="mt-4 font-display text-5xl tabular-nums tracking-tight">
+          {pad(h)}:{pad(m)}:{pad(s)}
+        </p>
+        <div className="mx-auto mt-5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-cream/15">
+          <div className="h-full rounded-full bg-clay-300 transition-all" style={{ width: `${progress}%` }} />
+        </div>
+        <p className="mt-4 text-xs text-clay-300">
+          Reviens prendre ta photo « avant » dès le déblocage.
+        </p>
+      </motion.section>
+
+      {/* À préparer pour demain */}
+      {routineDay && (
+        <motion.section
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={2}
+          className="rounded-4xl bg-sand/50 p-6 ring-1 ring-clay-200/60"
+        >
+          <p className="eyebrow">À préparer pour demain</p>
+          <h3 className="display-2 mt-3 text-xl text-ink">
+            Jour {day} · {routineDay.title}
+          </h3>
+          <p className="mt-1.5 text-[0.92rem] text-cocoa-600">{routineDay.focus}</p>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-cocoa-500">
+            Ce qu'il te faudra
+          </p>
+          <ul className="mt-2.5 space-y-2">
+            {routineDay.steps.map((s, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-[0.9rem] text-cocoa-800">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-clay-400" />
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        </motion.section>
+      )}
+    </>
+  );
+}
 
 function phaseTitle(phase: string | undefined, day: number) {
   if (phase) return phase;
