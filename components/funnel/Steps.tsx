@@ -17,6 +17,7 @@ import {
 } from "@/components/Illustrations";
 import type { StepProps } from "./types";
 import type { CutSuggestion } from "@/lib/funnel-types";
+import { createClient } from "@/lib/supabase/client";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -824,28 +825,85 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
   const [error, setError] = useState<string | null>(null);
   const [noConfig, setNoConfig] = useState(false);
 
+  // Compte : on doit relier le paiement à un utilisateur.
+  const [authed, setAuthed] = useState<boolean | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    createClient()
+      .auth.getUser()
+      .then(({ data: { user } }) => setAuthed(Boolean(user)))
+      .catch(() => setAuthed(false));
+  }, []);
+
+  async function startCheckout() {
+    // on sauvegarde l'état du funnel (Stripe redirige hors de l'app)
+    try {
+      sessionStorage.setItem("capilytix_funnel", JSON.stringify(data));
+    } catch {}
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const j = await res.json();
+    if (j.ok && j.url) {
+      window.location.href = j.url;
+      return;
+    }
+    if (j.reason === "no-config") setNoConfig(true);
+    else if (j.reason === "no-auth") setError("Connecte-toi pour continuer.");
+    else setError(j.error || "Impossible de lancer le paiement.");
+  }
+
+  // Utilisateur déjà connecté → directement au paiement.
   async function pay() {
     setBusy(true);
     setError(null);
     try {
-      // on sauvegarde l'état du funnel (Stripe redirige hors de l'app)
-      try {
-        sessionStorage.setItem("capilytix_funnel", JSON.stringify(data));
-      } catch {}
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
-      const j = await res.json();
-      if (j.ok && j.url) {
-        window.location.href = j.url;
-        return;
-      }
-      if (j.reason === "no-config") setNoConfig(true);
-      else setError(j.error || "Impossible de lancer le paiement.");
+      await startCheckout();
     } catch {
       setError("Impossible de lancer le paiement.");
+    }
+    setBusy(false);
+  }
+
+  // Crée le compte (ou se connecte si déjà inscrit) puis lance le paiement.
+  async function registerAndPay(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const reg = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      }).then((r) => r.json());
+
+      if (!reg.ok && !reg.exists) {
+        setError(reg.error || "Inscription impossible.");
+        setBusy(false);
+        return;
+      }
+
+      const { error: signInError } = await createClient().auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) {
+        setError(
+          reg.exists
+            ? "Cet email a déjà un compte — mauvais mot de passe ?"
+            : signInError.message,
+        );
+        setBusy(false);
+        return;
+      }
+
+      await startCheckout();
+    } catch {
+      setError("Une erreur est survenue.");
     }
     setBusy(false);
   }
@@ -878,9 +936,39 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
               Continuer en démo (test)
             </button>
           </div>
+        ) : authed === false ? (
+          <form onSubmit={registerAndPay} className="mt-5 space-y-3">
+            <p className="text-sm text-cocoa-700">
+              Crée ton compte pour accéder à ton programme et le retrouver à
+              chaque connexion.
+            </p>
+            <input
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="Ton email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-ink outline-none focus:border-cocoa-400"
+            />
+            <input
+              type="password"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              placeholder="Mot de passe (6 caractères min.)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-ink outline-none focus:border-cocoa-400"
+            />
+            <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
+              {busy ? "Un instant…" : `Créer mon compte et payer — ${siteConfig.price.amount}`}
+            </button>
+            {error && <p className="text-center text-sm text-clay-600">{error}</p>}
+          </form>
         ) : (
           <>
-            <button onClick={pay} disabled={busy} className="btn-primary mt-5 w-full disabled:opacity-60">
+            <button onClick={pay} disabled={busy || authed === null} className="btn-primary mt-5 w-full disabled:opacity-60">
               {busy ? "Redirection…" : `Payer par carte — ${siteConfig.price.amount}`}
             </button>
             {error && <p className="mt-3 text-center text-sm text-clay-600">{error}</p>}

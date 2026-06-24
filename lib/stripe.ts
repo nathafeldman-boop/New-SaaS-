@@ -54,7 +54,10 @@ export function verifyWebhookSignature(
 export class StripeError extends Error {}
 
 /** Crée une session de paiement et renvoie l'URL de checkout hébergée. */
-export async function createCheckoutSession(origin: string): Promise<string> {
+export async function createCheckoutSession(
+  origin: string,
+  opts?: { userId?: string; email?: string },
+): Promise<string> {
   const key = process.env.STRIPE_SECRET_KEY;
   const price = process.env.STRIPE_PRICE_ID;
   if (!key || !price) throw new StripeError("Stripe non configuré");
@@ -67,6 +70,14 @@ export async function createCheckoutSession(origin: string): Promise<string> {
     cancel_url: `${origin}/scan?canceled=1`,
     allow_promotion_codes: "true",
   });
+
+  // Relie le paiement au compte : le webhook s'en sert pour activer l'abonnement.
+  if (opts?.userId) {
+    params.set("client_reference_id", opts.userId);
+    params.set("subscription_data[metadata][user_id]", opts.userId);
+    params.set("metadata[user_id]", opts.userId);
+  }
+  if (opts?.email) params.set("customer_email", opts.email);
 
   const res = await fetch(`${API}/checkout/sessions`, {
     method: "POST",
@@ -83,6 +94,20 @@ export async function createCheckoutSession(origin: string): Promise<string> {
     throw new StripeError(json?.error?.message || `Stripe ${res.status}`);
   }
   return json.url as string;
+}
+
+/** Récupère un abonnement Stripe (statut, fin de période, tarif). */
+export async function getSubscription(
+  id: string,
+): Promise<Record<string, any> | null> {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  const res = await fetch(`${API}/subscriptions/${id}`, {
+    headers: { Authorization: `Bearer ${key}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) return null;
+  return res.json().catch(() => null);
 }
 
 /** Vérifie qu'une session de checkout est bien payée. */

@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 /**
@@ -35,8 +36,7 @@ export async function createClient() {
  * ⚠️ Serveur uniquement. Réservé au webhook Stripe et aux tâches d'arrière-plan.
  */
 export function createAdminClient() {
-  const { createClient: createRawClient } = require("@supabase/supabase-js");
-  return createRawClient(
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false } },
