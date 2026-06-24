@@ -61,13 +61,25 @@ export function Funnel() {
     handledReturn.current = true;
     const params = new URLSearchParams(window.location.search);
     const sid = params.get("session_id");
-    if (!sid) return;
+    const canceled = params.get("canceled");
+    if (!sid && !canceled) return;
 
     // restaure l'état du funnel sauvegardé avant la redirection
     try {
       const saved = sessionStorage.getItem("capilytix_funnel");
       if (saved) setData(JSON.parse(saved));
     } catch {}
+
+    const checkoutIndex = STEPS.findIndex((s) => s.id === "checkout");
+    const cutsIndex = STEPS.findIndex((s) => s.id === "cuts");
+    const paywallIndex = STEPS.findIndex((s) => s.id === "paywall");
+
+    // Annulation (flèche retour de Stripe) : on revient pile sur l'étape Paiement.
+    if (canceled && !sid) {
+      setIndex(checkoutIndex);
+      window.history.replaceState({}, "", "/scan");
+      return;
+    }
 
     (async () => {
       let paid = false;
@@ -80,8 +92,6 @@ export function Funnel() {
         const j = await res.json();
         paid = Boolean(j.ok && j.paid);
       } catch {}
-      const cutsIndex = STEPS.findIndex((s) => s.id === "cuts");
-      const paywallIndex = STEPS.findIndex((s) => s.id === "paywall");
       if (paid) {
         setData((d) => ({ ...d, paid: true }));
         setIndex(cutsIndex);
