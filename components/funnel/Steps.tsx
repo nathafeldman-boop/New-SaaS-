@@ -804,7 +804,10 @@ export function Paywall({ next, back }: StepProps) {
 }
 
 /* ── 7. Paiement ──────────────────────────────────────────────── */
-const WHOP_URL = process.env.NEXT_PUBLIC_WHOP_CHECKOUT_URL;
+// Lien de checkout Whop (surchargé par NEXT_PUBLIC_WHOP_CHECKOUT_URL si défini).
+const WHOP_URL =
+  process.env.NEXT_PUBLIC_WHOP_CHECKOUT_URL ??
+  "https://whop.com/smartapp-8757/cycle-capilytix-30-jours";
 
 export function Checkout(props: StepProps) {
   return WHOP_URL ? <WhopCheckout url={WHOP_URL} {...props} /> : <DemoCheckout {...props} />;
