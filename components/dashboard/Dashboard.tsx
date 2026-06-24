@@ -438,7 +438,8 @@ function CooldownSection({
   const h = Math.floor(rem / 3_600_000);
   const m = Math.floor(rem / 60_000) % 60;
   const s = Math.floor(rem / 1000) % 60;
-  const progress = 100 - (rem / 86_400_000) * 100;
+  const C = 2 * Math.PI * 70;
+  const dashoffset = C * (1 - rem / 86_400_000);
 
   return (
     <>
@@ -448,18 +449,64 @@ function CooldownSection({
         initial="hidden"
         animate="show"
         custom={1}
-        className="rounded-5xl bg-ink p-7 text-center text-cream shadow-soft"
+        className="relative overflow-hidden rounded-5xl bg-gradient-to-b from-ink to-[#241f1c] p-8 text-center text-cream shadow-soft"
       >
-        <p className="font-display text-lg">Bravo, journée validée ✨</p>
-        <p className="mt-1 text-sm text-clay-300">Prochaine séance débloquée dans</p>
-        <p className="mt-4 font-display text-5xl tabular-nums tracking-tight">
-          {pad(h)}:{pad(m)}:{pad(s)}
-        </p>
-        <div className="mx-auto mt-5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-cream/15">
-          <div className="h-full rounded-full bg-clay-300 transition-all" style={{ width: `${progress}%` }} />
+        <LivingStrands className="pointer-events-none absolute -right-12 -top-14 h-60 w-60 text-clay-400/15" />
+        <div className="pointer-events-none absolute -bottom-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-clay-400/10 blur-3xl" />
+
+        <p className="relative text-[0.68rem] uppercase tracking-[0.28em] text-clay-300">Séance verrouillée</p>
+        <p className="relative mt-2 font-display text-lg">Bravo, journée validée ✨</p>
+
+        <div className="relative mx-auto mt-7 h-56 w-56">
+          <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
+            <circle
+              cx="80"
+              cy="80"
+              r="70"
+              fill="none"
+              stroke="url(#cd-grad)"
+              strokeWidth="7"
+              strokeLinecap="round"
+              strokeDasharray={C}
+              strokeDashoffset={dashoffset}
+              style={{ transition: "stroke-dashoffset 1s linear" }}
+            />
+            <defs>
+              <linearGradient id="cd-grad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#eccfa6" />
+                <stop offset="100%" stopColor="#c2855a" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="font-display text-[2.6rem] leading-none tabular-nums tracking-tight">
+              {pad(h)}:{pad(m)}:{pad(s)}
+            </span>
+            <span className="mt-2 text-[0.6rem] uppercase tracking-[0.24em] text-clay-300">
+              avant déblocage
+            </span>
+          </div>
         </div>
-        <p className="mt-4 text-xs text-clay-300">
-          Reviens prendre ta photo « avant » dès le déblocage.
+
+        <div className="relative mx-auto mt-7 flex max-w-xs items-center justify-center gap-5 text-clay-300">
+          {[
+            ["Heures", pad(h)],
+            ["Min", pad(m)],
+            ["Sec", pad(s)],
+          ].map(([label, val], i) => (
+            <div key={label} className="flex items-center gap-5">
+              {i > 0 && <span className="font-display text-2xl text-cream/25">:</span>}
+              <div className="text-center">
+                <div className="font-display text-2xl tabular-nums text-cream">{val}</div>
+                <div className="mt-0.5 text-[0.55rem] uppercase tracking-[0.18em]">{label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="relative mt-6 text-xs text-clay-300/90">
+          La routine et tes photos se débloquent automatiquement à zéro.
         </p>
       </motion.section>
 
