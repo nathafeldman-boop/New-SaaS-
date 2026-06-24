@@ -7,10 +7,13 @@ import { Pricing } from "@/components/Pricing";
 import { Faq } from "@/components/Faq";
 import { FinalCta } from "@/components/FinalCta";
 import { Footer } from "@/components/Footer";
+import { JsonLd } from "@/components/JsonLd";
+import { homepageJsonLd } from "@/lib/structured-data";
 
 export default function Home() {
   return (
     <div className="grain relative">
+      <JsonLd data={homepageJsonLd()} />
       <Nav />
       <main>
         <Hero />
