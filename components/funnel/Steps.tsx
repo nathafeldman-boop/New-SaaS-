@@ -132,7 +132,7 @@ export function Intro({ next }: StepProps) {
         <div className="relative overflow-hidden rounded-[2.5rem] border border-clay-200 bg-grad-warm p-8 shadow-soft">
           <img
             src="/brand/logo.png"
-            alt="Capilytix"
+            alt="Capilatyx"
             className="mx-auto w-52"
           />
           <motion.div
@@ -1033,7 +1033,7 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
       <StepTitle title="Paiement sécurisé" />
       <div className="mt-6 rounded-[2rem] border border-clay-200 bg-paper p-6">
         <div className="flex items-center justify-between border-b border-clay-200 pb-4">
-          <span className="text-cocoa-700">Cycle Capilytix</span>
+          <span className="text-cocoa-700">Cycle Capilatyx</span>
           <span className="font-display text-xl text-ink">
             {siteConfig.price.amount}
             <span className="text-sm text-cocoa-600"> {siteConfig.price.period}</span>

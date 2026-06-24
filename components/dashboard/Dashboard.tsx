@@ -161,7 +161,7 @@ export function Dashboard(props: Props) {
         {/* En-tête */}
         <header className="flex items-center justify-between">
           <a href="/" className="font-display text-[1.6rem] tracking-tight text-ink">
-            Capilytix
+            Capilatyx
           </a>
           {started && (
             <div className="flex items-center gap-2 text-xs">
@@ -472,7 +472,7 @@ export function Dashboard(props: Props) {
               <p className="mt-1 text-sm text-cocoa-600">
                 {props.subscription.via === "code"
                   ? "Accès via code d'accès."
-                  : "Cycle Capilytix — 10,90 € / mois, sans engagement."}
+                  : "Cycle Capilatyx — 10,90 € / mois, sans engagement."}
               </p>
               {props.subscription.via === "stripe" ? (
                 <button onClick={openPortal} disabled={busy} className="btn-ghost mt-5 w-full disabled:opacity-50">

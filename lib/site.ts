@@ -4,7 +4,7 @@
 // ──────────────────────────────────────────────────────────────────────────
 
 export const siteConfig = {
-  name: "Capilytix",
+  name: "Capilatyx",
   tagline: "Ton coach capillaire IA",
   description:
     "Prends-toi en photo, reçois une routine capillaire de 30 jours faite pour tes cheveux, et essaie des coupes avant de passer chez le coiffeur.",
@@ -13,7 +13,7 @@ export const siteConfig = {
   // ── SEO : leviers principaux (title/description/mots-clés) ──────────────
   seo: {
     // ~58 caractères — sous la limite d'affichage Google.
-    title: "Capilytix — Coach capillaire IA & routine cheveux 30 jours",
+    title: "Capilatyx — Coach capillaire IA & routine cheveux 30 jours",
     // ~150 caractères, riche en mots-clés mais naturel.
     description:
       "Diagnostic capillaire par IA en photo, routine sur-mesure de 30 jours, suivi de la calvitie et essayage de coupes avant le coiffeur. Sans installation.",
@@ -28,7 +28,7 @@ export const siteConfig = {
       "simulateur de coupe",
       "suivi calvitie Norwood",
       "produits capillaires recommandés",
-      "Capilytix",
+      "Capilatyx",
     ],
   },
   price: {
