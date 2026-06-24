@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { baselineScore, requireActive } from "@/lib/program";
+import { sendEmail, welcomeEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,12 @@ export async function POST(req: Request) {
       { user_id: user!.id, day_number: 1, score },
       { onConflict: "user_id,day_number" },
     );
+
+  // Email de bienvenue (sans bloquer la réponse si Resend n'est pas prêt).
+  if (user!.email) {
+    const { subject, html } = welcomeEmail();
+    sendEmail({ to: user!.email, subject, html }).catch(() => {});
+  }
 
   return NextResponse.json({ ok: true });
 }
