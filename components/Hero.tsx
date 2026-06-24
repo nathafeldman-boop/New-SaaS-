@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { siteConfig } from "@/lib/site";
-import { IconArrow, StrandFlow } from "./Illustrations";
+import { IconArrow } from "./Illustrations";
+import { LivingStrands } from "./LivingStrands";
 import { Carousel } from "./Carousel";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -13,7 +14,7 @@ export function Hero() {
       {/* formes douces en arrière-plan */}
       <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-clay-200/50 blur-3xl" />
       <div className="pointer-events-none absolute -right-24 top-40 h-96 w-96 rounded-full bg-latte/50 blur-3xl" />
-      <StrandFlow className="pointer-events-none absolute -right-10 -top-6 h-[520px] w-[520px] text-clay-400/40" />
+      <LivingStrands className="pointer-events-none absolute -right-10 -top-6 h-[520px] w-[520px] text-clay-400/45" />
 
       <div className="container-page relative grid items-center gap-14 pb-24 lg:grid-cols-2 lg:pb-32">
         {/* Colonne texte */}
