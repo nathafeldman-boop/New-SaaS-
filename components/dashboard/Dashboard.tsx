@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import { LivingStrands } from "@/components/LivingStrands";
@@ -43,13 +43,13 @@ type CatalogCut = {
 };
 
 const TABS = [
-  { key: "today", label: "Aujourd'hui" },
-  { key: "evolution", label: "Évolution" },
-  { key: "scalp", label: "Calvitie" },
-  { key: "products", label: "Produits" },
-  { key: "cuts", label: "Coupes" },
-  { key: "sub", label: "Abonnement" },
-  { key: "profile", label: "Profil" },
+  { key: "today", label: "Aujourd'hui", icon: "🌿", hint: "Ta routine & ta journée" },
+  { key: "evolution", label: "Évolution", icon: "📈", hint: "Score, radar & photos" },
+  { key: "scalp", label: "Calvitie", icon: "🪞", hint: "Suivi Norwood en 3D" },
+  { key: "products", label: "Produits", icon: "🧴", hint: "Reco & analyse d'ingrédients" },
+  { key: "cuts", label: "Coupes", icon: "✂️", hint: "Tes coupes & le catalogue" },
+  { key: "sub", label: "Abonnement", icon: "✨", hint: "Gérer ton accès" },
+  { key: "profile", label: "Profil", icon: "👤", hint: "Compte & diagnostic" },
 ] as const;
 
 const fadeUp = {
@@ -64,6 +64,8 @@ const fadeUp = {
 export function Dashboard(props: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("today");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const current = TABS.find((t) => t.key === tab) ?? TABS[0];
   const [day, setDay] = useState(props.currentDay || 1);
   const [score, setScore] = useState(props.score ?? null);
   const [lastAt, setLastAt] = useState(props.lastCompletedAt);
@@ -155,7 +157,7 @@ export function Dashboard(props: Props) {
 
   return (
     <main className="grain relative min-h-screen bg-grad-warm">
-      <div className="mx-auto max-w-2xl px-4 pb-20 pt-7">
+      <div className="mx-auto max-w-2xl px-5 pb-28 pt-8">
         {/* En-tête */}
         <header className="flex items-center justify-between">
           <a href="/" className="font-display text-[1.6rem] tracking-tight text-ink">
@@ -170,30 +172,81 @@ export function Dashboard(props: Props) {
           )}
         </header>
 
-        {/* Onglets */}
-        <nav className="mt-6 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition-all ${
-                tab === t.key
-                  ? "bg-ink text-cream shadow-soft"
-                  : "bg-paper/60 text-cocoa-700 ring-1 ring-clay-200/70 hover:bg-paper"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
+        {/* Navigation par menu (déclutter : un seul bouton) */}
+        <div className="relative z-30 mt-7">
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-expanded={menuOpen}
+            className="flex w-full items-center justify-between rounded-3xl bg-paper/80 px-5 py-4 shadow-card ring-1 ring-clay-200/70 backdrop-blur-sm transition hover:bg-paper"
+          >
+            <span className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-sand text-lg">
+                {current.icon}
+              </span>
+              <span className="text-left">
+                <span className="block font-display text-lg leading-tight text-ink">
+                  {current.label}
+                </span>
+                <span className="block text-[0.72rem] text-cocoa-500">{current.hint}</span>
+              </span>
+            </span>
+            <span className="flex items-center gap-2 text-[0.72rem] font-medium uppercase tracking-wider text-cocoa-500">
+              Menu
+              <motion.span animate={{ rotate: menuOpen ? 180 : 0 }} className="text-base">
+                ⌄
+              </motion.span>
+            </span>
+          </button>
 
-        <div className="mt-6">
+          <AnimatePresence>
+            {menuOpen && (
+              <>
+                {/* Fond cliquable pour fermer */}
+                <button
+                  aria-label="Fermer le menu"
+                  onClick={() => setMenuOpen(false)}
+                  className="fixed inset-0 z-20 cursor-default"
+                />
+                <motion.nav
+                  initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute left-0 right-0 top-full z-30 mt-2 grid grid-cols-2 gap-1.5 rounded-3xl bg-paper p-2 shadow-soft ring-1 ring-clay-200/70"
+                >
+                  {TABS.map((t) => {
+                    const active = t.key === tab;
+                    return (
+                      <button
+                        key={t.key}
+                        onClick={() => {
+                          setTab(t.key);
+                          setMenuOpen(false);
+                        }}
+                        className={`flex items-center gap-2.5 rounded-2xl px-3 py-3 text-left transition ${
+                          active
+                            ? "bg-ink text-cream"
+                            : "text-cocoa-700 hover:bg-sand/70"
+                        }`}
+                      >
+                        <span className="text-base">{t.icon}</span>
+                        <span className="text-sm font-medium">{t.label}</span>
+                      </button>
+                    );
+                  })}
+                </motion.nav>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="mt-7">
           {/* ───── AUJOURD'HUI ───── */}
           {tab === "today" &&
             (!started ? (
               <EmptyState />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {/* Héros : anneau de progression + score */}
                 <motion.section
                   variants={fadeUp}
@@ -312,7 +365,7 @@ export function Dashboard(props: Props) {
 
           {/* ───── ÉVOLUTION ───── */}
           {tab === "evolution" && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <section className="rounded-5xl bg-ink p-6 text-center text-cream shadow-soft">
                 <p className="text-xs uppercase tracking-[0.22em] text-clay-300">Ton score capillaire</p>
                 <p className="mt-2 font-display text-6xl leading-none">{score != null ? Math.round(score) : "—"}</p>
