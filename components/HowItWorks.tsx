@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Reveal } from "./Reveal";
-import { IconCamera, IconScissors, IconSparkle, StrandFlow } from "./Illustrations";
+import { IconCamera, IconScissors, IconSparkle } from "./Illustrations";
+import { LivingStrands } from "./LivingStrands";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -33,7 +34,7 @@ const steps = [
 export function HowItWorks() {
   return (
     <section id="methode" className="relative overflow-hidden py-24 sm:py-32">
-      <StrandFlow className="pointer-events-none absolute -left-16 top-24 h-[460px] w-[460px] rotate-180 text-clay-300/30" />
+      <LivingStrands delay={1} className="pointer-events-none absolute -left-16 top-24 h-[460px] w-[460px] rotate-180 text-clay-300/30" />
       <div className="container-page relative">
         <div className="max-w-2xl">
           <Reveal>

@@ -14,7 +14,10 @@ const strand = (o: number) =>
  * doucement, avec une lueur qui glisse le long du cheveu — l'évolution
  * vers des cheveux sains. Décoratif, derrière le contenu.
  */
-export function LivingStrands(props: SVGProps<SVGSVGElement>) {
+export function LivingStrands({
+  delay = 0,
+  ...props
+}: { delay?: number } & SVGProps<SVGSVGElement>) {
   const reduce = useReducedMotion();
 
   return (
@@ -53,7 +56,7 @@ export function LivingStrands(props: SVGProps<SVGSVGElement>) {
               animate={{ strokeDashoffset: [1100, 0] }}
               transition={{
                 duration: 3.4,
-                delay: 1.4 + i * 1.7,
+                delay: delay + 1.4 + i * 1.7,
                 repeat: Infinity,
                 repeatDelay: 2.6,
                 ease: "easeInOut",

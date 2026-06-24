@@ -2,7 +2,8 @@
 
 import { siteConfig } from "@/lib/site";
 import { Reveal } from "./Reveal";
-import { IconArrow, IconCheck, StrandFlow } from "./Illustrations";
+import { IconArrow, IconCheck } from "./Illustrations";
+import { LivingStrands } from "./LivingStrands";
 
 const included = [
   "Un cycle complet de 30 jours",
@@ -35,7 +36,7 @@ export function Pricing() {
 
         <Reveal delay={0.1}>
           <div className="relative mx-auto mt-12 max-w-md overflow-hidden rounded-5xl border border-clay-300/60 bg-paper p-8 shadow-soft sm:p-10">
-            <StrandFlow className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/50" />
+            <LivingStrands delay={1.6} className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/50" />
             <div className="relative">
               <p className="font-display text-xl text-ink">Cycle {siteConfig.name}</p>
               <div className="mt-4 flex items-end gap-2">

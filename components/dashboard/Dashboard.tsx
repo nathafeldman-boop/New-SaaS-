@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
+import { LivingStrands } from "@/components/LivingStrands";
 import type { CutsResult, HairAnalysis, Routine } from "@/lib/funnel-types";
 
 type Entry = {
@@ -162,12 +163,13 @@ export function Dashboard(props: Props) {
                   variants={fadeUp}
                   initial="hidden"
                   animate="show"
-                  className="overflow-hidden rounded-5xl bg-ink p-6 text-cream shadow-soft"
+                  className="relative overflow-hidden rounded-5xl bg-ink p-6 text-cream shadow-soft"
                 >
-                  <p className="text-xs uppercase tracking-[0.22em] text-clay-300">
+                  <LivingStrands className="pointer-events-none absolute -right-8 -top-10 h-64 w-64 text-clay-400/25" />
+                  <p className="relative text-xs uppercase tracking-[0.22em] text-clay-300">
                     {greeting} · {props.email.split("@")[0]}
                   </p>
-                  <div className="mt-4 flex items-center gap-5">
+                  <div className="relative mt-4 flex items-center gap-5">
                     <Ring value={day} max={30}>
                       <span className="text-[0.62rem] uppercase tracking-widest text-clay-300">Jour</span>
                       <span className="font-display text-4xl leading-none">{day}</span>

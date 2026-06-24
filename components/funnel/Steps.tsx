@@ -13,8 +13,8 @@ import {
   IconDrop,
   IconScissors,
   IconSparkle,
-  StrandFlow,
 } from "@/components/Illustrations";
+import { LivingStrands } from "@/components/LivingStrands";
 import type { StepProps } from "./types";
 import type { CutSuggestion } from "@/lib/funnel-types";
 import { createClient } from "@/lib/supabase/client";
@@ -128,7 +128,7 @@ export function Intro({ next }: StepProps) {
         transition={{ duration: 0.7, ease }}
         className="relative mx-auto w-full max-w-sm"
       >
-        <StrandFlow className="pointer-events-none absolute -right-10 -top-8 h-72 w-72 text-clay-400/40" />
+        <LivingStrands className="pointer-events-none absolute -right-10 -top-8 h-72 w-72 text-clay-400/40" />
         <div className="relative overflow-hidden rounded-[2.5rem] border border-clay-200 bg-grad-warm p-8 shadow-soft">
           <img
             src="/brand/logo.png"
@@ -776,7 +776,7 @@ export function Paywall({ data, next, back }: StepProps) {
   return (
     <div className="mx-auto max-w-md">
       <div className="relative overflow-hidden rounded-[2.5rem] border border-clay-300/60 bg-paper p-7 shadow-soft sm:p-9">
-        <StrandFlow className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/40" />
+        <LivingStrands delay={1.2} className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/40" />
         <div className="relative">
           {/* badge diagnostic terminé */}
           <div className="flex justify-center">

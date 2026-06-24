@@ -2,7 +2,7 @@
 
 import { siteConfig } from "@/lib/site";
 import { Reveal } from "./Reveal";
-import { IconArrow, StrandFlow } from "./Illustrations";
+import { IconArrow } from "./Illustrations";
 import { LivingStrands } from "./LivingStrands";
 
 export function FinalCta() {
@@ -10,7 +10,7 @@ export function FinalCta() {
     <section className="px-5 pb-16 sm:px-8">
       <div className="relative mx-auto max-w-6xl overflow-hidden rounded-5xl bg-ink px-6 py-20 text-center sm:py-28">
         <LivingStrands className="pointer-events-none absolute -left-16 top-0 h-[420px] w-[420px] text-clay-500/45" />
-        <StrandFlow className="pointer-events-none absolute -right-16 bottom-0 h-[420px] w-[420px] rotate-180 text-clay-500/30" />
+        <LivingStrands delay={2.5} className="pointer-events-none absolute -right-16 bottom-0 h-[420px] w-[420px] rotate-180 text-clay-500/30" />
         <div className="relative mx-auto max-w-2xl">
           <Reveal>
             <h2 className="display-2 text-balance text-4xl text-cream sm:text-6xl">
