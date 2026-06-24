@@ -3,10 +3,52 @@
 //  Clés lues côté serveur uniquement (STRIPE_SECRET_KEY / STRIPE_PRICE_ID).
 // ──────────────────────────────────────────────────────────────────────────
 
+import { createHmac, timingSafeEqual } from "crypto";
+
 const API = "https://api.stripe.com/v1";
 
 export function hasStripeConfig(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID);
+}
+
+/**
+ * Vérifie la signature d'un webhook Stripe (sans SDK).
+ * Header `Stripe-Signature` : `t=timestamp,v1=signature`.
+ * Payload signé = `${t}.${rawBody}`, HMAC-SHA256 avec le secret `whsec_…`.
+ */
+export function verifyWebhookSignature(
+  rawBody: string,
+  sigHeader: string | null,
+  secret: string,
+  toleranceSec = 300,
+): boolean {
+  if (!sigHeader) return false;
+
+  let timestamp = "";
+  const signatures: string[] = [];
+  for (const part of sigHeader.split(",")) {
+    const [k, v] = part.split("=");
+    if (k === "t") timestamp = v;
+    if (k === "v1") signatures.push(v);
+  }
+  if (!timestamp || signatures.length === 0) return false;
+
+  // Anti-rejeu : on refuse les signatures trop vieilles.
+  const age = Math.floor(Date.now() / 1000) - Number(timestamp);
+  if (!Number.isFinite(age) || age > toleranceSec) return false;
+
+  const expected = createHmac("sha256", secret)
+    .update(`${timestamp}.${rawBody}`, "utf8")
+    .digest("hex");
+  const expectedBuf = Buffer.from(expected, "hex");
+
+  return signatures.some((sig) => {
+    const sigBuf = Buffer.from(sig, "hex");
+    return (
+      sigBuf.length === expectedBuf.length &&
+      timingSafeEqual(sigBuf, expectedBuf)
+    );
+  });
 }
 
 export class StripeError extends Error {}
