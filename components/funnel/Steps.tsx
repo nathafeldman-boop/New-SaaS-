@@ -803,8 +803,95 @@ export function Paywall({ next, back }: StepProps) {
   );
 }
 
-/* ── 7. Paiement (démo) ───────────────────────────────────────── */
-export function Checkout({ update, next, back }: StepProps) {
+/* ── 7. Paiement ──────────────────────────────────────────────── */
+const WHOP_URL = process.env.NEXT_PUBLIC_WHOP_CHECKOUT_URL;
+
+export function Checkout(props: StepProps) {
+  return WHOP_URL ? <WhopCheckout url={WHOP_URL} {...props} /> : <DemoCheckout {...props} />;
+}
+
+function WhopCheckout({ url, update, next, back }: StepProps & { url: string }) {
+  const [license, setLicense] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function verify(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/whop/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ license }),
+      });
+      const j = await res.json();
+      if (j.ok && j.valid) {
+        update({ paid: true });
+        next();
+        return;
+      }
+      if (j.reason === "no-key")
+        setError("Vérification Whop non configurée côté serveur (WHOP_API_KEY).");
+      else if (j.ok && !j.valid)
+        setError("Clé invalide ou abonnement inactif.");
+      else setError(j.error || "Vérification impossible.");
+    } catch {
+      setError("Vérification impossible.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-md">
+      <StepTitle title="Débloque ta routine" />
+      <p className="mt-3 text-cocoa-700">
+        Le paiement se fait en sécurité via Whop. Une fois payé, colle ta clé de
+        licence pour activer ton accès.
+      </p>
+
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-primary mt-6 w-full"
+      >
+        Payer via Whop — {siteConfig.price.amount}
+      </a>
+
+      <form
+        onSubmit={verify}
+        className="mt-6 space-y-4 rounded-[2rem] border border-clay-200 bg-paper p-6"
+      >
+        <label className="block">
+          <span className="text-xs font-semibold uppercase tracking-wider text-clay-600">
+            Déjà payé ? Colle ta clé de licence Whop
+          </span>
+          <input
+            value={license}
+            onChange={(e) => setLicense(e.target.value)}
+            placeholder="XXXX-XXXX-XXXX-XXXX"
+            className="mt-1.5 w-full rounded-xl border border-clay-200 bg-cream/60 px-4 py-3 text-ink outline-none transition focus:border-clay-400 focus:bg-paper"
+          />
+        </label>
+        {error && <p className="text-sm text-clay-600">{error}</p>}
+        <button type="submit" disabled={busy || !license} className="btn-primary w-full disabled:opacity-50">
+          {busy ? "Vérification…" : "Valider mon accès"}
+        </button>
+        <button
+          type="button"
+          onClick={back}
+          className="block w-full text-center text-sm text-cocoa-600 hover:underline"
+        >
+          Retour
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function DemoCheckout({ update, next, back }: StepProps) {
   const [busy, setBusy] = useState(false);
   function pay(e: React.FormEvent) {
     e.preventDefault();
@@ -818,7 +905,7 @@ export function Checkout({ update, next, back }: StepProps) {
     <div className="mx-auto max-w-md">
       <StepTitle title="Paiement" />
       <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-clay-300 bg-sand/60 px-3 py-1.5 text-xs font-medium text-cocoa-700">
-        <IconSparkle className="h-3 w-3" /> Démo — aucun prélèvement réel (Stripe à brancher)
+        <IconSparkle className="h-3 w-3" /> Démo — aucun prélèvement réel (Whop à brancher)
       </div>
       <form onSubmit={pay} className="mt-6 space-y-4 rounded-[2rem] border border-clay-200 bg-paper p-6">
         <Field label="Nom sur la carte" placeholder="Alex Martin" />
