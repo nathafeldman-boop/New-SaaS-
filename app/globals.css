@@ -106,6 +106,36 @@
   .card {
     @apply rounded-4xl border border-clay-200/70 bg-paper/80 backdrop-blur-sm;
   }
+
+  /* Slider du suivi de calvitie (échelle de Norwood) */
+  .scalp-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #d8bd9d 0%, #c2855a 100%);
+    outline: none;
+  }
+  .scalp-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 9999px;
+    background: #2c211a;
+    border: 3px solid #f7efe4;
+    box-shadow: 0 2px 6px rgba(44, 33, 26, 0.3);
+    cursor: pointer;
+  }
+  .scalp-range::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 9999px;
+    background: #2c211a;
+    border: 3px solid #f7efe4;
+    box-shadow: 0 2px 6px rgba(44, 33, 26, 0.3);
+    cursor: pointer;
+  }
 }
 
 @layer utilities {

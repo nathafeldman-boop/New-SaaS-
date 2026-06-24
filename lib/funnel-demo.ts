@@ -11,6 +11,7 @@ export const demoAnalysis: HairAnalysis = {
   strengths: ["Mouvement naturel", "Bonne implantation", "Matière exploitable"],
   concerns: ["Pointes sèches", "Manque de définition", "Frisottis en surface"],
   faceShape: "Ovale",
+  norwoodStage: 2,
   keepCurrentCut: false,
   keepReason:
     "Une coupe légèrement structurée mettrait davantage en valeur le mouvement naturel.",

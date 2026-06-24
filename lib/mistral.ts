@@ -86,6 +86,9 @@ export async function analyzeHair(imageDataUrl: string): Promise<HairAnalysis> {
     "Sois bienveillant, précis et concret. Schéma attendu : " +
     '{"summary": string (2 phrases), "hairType": string, "condition": string, ' +
     '"strengths": string[2..3], "concerns": string[2..3], "faceShape": string, ' +
+    '"norwoodStage": number (1 à 7, estimation de la calvitie/ligne frontale sur ' +
+    "l'échelle de Norwood : 1 = aucun recul, 2-3 = golfes qui se creusent, " +
+    "4-5 = dégarnissement frontal + vertex, 6-7 = avancé), " +
     '"keepCurrentCut": boolean, "keepReason": string}.';
 
   const messages: Message[] = [
@@ -95,7 +98,7 @@ export async function analyzeHair(imageDataUrl: string): Promise<HairAnalysis> {
       content: [
         {
           type: "text",
-          text: "Analyse l'état et le type de ces cheveux à partir de la photo. Indique si la coupe actuelle est déjà le meilleur choix (keepCurrentCut).",
+          text: "Analyse l'état et le type de ces cheveux à partir de la photo. Estime le stade de Norwood (norwoodStage, 1 à 7) d'après la ligne frontale et le vertex visibles. Indique si la coupe actuelle est déjà le meilleur choix (keepCurrentCut).",
         },
         { type: "image_url", image_url: imageDataUrl },
       ],

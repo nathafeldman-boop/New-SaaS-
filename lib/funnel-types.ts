@@ -7,6 +7,8 @@ export type HairAnalysis = {
   strengths: string[];
   concerns: string[];
   faceShape?: string;
+  /** Stade estimé sur l'échelle de Norwood (1 = aucun signe → 7 = avancé). */
+  norwoodStage?: number;
   /** true si la coupe actuelle est déjà le meilleur choix */
   keepCurrentCut: boolean;
   keepReason: string;

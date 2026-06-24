@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import { LivingStrands } from "@/components/LivingStrands";
+import { ScalpTracker } from "@/components/dashboard/ScalpTracker";
 import type { CutsResult, HairAnalysis, Routine, RoutineDay } from "@/lib/funnel-types";
 
 type Entry = {
@@ -42,6 +43,7 @@ type CatalogCut = {
 const TABS = [
   { key: "today", label: "Aujourd'hui" },
   { key: "evolution", label: "Évolution" },
+  { key: "scalp", label: "Calvitie" },
   { key: "cuts", label: "Coupes" },
   { key: "sub", label: "Abonnement" },
   { key: "profile", label: "Profil" },
@@ -342,6 +344,14 @@ export function Dashboard(props: Props) {
                 </div>
               )}
             </div>
+          )}
+
+          {/* ───── CALVITIE (Norwood + tête 3D) ───── */}
+          {tab === "scalp" && (
+            <ScalpTracker
+              currentStage={props.diagnosis?.norwoodStage}
+              hasDiagnosis={Boolean(props.diagnosis)}
+            />
           )}
 
           {/* ───── COUPES ───── */}
