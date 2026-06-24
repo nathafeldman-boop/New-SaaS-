@@ -1,7 +1,15 @@
 // Contenu d'EXEMPLE (mode démo). Sert uniquement de repli quand la clé Mistral
 // est absente ou l'API injoignable. Toujours signalé comme "exemple" dans l'UI.
 
-import type { CutsResult, HairAnalysis, Routine, RoutineDay } from "./funnel-types";
+import type {
+  CutsResult,
+  HairAnalysis,
+  HairScores,
+  ProductAnalysis,
+  ProductReco,
+  Routine,
+  RoutineDay,
+} from "./funnel-types";
 
 export const demoAnalysis: HairAnalysis = {
   summary:
@@ -48,6 +56,81 @@ export const demoCuts: CutsResult = {
     maintenance,
     vibe: i % 3 === 0 ? "Soigné" : i % 3 === 1 ? "Naturel" : "Audacieux",
   })),
+};
+
+export const demoScores: HairScores = {
+  axes: [
+    { key: "couverture", label: "Couverture", current: 72, potential: 80 },
+    { key: "hydratation", label: "Hydratation", current: 48, potential: 74 },
+    { key: "volume", label: "Volume", current: 58, potential: 70 },
+    { key: "sante_cheveu", label: "Santé du cheveu", current: 52, potential: 76 },
+    { key: "sante_cuir", label: "Cuir chevelu", current: 66, potential: 78 },
+    { key: "brillance", label: "Brillance", current: 50, potential: 72 },
+  ],
+  overall: 58,
+};
+
+export const demoProducts: ProductReco[] = [
+  {
+    id: "prod-1",
+    category: "Shampoing",
+    brand: "Kérastase",
+    name: "Bain Hydratant Nutritive",
+    sizeMl: 250,
+    matchPct: 91,
+    why: ["Nettoie en douceur sans dessécher", "Réhydrate les longueurs sèches"],
+    imageQuery: "shampoo bottle",
+    imageUrl: null,
+  },
+  {
+    id: "prod-2",
+    category: "Après-shampoing",
+    brand: "Davines",
+    name: "MOMO Moisturizing Conditioner",
+    sizeMl: 200,
+    matchPct: 88,
+    why: ["Démêle et lisse les frisottis", "Apporte de la souplesse aux pointes"],
+    imageQuery: "hair conditioner bottle",
+    imageUrl: null,
+  },
+  {
+    id: "prod-3",
+    category: "Sérum",
+    brand: "The Ordinary",
+    name: "Multi-Peptide Serum for Hair",
+    sizeMl: 60,
+    matchPct: 84,
+    why: ["Renforce la fibre", "Cible la densité et la vitalité"],
+    imageQuery: "hair serum dropper bottle",
+    imageUrl: null,
+  },
+  {
+    id: "prod-4",
+    category: "Huile",
+    brand: "Aveda",
+    name: "Nutriplenish Multi-Use Hair Oil",
+    sizeMl: 100,
+    matchPct: 80,
+    why: ["Scelle l'hydratation sur les pointes", "Brillance sans effet gras"],
+    imageQuery: "hair oil bottle",
+    imageUrl: null,
+  },
+];
+
+export const demoProductAnalysis: ProductAnalysis = {
+  productName: "Shampoing hydratant (exemple)",
+  matchPct: 82,
+  detected: ["Cheveux ondulés", "Tendance sèche", "Pointes fragilisées"],
+  keyIngredients: [
+    { name: "Glycérine", role: "Attire et retient l'eau", good: true },
+    { name: "Huile d'argan", role: "Nourrit et lisse la fibre", good: true },
+    { name: "Protéines de soie", role: "Réduit les frisottis", good: true },
+    { name: "Sulfates (SLS)", role: "Tensioactif décapant", good: false },
+  ],
+  verdict:
+    "Bon choix global pour réhydrater des cheveux secs ; surveille la présence de sulfates qui peut assécher à la longue.",
+  pros: ["Hydratation ciblée", "Bonne base nourrissante"],
+  cons: ["Présence de sulfates"],
 };
 
 function demoDay(day: number): RoutineDay {

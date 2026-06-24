@@ -7,6 +7,9 @@
 import type {
   CutsResult,
   HairAnalysis,
+  HairScores,
+  ProductAnalysis,
+  ProductReco,
   Routine,
 } from "./funnel-types";
 
@@ -208,5 +211,154 @@ export async function generateRoutine(
     overview: plan.overview || "",
     weeklyTips: plan.weeklyTips ?? [],
     days,
+  };
+}
+
+/* ── Rapport de score capillaire (radar) ─────────────────────── */
+// On fixe les axes côté serveur ; Mistral ne renvoie que les valeurs.
+const SCORE_AXES: { key: string; label: string }[] = [
+  { key: "couverture", label: "Couverture" },
+  { key: "hydratation", label: "Hydratation" },
+  { key: "volume", label: "Volume" },
+  { key: "sante_cheveu", label: "Santé du cheveu" },
+  { key: "sante_cuir", label: "Cuir chevelu" },
+  { key: "brillance", label: "Brillance" },
+];
+
+type ScorePair = { current?: number; potential?: number };
+
+export async function computeScores(analysis: HairAnalysis): Promise<HairScores> {
+  const system =
+    "Tu es un trichologue. À partir d'une analyse capillaire, tu notes l'état du " +
+    "cheveu sur 6 axes, de 0 à 100, avec une valeur ACTUELLE et une valeur POTENTIELLE " +
+    "(atteignable après 30 jours de routine, toujours ≥ à l'actuelle, réaliste : +5 à +25). " +
+    "Réponds STRICTEMENT en JSON français, sans texte autour. Schéma : " +
+    '{"scores": {"couverture": {"current": number, "potential": number}, ' +
+    '"hydratation": {...}, "volume": {...}, "sante_cheveu": {...}, ' +
+    '"sante_cuir": {...}, "brillance": {...}}}. ' +
+    "Sois cohérent avec les forces et préoccupations décrites.";
+
+  const messages: Message[] = [
+    { role: "system", content: system },
+    { role: "user", content: "Analyse :\n" + JSON.stringify(analysis) },
+  ];
+
+  const raw = await chatJSON<{ scores: Record<string, ScorePair> }>(
+    TEXT_MODEL,
+    messages,
+    600,
+  );
+
+  const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
+  const axes = SCORE_AXES.map(({ key, label }) => {
+    const v = raw.scores?.[key] ?? {};
+    const current = clamp(v.current ?? 55);
+    const potential = clamp(Math.max(v.potential ?? current + 12, current));
+    return { key, label, current, potential };
+  });
+  const overall = Math.round(axes.reduce((s, a) => s + a.current, 0) / axes.length);
+  return { axes, overall };
+}
+
+/* ── Recommandation de produits (vraies marques) ─────────────── */
+export async function recommendProducts(
+  analysis: HairAnalysis,
+): Promise<ProductReco[]> {
+  const system =
+    "Tu es un expert en produits capillaires (vraies marques du marché). À partir " +
+    "d'une analyse, tu recommandes 4 à 6 produits de MARQUES RÉELLES et existantes " +
+    "(ex : L'Oréal, Kérastase, The Ordinary, Bumble and bumble, Redken, Aveda, " +
+    "Davines, etc.), adaptés au profil, formant une routine cohérente " +
+    "(nettoyage, soin, coiffage). Réponds STRICTEMENT en JSON français, sans texte " +
+    "autour. Schéma : " +
+    '{"products": [{"category": string (Shampoing|Après-shampoing|Masque|Sérum|Huile|Coiffage), ' +
+    '"brand": string (vraie marque), "name": string (nom de gamme réaliste), ' +
+    '"sizeMl": number, "matchPct": number (70-98), "why": string[2..3], ' +
+    '"imageQuery": string (2-3 mots EN ANGLAIS pour une photo, ex: "shampoo bottle")}]}. ' +
+    "Choisis des produits réellement adaptés au type et à l'état décrits.";
+
+  const messages: Message[] = [
+    { role: "system", content: system },
+    {
+      role: "user",
+      content:
+        "Analyse :\n" +
+        JSON.stringify(analysis) +
+        "\nRecommande une routine produits de vraies marques pour ce profil.",
+    },
+  ];
+
+  const raw = await chatJSON<{ products: any[] }>(TEXT_MODEL, messages, 1800);
+  const list = Array.isArray(raw.products) ? raw.products : [];
+  return list.slice(0, 6).map((p, i) => ({
+    id: `prod-${i + 1}`,
+    category: String(p.category ?? "Soin"),
+    brand: String(p.brand ?? ""),
+    name: String(p.name ?? ""),
+    sizeMl: typeof p.sizeMl === "number" ? p.sizeMl : null,
+    matchPct: Math.max(0, Math.min(100, Math.round(p.matchPct ?? 85))),
+    why: Array.isArray(p.why) ? p.why.slice(0, 3).map(String) : [],
+    imageQuery: String(p.imageQuery ?? `${p.category ?? "hair"} product bottle`),
+  }));
+}
+
+/* ── Analyse d'un produit (ingrédients) ──────────────────────── */
+export async function analyzeProduct(
+  input: { name?: string; image?: string },
+  analysis: HairAnalysis | null,
+): Promise<ProductAnalysis> {
+  const system =
+    "Tu es un expert en cosmétique capillaire. On te donne un produit (nom et/ou " +
+    "photo de l'étiquette) et le profil capillaire de la personne. Tu évalues la " +
+    "COMPATIBILITÉ du produit avec CE profil. Réponds STRICTEMENT en JSON français, " +
+    "sans texte autour. Schéma : " +
+    '{"productName": string, "matchPct": number (0-100), ' +
+    '"detected": string[2..4] (attributs du profil utilisés pour juger), ' +
+    '"keyIngredients": [{"name": string, "role": string (rôle en 4-6 mots), ' +
+    '"good": boolean (bon pour CE profil)}] (3 à 6), ' +
+    '"verdict": string (1-2 phrases), "pros": string[1..3], "cons": string[0..3]}. ' +
+    "Base-toi sur des ingrédients plausibles si l'étiquette n'est pas lisible.";
+
+  const profileTxt = analysis
+    ? "Profil capillaire :\n" + JSON.stringify(analysis)
+    : "Profil capillaire : inconnu (juge de façon générale).";
+
+  const userContent: Part[] = [
+    {
+      type: "text",
+      text:
+        profileTxt +
+        "\nProduit à analyser : " +
+        (input.name?.trim() || "(voir photo de l'étiquette)") +
+        "\nÉvalue la compatibilité avec ce profil.",
+    },
+  ];
+  if (input.image?.startsWith("data:image")) {
+    userContent.push({ type: "image_url", image_url: input.image });
+  }
+
+  const messages: Message[] = [
+    { role: "system", content: system },
+    { role: "user", content: userContent },
+  ];
+
+  // Vision si photo fournie, sinon modèle texte.
+  const model = input.image?.startsWith("data:image") ? VISION_MODEL : TEXT_MODEL;
+  const raw = await chatJSON<ProductAnalysis>(model, messages, 1100);
+
+  return {
+    productName: String(raw.productName ?? input.name ?? "Produit"),
+    matchPct: Math.max(0, Math.min(100, Math.round(raw.matchPct ?? 60))),
+    detected: Array.isArray(raw.detected) ? raw.detected.slice(0, 4).map(String) : [],
+    keyIngredients: Array.isArray(raw.keyIngredients)
+      ? raw.keyIngredients.slice(0, 6).map((k: any) => ({
+          name: String(k.name ?? ""),
+          role: String(k.role ?? ""),
+          good: Boolean(k.good),
+        }))
+      : [],
+    verdict: String(raw.verdict ?? ""),
+    pros: Array.isArray(raw.pros) ? raw.pros.slice(0, 3).map(String) : [],
+    cons: Array.isArray(raw.cons) ? raw.cons.slice(0, 3).map(String) : [],
   };
 }

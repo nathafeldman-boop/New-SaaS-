@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import { LivingStrands } from "@/components/LivingStrands";
 import { ScalpTracker } from "@/components/dashboard/ScalpTracker";
+import { HairRadar } from "@/components/dashboard/HairRadar";
+import { ProductsTab } from "@/components/dashboard/ProductsTab";
 import type { CutsResult, HairAnalysis, Routine, RoutineDay } from "@/lib/funnel-types";
 
 type Entry = {
@@ -44,6 +46,7 @@ const TABS = [
   { key: "today", label: "Aujourd'hui" },
   { key: "evolution", label: "Évolution" },
   { key: "scalp", label: "Calvitie" },
+  { key: "products", label: "Produits" },
   { key: "cuts", label: "Coupes" },
   { key: "sub", label: "Abonnement" },
   { key: "profile", label: "Profil" },
@@ -317,6 +320,12 @@ export function Dashboard(props: Props) {
                 <Sparkline entries={props.entries} />
               </section>
 
+              {/* Rapport de score multi-axes (radar) */}
+              <HairRadar
+                initialScores={props.diagnosis?.scores ?? null}
+                hasDiagnosis={Boolean(props.diagnosis)}
+              />
+
               {props.entries.filter((e) => e.beforeUrl || e.afterUrl).length === 0 ? (
                 <p className="rounded-4xl border border-dashed border-clay-300 bg-paper/50 p-8 text-center text-sm text-cocoa-500">
                   Tes photos avant/après s'afficheront ici, jour après jour. Ta transformation se construit. 🌱
@@ -352,6 +361,11 @@ export function Dashboard(props: Props) {
               currentStage={props.diagnosis?.norwoodStage}
               hasDiagnosis={Boolean(props.diagnosis)}
             />
+          )}
+
+          {/* ───── PRODUITS (reco Mistral + analyse d'ingrédients) ───── */}
+          {tab === "products" && (
+            <ProductsTab hasDiagnosis={Boolean(props.diagnosis)} />
           )}
 
           {/* ───── COUPES ───── */}
