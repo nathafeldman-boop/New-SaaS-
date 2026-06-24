@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site";
 import type { FunnelData, StepProps } from "./types";
@@ -52,6 +52,45 @@ export function Funnel() {
   const restart = useCallback(() => {
     setData({});
     setIndex(0);
+  }, []);
+
+  // Retour de Stripe : ?session_id=... → on restaure l'état et on vérifie le paiement.
+  const handledReturn = useRef(false);
+  useEffect(() => {
+    if (handledReturn.current) return;
+    handledReturn.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const sid = params.get("session_id");
+    if (!sid) return;
+
+    // restaure l'état du funnel sauvegardé avant la redirection
+    try {
+      const saved = sessionStorage.getItem("capilytix_funnel");
+      if (saved) setData(JSON.parse(saved));
+    } catch {}
+
+    (async () => {
+      let paid = false;
+      try {
+        const res = await fetch("/api/stripe/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: sid }),
+        });
+        const j = await res.json();
+        paid = Boolean(j.ok && j.paid);
+      } catch {}
+      const cutsIndex = STEPS.findIndex((s) => s.id === "cuts");
+      const paywallIndex = STEPS.findIndex((s) => s.id === "paywall");
+      if (paid) {
+        setData((d) => ({ ...d, paid: true }));
+        setIndex(cutsIndex);
+      } else {
+        setIndex(paywallIndex);
+      }
+      window.history.replaceState({}, "", "/scan");
+      sessionStorage.removeItem("capilytix_funnel");
+    })();
   }, []);
 
   const step = STEPS[index];

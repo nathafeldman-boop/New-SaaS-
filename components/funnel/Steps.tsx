@@ -804,13 +804,104 @@ export function Paywall({ next, back }: StepProps) {
 }
 
 /* ── 7. Paiement ──────────────────────────────────────────────── */
-// Lien de checkout Whop (surchargé par NEXT_PUBLIC_WHOP_CHECKOUT_URL si défini).
+// Choix du prestataire : "stripe" (défaut) | "whop" | "demo".
+const PROVIDER = (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER ?? "stripe") as
+  | "stripe"
+  | "whop"
+  | "demo";
 const WHOP_URL =
   process.env.NEXT_PUBLIC_WHOP_CHECKOUT_URL ??
   "https://whop.com/smartapp-8757/cycle-capilytix-30-jours";
 
 export function Checkout(props: StepProps) {
-  return WHOP_URL ? <WhopCheckout url={WHOP_URL} {...props} /> : <DemoCheckout {...props} />;
+  if (PROVIDER === "whop") return <WhopCheckout url={WHOP_URL} {...props} />;
+  if (PROVIDER === "demo") return <DemoCheckout {...props} />;
+  return <StripeCheckout {...props} />;
+}
+
+function StripeCheckout({ data, update, next, back }: StepProps) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [noConfig, setNoConfig] = useState(false);
+
+  async function pay() {
+    setBusy(true);
+    setError(null);
+    try {
+      // on sauvegarde l'état du funnel (Stripe redirige hors de l'app)
+      try {
+        sessionStorage.setItem("capilytix_funnel", JSON.stringify(data));
+      } catch {}
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const j = await res.json();
+      if (j.ok && j.url) {
+        window.location.href = j.url;
+        return;
+      }
+      if (j.reason === "no-config") setNoConfig(true);
+      else setError(j.error || "Impossible de lancer le paiement.");
+    } catch {
+      setError("Impossible de lancer le paiement.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="mx-auto max-w-md">
+      <StepTitle title="Paiement sécurisé" />
+      <div className="mt-6 rounded-[2rem] border border-clay-200 bg-paper p-6">
+        <div className="flex items-center justify-between border-b border-clay-200 pb-4">
+          <span className="text-cocoa-700">Cycle Capilytix</span>
+          <span className="font-display text-xl text-ink">
+            {siteConfig.price.amount}
+            <span className="text-sm text-cocoa-600"> {siteConfig.price.period}</span>
+          </span>
+        </div>
+
+        {noConfig ? (
+          <div className="mt-5 text-center">
+            <p className="text-sm text-cocoa-700">
+              Le paiement Stripe n'est pas encore configuré sur le serveur
+              (clé manquante).
+            </p>
+            <button
+              onClick={() => {
+                update({ paid: true });
+                next();
+              }}
+              className="btn-ghost mt-4 w-full"
+            >
+              Continuer en démo (test)
+            </button>
+          </div>
+        ) : (
+          <>
+            <button onClick={pay} disabled={busy} className="btn-primary mt-5 w-full disabled:opacity-60">
+              {busy ? "Redirection…" : `Payer par carte — ${siteConfig.price.amount}`}
+            </button>
+            {error && <p className="mt-3 text-center text-sm text-clay-600">{error}</p>}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-cocoa-600">
+              <span className="flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none">
+                  <rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+                Paiement sécurisé via Stripe
+              </span>
+              <span>· Annulable à tout moment</span>
+            </div>
+          </>
+        )}
+      </div>
+      <button onClick={back} className="mt-4 block w-full text-center text-sm text-cocoa-600 hover:underline">
+        Retour
+      </button>
+    </div>
+  );
 }
 
 function WhopCheckout({ url, update, next, back }: StepProps & { url: string }) {
