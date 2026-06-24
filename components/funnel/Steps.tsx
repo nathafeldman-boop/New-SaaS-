@@ -531,13 +531,48 @@ export function Analyzing({ data, update, next }: StepProps) {
 /* ── 5. Révélation (avant / après) ────────────────────────────── */
 export function Reveal({ data, next }: StepProps) {
   const a = data.analysis;
+  const started = useRef(false);
+  const [afterUrl, setAfterUrl] = useState<string | null>(null);
+  const [genState, setGenState] = useState<"loading" | "real" | "sim">("loading");
+
+  useEffect(() => {
+    if (started.current || !data.photo) return;
+    started.current = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/transform", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: data.photo, mode: "health" }),
+        });
+        const json = await res.json();
+        if (json.ok && json.url) {
+          setAfterUrl(json.url);
+          setGenState("real");
+        } else {
+          setGenState("sim"); // pas de clé / échec → simulation éclat
+        }
+      } catch {
+        setGenState("sim");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="grid items-center gap-12 lg:grid-cols-2">
       <div>
-        <BeforeAfter src={data.photo} />
+        <BeforeAfter
+          before={data.photo}
+          after={afterUrl}
+          loading={genState === "loading"}
+        />
         <p className="mt-3 text-center text-xs text-cocoa-600">
-          Glisse le curseur · simulation éclat &amp; vitalité. Le rendu d'une nouvelle
-          coupe se branchera sur un modèle d'image.
+          {genState === "loading"
+            ? "Génération de ton rendu en cours…"
+            : genState === "real"
+              ? "Rendu généré à partir de ta photo · glisse le curseur."
+              : "Simulation éclat & vitalité · glisse le curseur (rendu IA indisponible)."}
         </p>
       </div>
       <div>
@@ -612,7 +647,15 @@ function TagList({
   );
 }
 
-function BeforeAfter({ src }: { src?: string }) {
+function BeforeAfter({
+  before,
+  after,
+  loading,
+}: {
+  before?: string;
+  after?: string | null;
+  loading?: boolean;
+}) {
   const [pos, setPos] = useState(55);
   const ref = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -624,7 +667,10 @@ function BeforeAfter({ src }: { src?: string }) {
     setPos(Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100)));
   };
 
-  if (!src) return null;
+  if (!before) return null;
+  const real = Boolean(after); // vrai rendu généré dispo
+  const afterSrc = after || before;
+
   return (
     <div
       ref={ref}
@@ -640,33 +686,55 @@ function BeforeAfter({ src }: { src?: string }) {
       onPointerUp={() => (dragging.current = false)}
       onPointerCancel={() => (dragging.current = false)}
     >
-      {/* APRÈS — cheveux sains : éclat, vibrance, contraste */}
+      {/* APRÈS — vrai rendu généré, sinon simulation éclat */}
       <img
-        src={src}
+        src={afterSrc}
         alt="Après"
         draggable={false}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        style={{ filter: "saturate(1.45) contrast(1.14) brightness(1.08)" }}
+        style={real ? undefined : { filter: "saturate(1.45) contrast(1.14) brightness(1.08)" }}
       />
       <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-cocoa-700 px-2.5 py-1 text-xs font-medium text-cream">
         Après
       </span>
-      {/* AVANT — cheveux ternes : désaturé, mat, plus sombre */}
+
+      {/* AVANT — photo d'origine (légèrement ternie) */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
       >
         <img
-          src={src}
+          src={before}
           alt="Avant"
           draggable={false}
           className="absolute inset-0 h-full w-full object-cover"
-          style={{ filter: "grayscale(0.5) saturate(0.55) brightness(0.88) contrast(0.96)" }}
+          style={{ filter: "saturate(0.78) brightness(0.94)" }}
         />
         <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1 text-xs font-medium text-cream">
           Avant
         </span>
       </div>
+
+      {/* overlay de génération en cours (sur la moitié après) */}
+      {loading && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ink/35 backdrop-blur-[1px]">
+          <div className="flex flex-col items-center gap-3 text-cream">
+            <motion.span
+              className="h-8 w-8 rounded-full border-2 border-cream/40 border-t-cream"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
+            />
+            <span className="text-xs font-medium">Génération du rendu…</span>
+          </div>
+          <motion.div
+            className="absolute inset-x-0 h-[2px] bg-cream/80 shadow-[0_0_14px_3px_rgba(201,162,126,0.7)]"
+            initial={{ top: "0%" }}
+            animate={{ top: ["0%", "100%", "0%"] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+      )}
+
       {/* poignée */}
       <div
         className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-cream/90 shadow-[0_0_8px_rgba(0,0,0,0.25)]"
