@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { siteConfig } from "@/lib/site";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 const display = Fraunces({
@@ -77,7 +78,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${display.variable} ${sans.variable}`}>
-      <body className="bg-cream font-sans text-ink antialiased">{children}</body>
+      <body className="bg-cream font-sans text-ink antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site";
+import { track } from "@/lib/track";
 import type { FunnelData, StepProps } from "./types";
 import {
   Analyzing,
@@ -121,6 +122,12 @@ export function Funnel() {
   }, []);
 
   const step = STEPS[index];
+
+  // Tracking : chaque étape vue du funnel (pour le taux de conversion).
+  useEffect(() => {
+    track("funnel_step", { step: STEPS[index].id, index });
+  }, [index]);
+
   const progress = useMemo(() => ((index + 1) / STEPS.length) * 100, [index]);
   const Current = step.Component;
 
