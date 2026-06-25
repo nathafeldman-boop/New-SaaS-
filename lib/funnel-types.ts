@@ -70,6 +70,8 @@ export type CutSuggestion = {
   why: string;
   maintenance: string;
   vibe: string;
+  /** Photo de la coupe (issue du catalogue), si on a pu en associer une. */
+  image?: string | null;
 };
 
 export type CutsResult = {

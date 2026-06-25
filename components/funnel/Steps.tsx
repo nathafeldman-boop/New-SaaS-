@@ -11,6 +11,7 @@ import {
   IconCamera,
   IconCheck,
   IconDrop,
+  IconHairBack,
   IconScissors,
   IconSparkle,
 } from "@/components/Illustrations";
@@ -1388,19 +1389,38 @@ export function Cuts({ data, update, next }: StepProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: Math.min(i * 0.03, 0.4) }}
             onClick={() => choose(c)}
-            className={`flex flex-col rounded-2xl border p-4 text-left transition ${
+            className={`flex flex-col overflow-hidden rounded-2xl border text-left transition ${
               selected === c.id ? "border-cocoa-700 bg-clay-200/40" : "border-clay-200 bg-paper/70 hover:border-clay-400"
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-sand text-cocoa-700">
-                <IconScissors className="h-4 w-4" />
+            <div className="relative aspect-[4/5] w-full bg-sand">
+              {c.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={c.image}
+                  alt={c.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="grid h-full w-full place-items-center text-cocoa-700">
+                  <IconScissors className="h-7 w-7" />
+                </span>
+              )}
+              <span className="absolute right-2 top-2 rounded-full bg-paper/85 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-cocoa-700 backdrop-blur-sm">
+                {c.vibe}
               </span>
-              <span className="text-[11px] font-medium uppercase tracking-wide text-clay-600">{c.vibe}</span>
+              {selected === c.id && (
+                <span className="absolute left-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-cocoa-700 text-cream">
+                  <IconCheck className="h-3.5 w-3.5" />
+                </span>
+              )}
             </div>
-            <span className="mt-3 font-display text-lg text-ink">{c.name}</span>
-            <span className="mt-1 text-sm text-cocoa-700">{c.description}</span>
-            <span className="mt-2 text-xs text-clay-600">Entretien : {c.maintenance}</span>
+            <div className="flex flex-col p-4">
+              <span className="font-display text-lg text-ink">{c.name}</span>
+              <span className="mt-1 text-sm text-cocoa-700">{c.description}</span>
+              <span className="mt-2 text-xs text-clay-600">Entretien : {c.maintenance}</span>
+            </div>
           </motion.button>
         ))}
       </div>
@@ -1537,7 +1557,7 @@ export function Schedule({ data, update, next, back }: StepProps) {
   );
 }
 
-export function RoutineView({ data, restart }: StepProps) {
+export function RoutineView({ data }: StepProps) {
   const r = data.routine;
   const [open, setOpen] = useState<number | null>(1);
 
@@ -1563,6 +1583,13 @@ export function RoutineView({ data, restart }: StepProps) {
   if (!r) return null;
   return (
     <div className="mx-auto max-w-3xl">
+      <a
+        href="/"
+        aria-label="Retour à l'accueil"
+        className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-clay-200 bg-paper/70 text-cocoa-700 transition hover:border-clay-400 hover:text-ink"
+      >
+        <IconHairBack className="h-5 w-5" />
+      </a>
       <div className="flex flex-wrap items-center gap-3">
         <span className="eyebrow">Ta routine</span>
         <DemoBadge show={data.routineDemo} />
@@ -1640,12 +1667,14 @@ export function RoutineView({ data, restart }: StepProps) {
         })}
       </div>
 
-      <div className="mt-10 flex flex-wrap gap-3">
-        <a href="/" className="btn-ghost">Retour à l'accueil</a>
-        <button onClick={restart} className="btn-primary group">
-          Relancer un cycle
+      <div className="mt-10">
+        <a href="/espace" className="btn-primary group w-full justify-center sm:w-auto">
+          Accéder à mon espace
           <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-        </button>
+        </a>
+        <p className="mt-3 text-sm text-cocoa-600">
+          Ta routine et ton suivi t'attendent dans ton espace, jour après jour.
+        </p>
       </div>
     </div>
   );

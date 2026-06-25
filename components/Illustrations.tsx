@@ -126,6 +126,28 @@ export function IconScissors(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** Flèche « retour » dont la hampe est une mèche de cheveux ondulée. */
+export function IconHairBack(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden {...props}>
+      <path
+        d="M9 7 4 12l5 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 12c3 0 3.2-3 6-3s2.8 3 5.6 3 2.6-2.4 4.4-2.4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function IconDrop(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden {...props}>
