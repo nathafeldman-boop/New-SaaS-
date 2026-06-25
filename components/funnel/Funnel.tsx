@@ -52,6 +52,9 @@ export function Funnel() {
   );
   const back = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);
   const restart = useCallback(() => {
+    try {
+      sessionStorage.removeItem("capilytix_funnel");
+    } catch {}
     setData({});
     setIndex(0);
   }, []);
@@ -64,17 +67,29 @@ export function Funnel() {
     const params = new URLSearchParams(window.location.search);
     const sid = params.get("session_id");
     const canceled = params.get("canceled");
-    if (!sid && !canceled) return;
-
-    // restaure l'état du funnel sauvegardé avant la redirection
-    try {
-      const saved = sessionStorage.getItem("capilytix_funnel");
-      if (saved) setData(JSON.parse(saved));
-    } catch {}
 
     const checkoutIndex = STEPS.findIndex((s) => s.id === "checkout");
     const cutsIndex = STEPS.findIndex((s) => s.id === "cuts");
     const paywallIndex = STEPS.findIndex((s) => s.id === "paywall");
+
+    // Restaure l'état du funnel sauvegardé juste avant un départ vers Stripe.
+    let hasSaved = false;
+    try {
+      const saved = sessionStorage.getItem("capilytix_funnel");
+      if (saved) {
+        setData(JSON.parse(saved));
+        hasSaved = true;
+      }
+    } catch {}
+
+    // Pas un retour de paiement Stripe : si on a un état sauvegardé, c'est que
+    // l'utilisateur était parti vers le paiement puis est revenu (ex. bouton
+    // « retour » du navigateur). On le replace pile sur l'étape Paiement au
+    // lieu de tout recommencer depuis le début du guide.
+    if (!sid && !canceled) {
+      if (hasSaved) setIndex(checkoutIndex);
+      return;
+    }
 
     // Annulation (flèche retour de Stripe) : on revient pile sur l'étape Paiement.
     if (canceled && !sid) {
