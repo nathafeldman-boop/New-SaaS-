@@ -15,6 +15,8 @@ import {
   IconSparkle,
 } from "@/components/Illustrations";
 import { LivingStrands } from "@/components/LivingStrands";
+import { OpenInBrowserNotice } from "@/components/OpenInBrowserNotice";
+import { isInAppBrowser } from "@/lib/device";
 import type { StepProps } from "./types";
 import type { CutSuggestion } from "@/lib/funnel-types";
 import { createClient } from "@/lib/supabase/client";
@@ -233,6 +235,9 @@ export function Capture({ update, next, back }: StepProps) {
   const [camOn, setCamOn] = useState(false);
   const [camError, setCamError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [inApp, setInApp] = useState(false);
+
+  useEffect(() => setInApp(isInAppBrowser()), []);
 
   const stopCam = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -292,6 +297,7 @@ export function Capture({ update, next, back }: StepProps) {
   return (
     <div className="mx-auto max-w-2xl text-center">
       <StepTitle title="Ta photo" />
+      <OpenInBrowserNotice className="mx-auto mt-6 max-w-sm" />
       <div className="mt-8">
         <div className="relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-[2rem] border border-clay-200 bg-sand">
           {preview ? (
@@ -341,7 +347,9 @@ export function Capture({ update, next, back }: StepProps) {
 
         {camError && (
           <p className="mt-4 text-sm text-cocoa-600">
-            Caméra indisponible — utilise « Importer une photo ».
+            {inApp
+              ? "L'appareil photo est bloqué dans ce navigateur intégré. Ouvre la page dans ton navigateur (⋯ en haut à droite → « Ouvrir dans le navigateur ») ou importe une photo."
+              : "Caméra indisponible — utilise « Importer une photo »."}
           </p>
         )}
         <button onClick={back} className="mt-6 text-sm text-cocoa-600 underline-offset-4 hover:underline">
