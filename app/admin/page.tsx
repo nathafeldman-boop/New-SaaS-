@@ -1,5 +1,13 @@
 import { cookies } from "next/headers";
-import { ADMIN_CODE, getMetrics, type DayPoint, type Metrics } from "@/lib/admin-metrics";
+import {
+  ADMIN_CODE,
+  getMetrics,
+  getSignups,
+  type DayPoint,
+  type Metrics,
+  type Signup,
+} from "@/lib/admin-metrics";
+import { CopyButton } from "@/components/admin/CopyButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord", robots: { index: false } };
@@ -8,10 +16,18 @@ const euro = (n: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
 const pct = (n: number) => `${(n * 100).toFixed(1)} %`;
 
+type Tab = "overview" | "funnel" | "revenue" | "signups";
+const TABS: { id: Tab; label: string }[] = [
+  { id: "overview", label: "Vue d'ensemble" },
+  { id: "funnel", label: "Funnel" },
+  { id: "revenue", label: "Revenus" },
+  { id: "signups", label: "Inscrits" },
+];
+
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: { error?: string };
+  searchParams: { error?: string; tab?: string };
 }) {
   const cookieStore = await cookies();
   const authed = cookieStore.get("cpx_admin")?.value === ADMIN_CODE;
@@ -24,7 +40,9 @@ export default async function AdminPage({
     );
   }
 
+  const tab: Tab = TABS.find((t) => t.id === searchParams?.tab)?.id ?? "overview";
   const m = await getMetrics();
+  const signups = tab === "signups" ? await getSignups() : [];
 
   return (
     <Shell>
@@ -35,58 +53,77 @@ export default async function AdminPage({
         </div>
         <p className="text-xs text-cocoa-500">
           Mis à jour le{" "}
-          {new Date(m.generatedAt).toLocaleString("fr-FR", {
-            dateStyle: "short",
-            timeStyle: "short",
-          })}{" "}
-          · recharge la page pour rafraîchir
+          {new Date(m.generatedAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
         </p>
       </div>
 
-      {/* KPIs */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        <Kpi label="MRR" value={euro(m.revenue.mrr)} hint="Revenu récurrent mensuel" accent />
-        <Kpi label="ARR" value={euro(m.revenue.arr)} hint="Annualisé (MRR × 12)" />
-        <Kpi label="Abonnés actifs" value={String(m.subscribers.active)} hint={`${m.subscribers.activeStripe} payants · ${m.subscribers.activeCode} via code`} />
-        <Kpi label="Churn" value={pct(m.churnRate)} hint="Abonnements résiliés / total" />
-        <Kpi label="Inscrits (total)" value={String(m.signups.total)} />
-        <Kpi label="Inscrits aujourd'hui" value={String(m.signups.today)} />
-        <Kpi label="Inscrits 7 jours" value={String(m.signups.last7)} />
-        <Kpi label="Inscrits 30 jours" value={String(m.signups.last30)} />
-        <Kpi label="Revenus ce mois" value={euro(m.revenue.thisMonth)} hint="Abonnements payants" />
-        <Kpi label="Revenus 30 jours" value={euro(m.revenue.last30)} />
-        <Kpi label="Visites (uniques)" value={`${m.visits.unique}`} hint={`${m.visits.total} pages vues`} />
-        <Kpi label="Clics « scan »" value={String(m.visits.ctaClicks)} hint="Clics vers le funnel" />
-      </div>
+      <TabNav active={tab} />
 
-      {!m.hasEvents && (
-        <p className="mt-4 rounded-2xl border border-clay-200 bg-sand/50 px-4 py-3 text-sm text-cocoa-700">
-          ℹ️ Le suivi des visites, clics et étapes du funnel vient d&apos;être activé : ces chiffres
-          se rempliront à partir de maintenant (pas d&apos;historique avant la mise en ligne).
-        </p>
+      {tab === "overview" && (
+        <>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <Kpi label="MRR" value={euro(m.revenue.mrr)} hint="Revenu récurrent mensuel" accent />
+            <Kpi label="Abonnés actifs" value={String(m.subscribers.active)} hint={`${m.subscribers.activeStripe} payants · ${m.subscribers.activeCode} via code`} />
+            <Kpi label="Inscrits (total)" value={String(m.signups.total)} hint={`+${m.signups.last7} sur 7 j`} />
+            <Kpi label="Inscrits aujourd'hui" value={String(m.signups.today)} />
+            <Kpi label="Visites (uniques)" value={String(m.visits.unique)} hint={`${m.visits.total} pages vues`} />
+            <Kpi label="Clics « scan »" value={String(m.visits.ctaClicks)} hint="Clics vers le funnel" />
+            <Kpi label="Churn" value={pct(m.churnRate)} hint="Résiliés / total" />
+            <Kpi label="Revenus ce mois" value={euro(m.revenue.thisMonth)} />
+          </div>
+          <Card title="Croissance des inscrits (cumul 30 j)">
+            <GrowthChart series={m.signups.series} />
+          </Card>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card title="Inscrits par jour (30 j)">
+              <BarChart series={m.signups.series} />
+            </Card>
+            <Card title="Visites par jour (30 j)">
+              <BarChart series={m.visits.series} />
+            </Card>
+          </div>
+          {!m.hasEvents && (
+            <p className="mt-4 rounded-2xl border border-clay-200 bg-sand/50 px-4 py-3 text-sm text-cocoa-700">
+              ℹ️ Le suivi des visites, clics et étapes du funnel vient d&apos;être activé : ces chiffres
+              se rempliront à partir de maintenant (pas d&apos;historique avant la mise en ligne).
+            </p>
+          )}
+        </>
       )}
 
-      {/* Funnel */}
-      <Card title="Funnel de conversion (30 derniers jours)">
-        <FunnelChart steps={m.funnel} />
-      </Card>
-
-      {/* Séries */}
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Card title="Inscrits par jour (30 j)">
-          <BarChart series={m.signups.series} />
+      {tab === "funnel" && (
+        <Card title="Funnel de conversion (30 derniers jours)">
+          <FunnelChart steps={m.funnel} />
+          <p className="mt-4 text-xs text-cocoa-500">
+            Le % à droite = taux de passage depuis l&apos;étape précédente.
+          </p>
         </Card>
-        <Card title="Visites par jour (30 j)">
-          <BarChart series={m.visits.series} />
-        </Card>
-      </div>
+      )}
 
-      <Card title="Revenus par jour (30 j)">
-        <BarChart series={m.revenue.series} money />
-      </Card>
+      {tab === "revenue" && (
+        <>
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Kpi label="MRR" value={euro(m.revenue.mrr)} hint="Revenu récurrent mensuel" accent />
+            <Kpi label="ARR" value={euro(m.revenue.arr)} hint="Annualisé (MRR × 12)" />
+            <Kpi label="Revenus ce mois" value={euro(m.revenue.thisMonth)} />
+            <Kpi label="Revenus 30 jours" value={euro(m.revenue.last30)} />
+            <Kpi label="Abonnés payants" value={String(m.subscribers.activeStripe)} />
+            <Kpi label="Abonnés via code" value={String(m.subscribers.activeCode)} />
+            <Kpi label="Churn" value={pct(m.churnRate)} />
+            <Kpi label="ARR potentiel" value={euro((m.subscribers.active * MONTHLY_PRICE_HINT) * 12)} hint="Si tous payants" />
+          </div>
+          <Card title="Revenus par jour (30 j)">
+            <BarChart series={m.revenue.series} money />
+          </Card>
+        </>
+      )}
+
+      {tab === "signups" && <SignupsTable signups={signups} />}
     </Shell>
   );
 }
+
+const MONTHLY_PRICE_HINT = 10.9;
 
 /* ── UI ─────────────────────────────────────────────────────────── */
 
@@ -156,6 +193,128 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
     <section className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
       <h2 className="font-display text-lg text-ink">{title}</h2>
       <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function TabNav({ active }: { active: Tab }) {
+  return (
+    <nav className="mt-6 flex flex-wrap gap-2">
+      {TABS.map((t) => (
+        <a
+          key={t.id}
+          href={`/admin?tab=${t.id}`}
+          className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+            active === t.id
+              ? "bg-cocoa-700 text-cream"
+              : "bg-paper/70 text-cocoa-700 ring-1 ring-clay-200/60 hover:bg-paper"
+          }`}
+        >
+          {t.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function GrowthChart({ series }: { series: DayPoint[] }) {
+  let acc = 0;
+  const pts = series.map((d) => (acc += d.value));
+  const max = Math.max(1, ...pts);
+  const w = 600;
+  const h = 150;
+  const stepX = pts.length > 1 ? w / (pts.length - 1) : w;
+  const coords = pts.map((v, i) => [i * stepX, h - 6 - (v / max) * (h - 16)] as const);
+  const line = coords.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const area = `${line} L${w} ${h} L0 ${h} Z`;
+  return (
+    <div className="text-cocoa-700">
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-40 w-full">
+        <path d={area} fill="currentColor" opacity="0.12" />
+        <path d={line} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
+      </svg>
+      <p className="mt-2 text-xs text-cocoa-500">Total cumulé sur la période : {pts[pts.length - 1] ?? 0} inscrits</p>
+    </div>
+  );
+}
+
+function SignupsTable({ signups }: { signups: Signup[] }) {
+  const emails = signups.map((s) => s.email).filter(Boolean).join(", ");
+  return (
+    <section className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-lg text-ink">Inscrits ({signups.length})</h2>
+        <div className="flex flex-wrap gap-2">
+          <CopyButton text={emails} />
+          <a
+            href="/api/admin/export"
+            className="rounded-xl border border-clay-300 bg-cream px-4 py-2 text-sm font-medium text-ink transition hover:bg-paper"
+          >
+            Export CSV
+          </a>
+        </div>
+      </div>
+      <p className="mt-2 text-sm text-cocoa-600">
+        Les emails de tous les comptes créés — pour repérer les vrais inscrits et leur envoyer tes
+        nouvelles / réductions.
+      </p>
+
+      <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-clay-200/60">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-sand/60 text-cocoa-600">
+            <tr>
+              <th className="px-4 py-2.5 font-medium">Email</th>
+              <th className="px-4 py-2.5 font-medium">Inscrit le</th>
+              <th className="px-4 py-2.5 font-medium">Statut</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-clay-200/70">
+            {signups.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="px-4 py-6 text-center text-cocoa-500">
+                  Aucun inscrit pour l&apos;instant.
+                </td>
+              </tr>
+            ) : (
+              signups.map((s, i) => (
+                <tr key={i} className="text-ink">
+                  <td className="px-4 py-2.5">{s.email || "—"}</td>
+                  <td className="px-4 py-2.5 text-cocoa-700">
+                    {new Date(s.created_at).toLocaleDateString("fr-FR", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "2-digit",
+                    })}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs ${
+                        s.active
+                          ? "bg-cocoa-700 text-cream"
+                          : "bg-sand text-cocoa-600"
+                      }`}
+                    >
+                      {s.active ? (s.via === "code" ? "Actif · code" : "Actif · payant") : "Inactif"}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {emails && (
+        <div className="mt-4">
+          <p className="text-xs text-cocoa-500">Tous les emails (sélectionne et copie) :</p>
+          <textarea
+            readOnly
+            value={emails}
+            rows={3}
+            className="mt-1.5 w-full rounded-xl border border-clay-200 bg-cream px-3 py-2 text-sm text-cocoa-800"
+          />
+        </div>
+      )}
     </section>
   );
 }

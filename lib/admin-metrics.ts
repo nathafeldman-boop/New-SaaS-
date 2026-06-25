@@ -13,6 +13,33 @@ const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 
 export type DayPoint = { day: string; value: number };
 
+export type Signup = {
+  email: string;
+  created_at: string;
+  active: boolean;
+  via: "stripe" | "code" | null;
+};
+
+/** Liste des inscrits avec email + statut d'abonnement (pour le dashboard). */
+export async function getSignups(): Promise<Signup[]> {
+  const admin = createAdminClient();
+  const [profilesRes, subsRes] = await Promise.all([
+    admin.from("profiles").select("id, email, created_at").order("created_at", { ascending: false }),
+    admin.from("subscriptions").select("user_id, status, price_id"),
+  ]);
+  const subs = subsRes.data ?? [];
+  const byUser = new Map(subs.map((s) => [s.user_id, s]));
+  return (profilesRes.data ?? []).map((p) => {
+    const s = byUser.get(p.id);
+    return {
+      email: p.email ?? "",
+      created_at: p.created_at,
+      active: s ? isActive(s.status) : false,
+      via: s ? (isCode(s.price_id) ? "code" : "stripe") : null,
+    };
+  });
+}
+
 export type Metrics = {
   signups: { total: number; today: number; last7: number; last30: number; series: DayPoint[] };
   subscribers: { active: number; activeStripe: number; activeCode: number; canceled: number };
