@@ -12,6 +12,7 @@ import type {
   ProductReco,
   Routine,
 } from "./funnel-types";
+import { HAIR_KNOWLEDGE } from "./hair-knowledge";
 
 const API_URL = "https://api.mistral.ai/v1/chat/completions";
 
@@ -84,8 +85,10 @@ function parseJSON<T>(raw: string): T {
 /* ── Analyse capillaire (vision) ─────────────────────────────── */
 export async function analyzeHair(imageDataUrl: string): Promise<HairAnalysis> {
   const system =
-    "Tu es un expert capillaire (trichologue + barbier). Tu analyses une photo " +
+    HAIR_KNOWLEDGE +
+    "\n\nTu es un expert capillaire (trichologue + barbier). Tu analyses une photo " +
     "de cheveux et tu réponds STRICTEMENT en JSON, en français, sans texte autour. " +
+    "Identifie le type Walker (1-4) et fonde ton analyse sur le référentiel ci-dessus. " +
     "Sois bienveillant, précis et concret. Schéma attendu : " +
     '{"summary": string (2 phrases), "hairType": string, "condition": string, ' +
     '"strengths": string[2..3], "concerns": string[2..3], "faceShape": string, ' +
@@ -116,8 +119,10 @@ export async function recommendCuts(
   analysis: HairAnalysis,
 ): Promise<CutsResult> {
   const system =
-    "Tu es un barbier-conseil. À partir d'une analyse capillaire, tu proposes " +
-    "EXACTEMENT 15 coupes adaptées, classées de la plus pertinente à la moins " +
+    HAIR_KNOWLEDGE +
+    "\n\nTu es un barbier-conseil. À partir d'une analyse capillaire, tu proposes " +
+    "EXACTEMENT 15 coupes adaptées (au type Walker, à la texture, à la forme du visage " +
+    "et au stade de Norwood), classées de la plus pertinente à la moins " +
     "pertinente. Réponds STRICTEMENT en JSON français, sans texte autour. Schéma : " +
     '{"keepCurrent": boolean, "reason": string, "currentCutName": string, ' +
     '"cuts": [{"id": string, "name": string, "description": string, ' +
@@ -175,8 +180,12 @@ export async function generateRoutine(
   chosenCut: string,
 ): Promise<Routine> {
   const system =
-    "Tu es un coach capillaire. À partir d'une analyse et d'une coupe choisie, tu " +
-    "conçois une routine de 30 jours. Pour rester concis, tu renvoies un CYCLE de 7 " +
+    HAIR_KNOWLEDGE +
+    "\n\nTu es un coach capillaire. À partir d'une analyse et d'une coupe choisie, tu " +
+    "conçois une routine de 30 jours ADAPTÉE au type Walker et aux besoins identifiés, " +
+    "en appliquant les principes fondés sur les preuves ci-dessus (fréquence de lavage, " +
+    "après-shampoing systématique, protection thermique, démêlage doux, etc.). " +
+    "Pour rester concis, tu renvoies un CYCLE de 7 " +
     "jours réutilisable + un thème par semaine. Réponds STRICTEMENT en JSON français, " +
     "sans texte autour. Schéma : " +
     '{"title": string, "overview": string, "weeklyTips": string[3..5], ' +
@@ -248,7 +257,8 @@ type ScorePair = { current?: number; potential?: number };
 
 export async function computeScores(analysis: HairAnalysis): Promise<HairScores> {
   const system =
-    "Tu es un trichologue. À partir d'une analyse capillaire, tu notes l'état du " +
+    HAIR_KNOWLEDGE +
+    "\n\nTu es un trichologue. À partir d'une analyse capillaire, tu notes l'état du " +
     "cheveu sur 6 axes, de 0 à 100, avec une valeur ACTUELLE et une valeur POTENTIELLE " +
     "(atteignable après 30 jours de routine, toujours ≥ à l'actuelle, réaliste : +5 à +25). " +
     "Réponds STRICTEMENT en JSON français, sans texte autour. Schéma : " +
@@ -284,7 +294,8 @@ export async function recommendProducts(
   analysis: HairAnalysis,
 ): Promise<ProductReco[]> {
   const system =
-    "Tu es un expert en produits capillaires (vraies marques du marché). À partir " +
+    HAIR_KNOWLEDGE +
+    "\n\nTu es un expert en produits capillaires (vraies marques du marché). À partir " +
     "d'une analyse, tu recommandes 4 à 6 produits de MARQUES RÉELLES et existantes " +
     "(ex : L'Oréal, Kérastase, The Ordinary, Bumble and bumble, Redken, Aveda, " +
     "Davines, etc.), adaptés au profil, formant une routine cohérente " +
