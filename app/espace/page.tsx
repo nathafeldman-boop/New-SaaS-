@@ -63,6 +63,8 @@ export default async function EspacePage() {
       startedAt={profile?.started_at ?? null}
       lastCompletedDate={profile?.last_completed_date ?? null}
       lastCompletedAt={profile?.last_completed_at ?? null}
+      routineTime={profile?.routine_time ?? "08:00"}
+      routineTzOffset={profile?.routine_tz_offset ?? 0}
       subscription={{ status: subscription?.status ?? null, via }}
       entries={signedEntries}
       catalog={catalog ?? []}

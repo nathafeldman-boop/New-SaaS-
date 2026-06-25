@@ -15,6 +15,7 @@ import {
   Paywall,
   Reveal,
   RoutineView,
+  Schedule,
 } from "./Steps";
 
 type Step = {
@@ -33,6 +34,7 @@ const STEPS: Step[] = [
   { id: "checkout", label: "Paiement", Component: Checkout },
   { id: "cuts", label: "Coupes", Component: Cuts },
   { id: "generate", label: "Génération", Component: Generating },
+  { id: "schedule", label: "Horaire", Component: Schedule },
   { id: "routine", label: "Routine", Component: RoutineView },
 ];
 

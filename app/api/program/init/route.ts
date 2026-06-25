@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { baselineScore, requireActive } from "@/lib/program";
 import { sendEmail, welcomeEmail } from "@/lib/email";
+import { DEFAULT_ROUTINE_TIME, normalizeRoutineTime } from "@/lib/routine-timer";
 
 export const runtime = "nodejs";
 
@@ -13,7 +14,9 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ ok: false, reason: error });
 
   const body = await req.json().catch(() => ({}));
-  const { analysis, routine, cuts, choice } = body ?? {};
+  const { analysis, routine, cuts, choice, routineTime, routineTzOffset } = body ?? {};
+  const cleanTime = normalizeRoutineTime(routineTime) ?? DEFAULT_ROUTINE_TIME;
+  const tzOffset = Number.isFinite(routineTzOffset) ? Math.trunc(routineTzOffset) : 0;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -33,6 +36,8 @@ export async function POST(req: Request) {
       diagnosis: analysis ?? null,
       current_day: 1,
       hair_score: score,
+      routine_time: cleanTime,
+      routine_tz_offset: tzOffset,
       started_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })

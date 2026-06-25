@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { PROGRAM_LENGTH, requireActive, todayISO } from "@/lib/program";
+import { nextUnlockMs } from "@/lib/routine-timer";
 
 export const runtime = "nodejs";
 
 /**
  * Valide la journée : marque le jour terminé, fait progresser le score et
- * ouvre le jour suivant — une seule fois par jour calendaire (« reviens demain »).
+ * ouvre le jour suivant. La séance suivante se débloque à l'heure de routine
+ * choisie par l'utilisateur (au moins quelques heures plus tard).
  */
 export async function POST(req: Request) {
   const { error, supabase, user } = await requireActive();
@@ -13,23 +15,25 @@ export async function POST(req: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("current_day, hair_score, last_completed_at")
+    .select("current_day, hair_score, last_completed_at, routine_time, routine_tz_offset")
     .eq("id", user!.id)
     .single();
 
   if (!profile) return NextResponse.json({ ok: false, error: "Profil introuvable" });
 
-  const COOLDOWN = 24 * 60 * 60 * 1000;
   const last = profile.last_completed_at
     ? new Date(profile.last_completed_at).getTime()
     : 0;
-  // Verrou 24h : on ne peut valider qu'une fois par cycle de 24h.
-  if (last && Date.now() < last + COOLDOWN) {
-    return NextResponse.json({
-      ok: false,
-      reason: "cooldown",
-      unlockAt: new Date(last + COOLDOWN).toISOString(),
-    });
+  // Verrou : la séance suivante se débloque à l'heure de routine choisie.
+  if (last) {
+    const unlock = nextUnlockMs(last, profile.routine_time, profile.routine_tz_offset ?? 0);
+    if (Date.now() < unlock) {
+      return NextResponse.json({
+        ok: false,
+        reason: "cooldown",
+        unlockAt: new Date(unlock).toISOString(),
+      });
+    }
   }
 
   const day = profile.current_day || 1;
@@ -68,7 +72,9 @@ export async function POST(req: Request) {
     ok: true,
     nextDay,
     score,
-    unlockAt: new Date(Date.now() + COOLDOWN).toISOString(),
+    unlockAt: new Date(
+      nextUnlockMs(Date.now(), profile.routine_time, profile.routine_tz_offset ?? 0),
+    ).toISOString(),
     finished: nextDay >= PROGRAM_LENGTH,
   });
 }

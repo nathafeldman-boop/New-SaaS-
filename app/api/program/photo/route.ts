@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireActive } from "@/lib/program";
+import { nextUnlockMs } from "@/lib/routine-timer";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -19,14 +20,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Paramètres invalides" }, { status: 400 });
   }
 
-  // Verrou 24h : pas d'envoi de photo tant que le compte à rebours n'est pas écoulé.
+  // Verrou : pas d'envoi de photo tant que la séance n'est pas débloquée (heure de routine).
   const { data: prof } = await supabase
     .from("profiles")
-    .select("last_completed_at")
+    .select("last_completed_at, routine_time, routine_tz_offset")
     .eq("id", user!.id)
     .single();
   const last = prof?.last_completed_at ? new Date(prof.last_completed_at).getTime() : 0;
-  if (last && Date.now() < last + 24 * 60 * 60 * 1000) {
+  if (last && Date.now() < nextUnlockMs(last, prof?.routine_time, prof?.routine_tz_offset ?? 0)) {
     return NextResponse.json({ ok: false, reason: "cooldown" });
   }
 

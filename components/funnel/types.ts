@@ -16,6 +16,10 @@ export type FunnelData = {
   choice?: Choice;
   routine?: Routine;
   routineDemo?: boolean;
+  /** Heure locale "HH:MM" choisie pour faire la routine chaque jour. */
+  routineTime?: string;
+  /** Décalage local vs UTC en minutes (= -getTimezoneOffset()). */
+  routineTzOffset?: number;
   paid?: boolean;
 };
 

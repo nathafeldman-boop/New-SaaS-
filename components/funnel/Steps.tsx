@@ -17,6 +17,11 @@ import {
 import { LivingStrands } from "@/components/LivingStrands";
 import { OpenInBrowserNotice } from "@/components/OpenInBrowserNotice";
 import { isInAppBrowser } from "@/lib/device";
+import {
+  DEFAULT_ROUTINE_TIME,
+  currentTzOffsetMin,
+  normalizeRoutineTime,
+} from "@/lib/routine-timer";
 import type { StepProps } from "./types";
 import type { CutSuggestion } from "@/lib/funnel-types";
 import { createClient } from "@/lib/supabase/client";
@@ -1462,6 +1467,76 @@ export function Generating({ data, update, next }: StepProps) {
 }
 
 /* ── 10. Routine finale ───────────────────────────────────────── */
+/* ── Horaire de routine (question du quiz) ─────────────────────── */
+const TIME_PRESETS: { label: string; emoji: string; time: string; hint: string }[] = [
+  { label: "Matin", emoji: "🌅", time: "08:00", hint: "Au réveil" },
+  { label: "Midi", emoji: "☀️", time: "12:30", hint: "Pause déjeuner" },
+  { label: "Soir", emoji: "🌙", time: "20:00", hint: "Avant de dormir" },
+];
+
+export function Schedule({ data, update, next, back }: StepProps) {
+  const [time, setTime] = useState(data.routineTime || DEFAULT_ROUTINE_TIME);
+
+  function confirm() {
+    const clean = normalizeRoutineTime(time) || DEFAULT_ROUTINE_TIME;
+    update({ routineTime: clean, routineTzOffset: currentTzOffsetMin() });
+    next();
+  }
+
+  return (
+    <div className="mx-auto max-w-xl text-center">
+      <StepTitle
+        kicker="Ton rythme"
+        title="À quelle heure veux-tu faire ta routine ?"
+        sub="Chaque jour, ta séance se débloquera pile à cette heure-là. Tu pourras la changer quand tu veux."
+      />
+
+      <div className="mt-8 grid grid-cols-3 gap-3">
+        {TIME_PRESETS.map((p) => {
+          const active = time === p.time;
+          return (
+            <button
+              key={p.time}
+              onClick={() => setTime(p.time)}
+              className={`rounded-3xl border p-4 text-center transition ${
+                active
+                  ? "border-cocoa-700 bg-cocoa-700 text-cream shadow-soft"
+                  : "border-clay-200 bg-paper/70 text-cocoa-800 hover:border-clay-400"
+              }`}
+            >
+              <span className="block text-2xl">{p.emoji}</span>
+              <span className="mt-2 block font-medium">{p.label}</span>
+              <span className={`mt-0.5 block text-xs ${active ? "text-cream/80" : "text-clay-600"}`}>
+                {p.hint}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-clay-200 bg-sand/60 px-5 py-3">
+        <span className="text-sm text-cocoa-700">Heure précise</span>
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="rounded-xl border border-clay-200 bg-paper px-3 py-1.5 font-display text-lg tabular-nums text-ink outline-none focus:border-cocoa-700"
+        />
+      </div>
+
+      <div className="mt-9 flex items-center justify-center gap-3">
+        <button onClick={back} className="btn-ghost">
+          Retour
+        </button>
+        <button onClick={confirm} className="btn-primary group">
+          Voir ma routine
+          <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function RoutineView({ data, restart }: StepProps) {
   const r = data.routine;
   const [open, setOpen] = useState<number | null>(1);
@@ -1479,9 +1554,11 @@ export function RoutineView({ data, restart }: StepProps) {
         routine: data.routine,
         cuts: data.cuts,
         choice: data.choice,
+        routineTime: data.routineTime,
+        routineTzOffset: data.routineTzOffset,
       }),
     }).catch(() => {});
-  }, [data.routine, data.analysis, data.cuts, data.choice]);
+  }, [data.routine, data.analysis, data.cuts, data.choice, data.routineTime, data.routineTzOffset]);
 
   if (!r) return null;
   return (

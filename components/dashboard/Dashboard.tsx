@@ -8,6 +8,11 @@ import { LivingStrands } from "@/components/LivingStrands";
 import { ScalpTracker } from "@/components/dashboard/ScalpTracker";
 import { HairRadar } from "@/components/dashboard/HairRadar";
 import { ProductsTab } from "@/components/dashboard/ProductsTab";
+import {
+  currentTzOffsetMin,
+  nextUnlockMs,
+  routineTimeLabel,
+} from "@/lib/routine-timer";
 import type { CutsResult, HairAnalysis, Routine, RoutineDay } from "@/lib/funnel-types";
 
 type Entry = {
@@ -27,6 +32,8 @@ type Props = {
   startedAt: string | null;
   lastCompletedDate: string | null;
   lastCompletedAt: string | null;
+  routineTime: string;
+  routineTzOffset: number;
   subscription: { status: string | null; via: "stripe" | "code" | null };
   entries: Entry[];
   catalog?: CatalogCut[];
@@ -71,10 +78,15 @@ export function Dashboard(props: Props) {
   const [lastAt, setLastAt] = useState(props.lastCompletedAt);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
+  const [routineTime, setRoutineTime] = useState(props.routineTime || "08:00");
 
   const started = Boolean(props.startedAt);
-  const COOLDOWN_MS = 24 * 60 * 60 * 1000;
-  const unlockMs = lastAt ? new Date(lastAt).getTime() + COOLDOWN_MS : 0;
+  const lastAtMs = lastAt ? new Date(lastAt).getTime() : 0;
+  // La séance suivante se débloque à l'heure de routine choisie (pas un +24h fixe).
+  const unlockMs = lastAtMs
+    ? nextUnlockMs(lastAtMs, routineTime, props.routineTzOffset ?? 0)
+    : 0;
+  const windowMs = unlockMs && lastAtMs ? unlockMs - lastAtMs : 24 * 60 * 60 * 1000;
   const inCooldown = Boolean(lastAt) && now < unlockMs;
   const ringDay = inCooldown ? Math.max(0, day - 1) : day;
   const routineDay = props.program?.routine?.days?.[Math.max(0, day - 1)];
@@ -141,6 +153,22 @@ export function Dashboard(props: Props) {
       }
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function saveSchedule(time: string) {
+    const prev = routineTime;
+    setRoutineTime(time); // optimiste
+    try {
+      const r = await fetch("/api/program/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ routineTime: time, routineTzOffset: currentTzOffsetMin() }),
+      }).then((res) => res.json());
+      if (!r.ok) setRoutineTime(prev);
+      else router.refresh();
+    } catch {
+      setRoutineTime(prev);
     }
   }
 
@@ -277,7 +305,14 @@ export function Dashboard(props: Props) {
                 </motion.section>
 
                 {inCooldown ? (
-                  <CooldownSection unlockMs={unlockMs} now={now} day={day} routineDay={routineDay} />
+                  <CooldownSection
+                    unlockMs={unlockMs}
+                    windowMs={windowMs}
+                    routineTime={routineTime}
+                    now={now}
+                    day={day}
+                    routineDay={routineDay}
+                  />
                 ) : (
                   <>
                     {/* Routine du jour */}
@@ -493,6 +528,7 @@ export function Dashboard(props: Props) {
                 <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">Compte</p>
                 <p className="mt-1.5 text-ink">{props.email}</p>
               </section>
+              <RoutineTimeSetting value={routineTime} onSave={saveSchedule} busy={busy} />
               {props.diagnosis && (
                 <section className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60">
                   <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">Ton diagnostic</p>
@@ -519,13 +555,55 @@ export function Dashboard(props: Props) {
 
 /* ── Sous-composants ──────────────────────────────────────────── */
 
+function RoutineTimeSetting({
+  value,
+  onSave,
+  busy,
+}: {
+  value: string;
+  onSave: (time: string) => void;
+  busy: boolean;
+}) {
+  const [time, setTime] = useState(value);
+  useEffect(() => setTime(value), [value]);
+  const dirty = time !== value;
+
+  return (
+    <section className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60">
+      <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">Heure de ma routine</p>
+      <p className="mt-1.5 text-sm text-cocoa-600">
+        Ta séance du jour se débloque à cette heure. Change-la quand tu veux.
+      </p>
+      <div className="mt-4 flex items-center gap-3">
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="rounded-xl border border-clay-200 bg-paper px-3 py-2 font-display text-lg tabular-nums text-ink outline-none focus:border-cocoa-700"
+        />
+        <button
+          onClick={() => onSave(time)}
+          disabled={!dirty || busy}
+          className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-cream transition enabled:hover:opacity-90 disabled:opacity-40"
+        >
+          Enregistrer
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function CooldownSection({
   unlockMs,
+  windowMs,
+  routineTime,
   now,
   day,
   routineDay,
 }: {
   unlockMs: number;
+  windowMs: number;
+  routineTime: string;
   now: number;
   day: number;
   routineDay?: RoutineDay;
@@ -536,7 +614,8 @@ function CooldownSection({
   const m = Math.floor(rem / 60_000) % 60;
   const s = Math.floor(rem / 1000) % 60;
   const C = 2 * Math.PI * 70;
-  const dashoffset = C * (1 - rem / 86_400_000);
+  const frac = windowMs > 0 ? rem / windowMs : 0;
+  const dashoffset = C * (1 - Math.max(0, Math.min(1, frac)));
 
   return (
     <>
@@ -603,7 +682,7 @@ function CooldownSection({
         </div>
 
         <p className="relative mt-6 text-xs text-clay-300/90">
-          La routine et tes photos se débloquent automatiquement à zéro.
+          Ta prochaine séance se débloque à {routineTimeLabel(routineTime)}, ton heure de routine.
         </p>
       </motion.section>
 
