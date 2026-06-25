@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   ADMIN_CODE,
   getMetrics,
@@ -11,6 +12,24 @@ import { CopyButton } from "@/components/admin/CopyButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord", robots: { index: false } };
+
+/** Vérifie le code d'accès et pose le cookie (Server Action — pas de route POST). */
+async function enterDashboard(formData: FormData) {
+  "use server";
+  const code = String(formData.get("code") ?? "").trim();
+  if (code === ADMIN_CODE) {
+    const store = await cookies();
+    store.set("cpx_admin", ADMIN_CODE, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+    redirect("/admin");
+  }
+  redirect("/admin?error=1");
+}
 
 const euro = (n: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
@@ -141,7 +160,7 @@ function CodeGate({ error }: { error: boolean }) {
       <p className="eyebrow">Capilatyx · Admin</p>
       <h1 className="mt-2 font-display text-2xl text-ink">Tableau de bord</h1>
       <p className="mt-2 text-sm text-cocoa-600">Entre le code d&apos;accès pour voir tes statistiques.</p>
-      <form action="/api/admin/login" method="post" className="mt-5 space-y-3">
+      <form action={enterDashboard} className="mt-5 space-y-3">
         <input
           name="code"
           type="password"
