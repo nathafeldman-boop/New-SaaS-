@@ -25,7 +25,7 @@ type Entry = {
 
 type Props = {
   email: string;
-  program: { routine?: Routine; cuts?: CutsResult; choice?: any } | null;
+  program: { routine?: Routine; cuts?: CutsResult; choice?: any; potential?: number } | null;
   diagnosis: HairAnalysis | null;
   currentDay: number;
   score: number | null;
@@ -376,42 +376,48 @@ export function Dashboard(props: Props) {
                       custom={2}
                       className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60 backdrop-blur-sm"
                     >
-                      <p className="eyebrow">Ta transformation</p>
-                      <h3 className="display-2 mt-2 text-xl text-ink">De cheveux abîmés à cheveux de fou</h3>
-                      <p className="mt-1.5 text-[0.9rem] text-cocoa-600">
-                        Jour {day} sur 30 — chaque séance te rapproche du résultat.
-                      </p>
-                      <div className="mt-5 grid grid-cols-2 gap-3">
-                        <div>
-                          <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gradient-to-b from-stone-300 to-stone-500 grayscale">
-                            <span className="absolute left-2 top-2 rounded-full bg-ink/70 px-2.5 py-0.5 text-[0.66rem] font-medium text-cream">
-                              Avant
-                            </span>
-                          </div>
-                          <p className="mt-2 text-center text-[0.78rem] text-cocoa-600">Ternes, secs, cassants</p>
-                        </div>
-                        <div>
-                          <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gradient-to-br from-[#e7c9a6] via-[#caa06f] to-[#8a5a36]">
-                            <div className="absolute -inset-x-6 -top-8 h-16 rotate-12 bg-white/30 blur-xl" />
-                            <span className="absolute left-2 top-2 rounded-full bg-cream/90 px-2.5 py-0.5 text-[0.66rem] font-semibold text-ink">
-                              Après · J30
-                            </span>
-                          </div>
-                          <p className="mt-2 text-center text-[0.78rem] text-cocoa-700">Brillants, sains, pleins de vie</p>
-                        </div>
-                      </div>
-                      <div className="mt-5">
-                        <div className="mb-1.5 flex items-center justify-between text-xs text-cocoa-600">
-                          <span>Score actuel {score ?? 55}</span>
-                          <span>Objectif {Math.min((score ?? 55) + 22, 96)}</span>
-                        </div>
-                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-sand">
-                          <div
-                            className="h-full rounded-full bg-cocoa-700"
-                            style={{ width: `${Math.round(((score ?? 55) / Math.min((score ?? 55) + 22, 96)) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
+                      {(() => {
+                        const now = Math.round(score ?? 55);
+                        const potential = Math.max(
+                          now + 3,
+                          Math.round(props.program?.potential ?? Math.min(96, now + 22)),
+                        );
+                        return (
+                          <>
+                            <p className="eyebrow">Ton potentiel cheveux</p>
+                            <h3 className="display-2 mt-2 text-xl text-ink">
+                              De {now}/100 à {potential}/100 en 30 jours
+                            </h3>
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                              <div className="rounded-2xl bg-sand/60 p-4 text-center">
+                                <p className="font-display text-4xl text-ink">
+                                  {now}
+                                  <span className="text-lg text-cocoa-500">/100</span>
+                                </p>
+                                <p className="mt-1 text-[0.8rem] text-cocoa-600">Ton score aujourd&apos;hui</p>
+                              </div>
+                              <div className="rounded-2xl bg-cocoa-700 p-4 text-center text-cream">
+                                <p className="font-display text-4xl">
+                                  {potential}
+                                  <span className="text-lg text-cream/70">/100</span>
+                                </p>
+                                <p className="mt-1 text-[0.8rem] text-cream/80">Ton potentiel avec Capilatyx</p>
+                              </div>
+                            </div>
+                            <div className="mt-4">
+                              <div className="h-2.5 w-full overflow-hidden rounded-full bg-sand">
+                                <div
+                                  className="h-full rounded-full bg-cocoa-700 transition-all"
+                                  style={{ width: `${Math.round((now / potential) * 100)}%` }}
+                                />
+                              </div>
+                              <p className="mt-2 text-[0.75rem] text-cocoa-500">
+                                Calculé par l&apos;IA d&apos;après ton diagnostic — et il monte à chaque jour validé. 📈
+                              </p>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </motion.section>
 
                     {/* Photos avant / après (optionnel) */}

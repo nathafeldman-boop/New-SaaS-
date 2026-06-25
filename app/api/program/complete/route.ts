@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("current_day, hair_score, last_completed_at, routine_time, routine_tz_offset")
+    .select("current_day, hair_score, last_completed_at, routine_time, routine_tz_offset, program")
     .eq("id", user!.id)
     .single();
 
@@ -37,7 +37,11 @@ export async function POST(req: Request) {
   }
 
   const day = profile.current_day || 1;
-  const score = Math.min(100, Number(profile.hair_score ?? 60) + 1.3);
+  // Le score monte à chaque jour validé, sans dépasser le potentiel IA.
+  const prev = Number(profile.hair_score ?? 60);
+  const potential = Number((profile.program as { potential?: number } | null)?.potential) || 100;
+  const cap = Math.min(100, Math.max(potential, prev));
+  const score = Math.min(cap, prev + 1.3);
   const nextDay = Math.min(PROGRAM_LENGTH, day + 1);
   const nowIso = new Date().toISOString();
 
