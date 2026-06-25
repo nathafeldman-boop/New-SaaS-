@@ -45,7 +45,7 @@ export const siteConfig = {
     { label: "Tarif", href: "#tarif" },
   ],
   cta: {
-    primary: "Commencer",
+    primary: "Faire mon scan gratuit",
     secondary: "Voir comment ça marche",
   },
 };

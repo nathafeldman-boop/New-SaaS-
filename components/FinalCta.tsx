@@ -14,13 +14,14 @@ export function FinalCta() {
         <div className="relative mx-auto max-w-2xl">
           <Reveal>
             <h2 className="display-2 text-balance text-4xl text-cream sm:text-6xl">
-              Commence ton premier cycle dès aujourd'hui.
+              Tes cheveux peuvent changer. Découvre ton score.
             </h2>
           </Reveal>
           <Reveal delay={0.08}>
             <p className="mx-auto mt-6 max-w-lg text-lg text-clay-200">
-              Une photo, et {siteConfig.name} s'occupe du reste — jour après
-              jour, pendant 30 jours.
+              Une photo suffit : reçois ton diagnostic et ton score sur 100{" "}
+              <strong className="font-semibold text-cream">gratuitement</strong>. Puis laisse{" "}
+              {siteConfig.name} te guider, jour après jour, pendant 30 jours.
             </p>
           </Reveal>
           <Reveal delay={0.16}>
