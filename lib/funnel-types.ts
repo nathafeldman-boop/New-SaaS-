@@ -87,6 +87,10 @@ export type RoutineDay = {
   title: string;
   focus: string;
   steps: string[];
+  /** Champs enrichis (optionnels → compatibles avec les programmes existants). */
+  why?: string;
+  tip?: string;
+  duration?: string;
 };
 
 export type Routine = {

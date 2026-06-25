@@ -324,9 +324,21 @@ export function Dashboard(props: Props) {
                         custom={1}
                         className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60 backdrop-blur-sm"
                       >
-                        <p className="eyebrow">{routineDay.phase || "Routine"}</p>
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="eyebrow">{routineDay.phase || "Routine"}</p>
+                          {routineDay.duration && (
+                            <span className="rounded-full bg-sand px-3 py-1 text-[0.7rem] font-medium text-cocoa-600">
+                              ⏱ {routineDay.duration}
+                            </span>
+                          )}
+                        </div>
                         <h3 className="display-2 mt-3 text-2xl text-ink">{routineDay.title}</h3>
                         <p className="mt-1.5 text-[0.92rem] text-cocoa-600">{routineDay.focus}</p>
+                        {routineDay.why && (
+                          <p className="mt-4 rounded-2xl bg-sand/50 px-4 py-3 text-[0.9rem] leading-relaxed text-cocoa-700">
+                            {routineDay.why}
+                          </p>
+                        )}
                         <ul className="mt-5 space-y-3">
                           {routineDay.steps.map((s, i) => (
                             <li key={i} className="flex items-start gap-3 text-[0.95rem] text-cocoa-800">
@@ -337,6 +349,15 @@ export function Dashboard(props: Props) {
                             </li>
                           ))}
                         </ul>
+                        {routineDay.tip && (
+                          <p className="mt-5 flex items-start gap-2 rounded-2xl border border-clay-200 bg-paper/70 px-4 py-3 text-[0.9rem] leading-relaxed text-cocoa-800">
+                            <span className="shrink-0">💡</span>
+                            <span>
+                              <span className="font-medium">Astuce du coach : </span>
+                              {routineDay.tip}
+                            </span>
+                          </p>
+                        )}
                       </motion.section>
                     )}
 
