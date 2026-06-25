@@ -578,10 +578,10 @@ export function Reveal({ data, next }: StepProps) {
         />
         <p className="mt-3 text-center text-xs text-cocoa-600">
           {genState === "loading"
-            ? "Génération de ton rendu en cours…"
+            ? "Génération de ton aperçu en cours…"
             : genState === "real"
               ? "Rendu généré à partir de ta photo · glisse le curseur."
-              : "Simulation éclat & vitalité · glisse le curseur (rendu IA indisponible)."}
+              : "Aperçu illustratif · simulation d'éclat & de vitalité · glisse le curseur."}
         </p>
       </div>
       <div>
