@@ -3,6 +3,9 @@ import { createAdminClient } from "@/lib/supabase/server";
 /** Prix mensuel de l'abonnement (cf. siteConfig "10,90 €"). */
 export const MONTHLY_PRICE = 10.9;
 
+/** Code d'entrée du dashboard (modifiable via env, sinon valeur par défaut). */
+export const ADMIN_CODE = process.env.ADMIN_DASHBOARD_CODE || "CAPILATYX2026";
+
 const DAY = 86_400_000;
 const isCode = (priceId: string | null) => Boolean(priceId?.startsWith("access_code:"));
 const isActive = (status: string | null) => status === "active" || status === "trialing";

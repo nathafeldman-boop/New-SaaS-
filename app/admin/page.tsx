@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getMetrics, type DayPoint, type Metrics } from "@/lib/admin-metrics";
+import { cookies } from "next/headers";
+import { ADMIN_CODE, getMetrics, type DayPoint, type Metrics } from "@/lib/admin-metrics";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord", robots: { index: false } };
@@ -9,37 +8,18 @@ const euro = (n: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
 const pct = (n: number) => `${(n * 100).toFixed(1)} %`;
 
-export default async function AdminPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/admin");
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
+  const cookieStore = await cookies();
+  const authed = cookieStore.get("cpx_admin")?.value === ADMIN_CODE;
 
-  const admins = (process.env.ADMIN_EMAILS ?? "")
-    .toLowerCase()
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const email = (user.email ?? "").toLowerCase();
-
-  if (admins.length === 0) {
+  if (!authed) {
     return (
       <Shell>
-        <h1 className="font-display text-2xl text-ink">Tableau de bord — à configurer</h1>
-        <p className="mt-3 text-cocoa-700">
-          Ajoute la variable d&apos;environnement <code className="rounded bg-sand px-1.5 py-0.5">ADMIN_EMAILS</code>{" "}
-          dans Vercel (ex. <code className="rounded bg-sand px-1.5 py-0.5">{email || "ton@email.com"}</code>),
-          puis redéploie. Seuls ces emails verront ce tableau de bord.
-        </p>
-      </Shell>
-    );
-  }
-  if (!admins.includes(email)) {
-    return (
-      <Shell>
-        <h1 className="font-display text-2xl text-ink">Accès refusé</h1>
-        <p className="mt-3 text-cocoa-700">Ce compte n&apos;a pas accès au tableau de bord.</p>
+        <CodeGate error={searchParams?.error === "1"} />
       </Shell>
     );
   }
@@ -115,6 +95,31 @@ function Shell({ children }: { children: React.ReactNode }) {
     <main className="min-h-screen bg-cream px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl">{children}</div>
     </main>
+  );
+}
+
+function CodeGate({ error }: { error: boolean }) {
+  return (
+    <div className="mx-auto mt-16 max-w-sm rounded-3xl bg-paper/80 p-8 ring-1 ring-clay-200/60">
+      <p className="eyebrow">Capilatyx · Admin</p>
+      <h1 className="mt-2 font-display text-2xl text-ink">Tableau de bord</h1>
+      <p className="mt-2 text-sm text-cocoa-600">Entre le code d&apos;accès pour voir tes statistiques.</p>
+      <form action="/api/admin/login" method="post" className="mt-5 space-y-3">
+        <input
+          name="code"
+          type="password"
+          autoFocus
+          required
+          placeholder="Code d'accès"
+          autoComplete="off"
+          className="w-full rounded-xl border border-clay-200 bg-cream px-4 py-3 text-ink outline-none transition focus:border-cocoa-700"
+        />
+        {error && <p className="text-sm text-red-600">Code incorrect.</p>}
+        <button className="w-full rounded-xl bg-ink py-3 font-medium text-cream transition hover:opacity-90">
+          Entrer
+        </button>
+      </form>
+    </div>
   );
 }
 
