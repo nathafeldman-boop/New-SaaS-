@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { HEALTH_PROMPT, cutPrompt, editImage, hasReplicateKey } from "@/lib/replicate";
+import { editImageGemini, hasGeminiKey } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -19,20 +20,37 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Photo manquante" }, { status: 400 });
   }
 
-  // pas de clé → le client retombe sur la simulation éclat
-  if (!hasReplicateKey()) {
+  // aucun fournisseur configuré → le client retombe sur la simulation éclat
+  if (!hasGeminiKey() && !hasReplicateKey()) {
     return NextResponse.json({ ok: false, reason: "no-key" });
   }
 
   const prompt = mode === "cut" && cut ? cutPrompt(cut) : HEALTH_PROMPT;
+  let lastError = "";
 
-  try {
-    const url = await editImage(image, prompt);
-    return NextResponse.json({ ok: true, url });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Erreur Replicate";
-    // visible dans les logs Vercel pour diagnostiquer (crédit épuisé, etc.)
-    console.error("[transform] échec Replicate:", msg);
-    return NextResponse.json({ ok: false, error: msg });
+  // 1) Gemini (palier gratuit) en priorité.
+  if (hasGeminiKey()) {
+    try {
+      const url = await editImageGemini(image, prompt);
+      return NextResponse.json({ ok: true, url, provider: "gemini" });
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : "Erreur Gemini";
+      console.error("[transform] échec Gemini:", lastError);
+      // on tente Replicate s'il est configuré
+    }
   }
+
+  // 2) Replicate (payant) en repli.
+  if (hasReplicateKey()) {
+    try {
+      const url = await editImage(image, prompt);
+      return NextResponse.json({ ok: true, url, provider: "replicate" });
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : "Erreur Replicate";
+      console.error("[transform] échec Replicate:", lastError);
+    }
+  }
+
+  // Tout a échoué → simulation côté client.
+  return NextResponse.json({ ok: false, error: lastError || "Rendu indisponible" });
 }
