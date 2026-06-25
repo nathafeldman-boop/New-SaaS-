@@ -5,33 +5,6 @@ import { editImageGemini, hasGeminiKey } from "@/lib/gemini";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-// ── Sonde de diagnostic temporaire (à retirer) ─────────────────────────────
-// GET /api/transform?probe=capx-diag-9211 : teste les fournisseurs côté serveur.
-const TINY_PNG =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
-
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  if (url.searchParams.get("probe") !== "capx-diag-9211") {
-    return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
-  }
-  let gemini: unknown = "skipped";
-  if (hasGeminiKey()) {
-    try {
-      const out = await editImageGemini(TINY_PNG, HEALTH_PROMPT);
-      gemini = { ok: true, kind: out.slice(0, 30) };
-    } catch (e) {
-      gemini = { ok: false, error: e instanceof Error ? e.message : String(e) };
-    }
-  }
-  return NextResponse.json({
-    hasGeminiKey: hasGeminiKey(),
-    hasReplicateKey: hasReplicateKey(),
-    gemini,
-  });
-}
-// ───────────────────────────────────────────────────────────────────────────
-
 type Body = { image?: string; mode?: "health" | "cut"; cut?: string };
 
 export async function POST(req: Request) {
