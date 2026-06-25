@@ -12,6 +12,11 @@ import { motion } from "framer-motion";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import type { ProductAnalysis, ProductReco } from "@/lib/funnel-types";
 
+/** Lien d'achat : recherche Google Shopping sur la marque + le nom du produit. */
+function buyUrl(p: ProductReco): string {
+  return `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(`${p.brand} ${p.name}`)}`;
+}
+
 export function ProductsTab({ hasDiagnosis }: { hasDiagnosis: boolean }) {
   if (!hasDiagnosis) {
     return (
@@ -120,6 +125,14 @@ function Recommendations() {
                   <p className="mt-1.5 text-[0.7rem] uppercase tracking-wide text-cocoa-500">{p.brand}</p>
                   <h3 className="font-display text-[1rem] leading-tight text-ink">{p.name}</h3>
                   {p.sizeMl ? <p className="text-[0.72rem] text-cocoa-400">{p.sizeMl} ml</p> : null}
+                  <a
+                    href={buyUrl(p)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1 text-[0.72rem] font-medium text-cream transition hover:opacity-90"
+                  >
+                    Acheter →
+                  </a>
                 </div>
               </div>
               <button

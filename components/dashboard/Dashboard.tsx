@@ -358,6 +358,13 @@ export function Dashboard(props: Props) {
                             </span>
                           </p>
                         )}
+                        <button
+                          onClick={() => setTab("products")}
+                          className="mt-5 flex w-full items-center justify-between rounded-2xl bg-cocoa-700 px-4 py-3 text-left text-sm font-medium text-cream transition hover:opacity-90"
+                        >
+                          <span>🧴 Les produits conseillés pour cette routine</span>
+                          <span aria-hidden>→</span>
+                        </button>
                       </motion.section>
                     )}
 

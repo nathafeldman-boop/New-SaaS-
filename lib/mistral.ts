@@ -19,6 +19,8 @@ const API_URL = "https://api.mistral.ai/v1/chat/completions";
 // Modèles surchargeables via variables d'environnement.
 const VISION_MODEL = process.env.MISTRAL_VISION_MODEL ?? "pixtral-large-latest";
 const TEXT_MODEL = process.env.MISTRAL_TEXT_MODEL ?? "mistral-large-latest";
+// Modèle rapide pour les appels moins critiques (scores, produits) → moins d'attente.
+const FAST_MODEL = process.env.MISTRAL_FAST_MODEL ?? "mistral-small-latest";
 
 type Part =
   | { type: "text"; text: string }
@@ -273,7 +275,7 @@ export async function computeScores(analysis: HairAnalysis): Promise<HairScores>
   ];
 
   const raw = await chatJSON<{ scores: Record<string, ScorePair> }>(
-    TEXT_MODEL,
+    FAST_MODEL,
     messages,
     600,
   );
@@ -318,7 +320,7 @@ export async function recommendProducts(
     },
   ];
 
-  const raw = await chatJSON<{ products: any[] }>(TEXT_MODEL, messages, 1800);
+  const raw = await chatJSON<{ products: any[] }>(FAST_MODEL, messages, 1800);
   const list = Array.isArray(raw.products) ? raw.products : [];
   return list.slice(0, 6).map((p, i) => ({
     id: `prod-${i + 1}`,
