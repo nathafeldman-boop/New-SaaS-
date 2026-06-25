@@ -488,11 +488,11 @@ export function Dashboard(props: Props) {
                   <div className="mt-3 space-y-2">
                     {props.program.cuts.cuts.slice(0, 5).map((c) => (
                       <div key={c.id} className="rounded-2xl bg-paper/80 p-4 shadow-card ring-1 ring-clay-200/60">
-                        <div className="flex items-baseline justify-between gap-3">
-                          <h3 className="font-display text-base text-ink">{c.name}</h3>
-                          <span className="shrink-0 text-xs text-cocoa-500">{c.vibe}</span>
-                        </div>
-                        <p className="mt-1 text-[0.88rem] text-cocoa-700">{c.description}</p>
+                        <h3 className="font-display text-base text-ink">{c.name}</h3>
+                        {c.vibe && (
+                          <p className="mt-0.5 text-xs uppercase tracking-wide text-cocoa-500">{c.vibe}</p>
+                        )}
+                        <p className="mt-1.5 text-[0.88rem] text-cocoa-700">{c.description}</p>
                       </div>
                     ))}
                   </div>
