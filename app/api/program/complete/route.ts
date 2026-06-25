@@ -37,6 +37,18 @@ export async function POST(req: Request) {
   }
 
   const day = profile.current_day || 1;
+
+  // Photo obligatoire : pas de validation tant que la photo du jour n'est pas envoyée.
+  const { data: entry } = await supabase
+    .from("daily_entries")
+    .select("photo_before_path, photo_after_path")
+    .eq("user_id", user!.id)
+    .eq("day_number", day)
+    .maybeSingle();
+  if (!entry?.photo_before_path && !entry?.photo_after_path) {
+    return NextResponse.json({ ok: false, reason: "photo-required" });
+  }
+
   // Le score monte à chaque jour validé, sans dépasser le potentiel IA.
   const prev = Number(profile.hair_score ?? 60);
   const potential = Number((profile.program as { potential?: number } | null)?.potential) || 100;

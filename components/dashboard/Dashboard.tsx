@@ -430,7 +430,7 @@ export function Dashboard(props: Props) {
                     >
                       <div className="flex items-baseline justify-between">
                         <div>
-                          <p className="eyebrow">Suivi photo · optionnel</p>
+                          <p className="eyebrow">Suivi photo · obligatoire</p>
                           <h3 className="display-2 mt-2 text-xl text-ink">Ta photo du jour</h3>
                         </div>
                         <span className="rounded-full bg-sand px-3 py-1 text-[0.66rem] font-medium text-cocoa-600">
@@ -462,11 +462,16 @@ export function Dashboard(props: Props) {
                     <div>
                       <button
                         onClick={validateDay}
-                        disabled={busy}
+                        disabled={busy || !beforeUrl}
                         className="btn-primary w-full disabled:opacity-50"
                       >
                         {busy ? "Un instant…" : "Valider ma journée"}
                       </button>
+                      {!beforeUrl && (
+                        <p className="mt-2 text-center text-xs text-cocoa-500">
+                          Ajoute ta photo du jour pour valider. 📸
+                        </p>
+                      )}
                     </div>
                   </>
                 )}
