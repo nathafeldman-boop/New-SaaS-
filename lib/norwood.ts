@@ -97,3 +97,12 @@ export function getStage(n: number | null | undefined): NorwoodStage {
   const i = Math.min(7, Math.max(1, Math.round(n ?? 1))) - 1;
   return NORWOOD_STAGES[i];
 }
+
+/** Slug d'URL d'un stade ("stade-3"). */
+export const stageSlug = (s: number) => `stade-${s}`;
+
+/** Retrouve un stade depuis son slug ("stade-3" → stade 3), ou null. */
+export function getStageBySlug(slug: string): NorwoodStage | null {
+  const m = /^stade-([1-7])$/.exec(slug);
+  return m ? NORWOOD_STAGES[Number(m[1]) - 1] : null;
+}

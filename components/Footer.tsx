@@ -23,6 +23,13 @@ export function Footer() {
               links={siteConfig.nav.map((n) => ({ label: n.label, href: n.href }))}
             />
             <FooterCol
+              title="Guides"
+              links={[
+                { label: "Coupes de cheveux homme", href: "/coupes" },
+                { label: "Échelle de Norwood", href: "/calvitie" },
+              ]}
+            />
+            <FooterCol
               title="Ressources"
               links={[
                 { label: "Confidentialité", href: "#" },
