@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import { siteConfig } from "@/lib/site";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import {
@@ -553,48 +554,21 @@ export function Analyzing({ data, update, next }: StepProps) {
 /* ── 5. Révélation (avant / après) ────────────────────────────── */
 export function Reveal({ data, next }: StepProps) {
   const a = data.analysis;
-  const started = useRef(false);
-  const [afterUrl, setAfterUrl] = useState<string | null>(null);
-  const [genState, setGenState] = useState<"loading" | "real" | "sim">("loading");
-
-  useEffect(() => {
-    if (started.current || !data.photo) return;
-    started.current = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/transform", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: data.photo, mode: "health" }),
-        });
-        const json = await res.json();
-        if (json.ok && json.url) {
-          setAfterUrl(json.url);
-          setGenState("real");
-        } else {
-          setGenState("sim"); // pas de clé / échec → simulation éclat
-        }
-      } catch {
-        setGenState("sim");
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div className="grid items-center gap-12 lg:grid-cols-2">
       <div>
-        <BeforeAfter
-          before={data.photo}
-          after={afterUrl}
-          loading={genState === "loading"}
+        <Image
+          src="/onboarding/diagnostic.jpg"
+          alt="Avant / Après — la transformation Capilatyx"
+          width={968}
+          height={1307}
+          sizes="(max-width: 480px) 92vw, 420px"
+          className="mx-auto h-auto w-full max-w-sm rounded-[2rem] shadow-soft ring-1 ring-clay-200/60"
+          priority
         />
         <p className="mt-3 text-center text-xs text-cocoa-600">
-          {genState === "loading"
-            ? "Génération de ton aperçu en cours…"
-            : genState === "real"
-              ? "Rendu généré à partir de ta photo · glisse le curseur."
-              : "Aperçu illustratif · simulation d'éclat & de vitalité · glisse le curseur."}
+          La transformation Capilatyx, en 30 jours.
         </p>
       </div>
       <div>
@@ -669,6 +643,8 @@ function TagList({
   );
 }
 
+// Conservé au cas où on veuille revenir au curseur avant/après sur la photo réelle.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function BeforeAfter({
   before,
   after,

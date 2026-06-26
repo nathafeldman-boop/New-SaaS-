@@ -41,7 +41,7 @@ const quizSteps: Step[] = ONBOARDING_QUESTIONS.map((q) => ({
 
 const STEPS: Step[] = [
   { id: "intro", label: "Bienvenue", Component: Intro },
-  { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.jpg", 968, 1307) },
+  { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.png") },
   ...quizSteps,
   { id: "story-ia", label: "Analyse IA", Component: story("/onboarding/analyse-ia.png") },
   { id: "guide", label: "Photo", Component: Guide },
