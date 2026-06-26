@@ -14,6 +14,8 @@ export type HairAnalysis = {
   /** true si la coupe actuelle est déjà le meilleur choix */
   keepCurrentCut: boolean;
   keepReason: string;
+  /** Réponses du quiz d'onboarding (contexte utilisateur pour l'IA). */
+  quiz?: Record<string, string>;
 };
 
 /* ── Rapport de score capillaire (radar) ─────────────────────── */

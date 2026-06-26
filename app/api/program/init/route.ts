@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ ok: false, reason: error });
 
   const body = await req.json().catch(() => ({}));
-  const { analysis, routine, cuts, choice, routineTime, routineTzOffset } = body ?? {};
+  const { analysis, routine, cuts, choice, routineTime, routineTzOffset, quizAnswers } = body ?? {};
   const cleanTime = normalizeRoutineTime(routineTime) ?? DEFAULT_ROUTINE_TIME;
   const tzOffset = Number.isFinite(routineTzOffset) ? Math.trunc(routineTzOffset) : 0;
 
@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     .update({
       program: { routine, cuts, choice, potential },
       diagnosis: analysis ?? null,
+      quiz_answers: quizAnswers ?? null,
       current_day: 1,
       hair_score: score,
       routine_time: cleanTime,

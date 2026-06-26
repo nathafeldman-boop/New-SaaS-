@@ -20,6 +20,8 @@ export type FunnelData = {
   routineTime?: string;
   /** Décalage local vs UTC en minutes (= -getTimezoneOffset()). */
   routineTzOffset?: number;
+  /** Réponses du quiz d'onboarding (id question → valeur choisie). */
+  quizAnswers?: Record<string, string>;
   paid?: boolean;
 };
 

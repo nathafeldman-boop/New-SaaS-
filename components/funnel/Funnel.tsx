@@ -18,6 +18,7 @@ import {
   RoutineView,
   Schedule,
 } from "./Steps";
+import { ONBOARDING_QUESTIONS, QuizScreen, StoryScreen } from "./Onboarding";
 
 type Step = {
   id: string;
@@ -25,11 +26,28 @@ type Step = {
   Component: (p: StepProps) => JSX.Element | null;
 };
 
+// Une étape "story" par illustration générée.
+const story =
+  (src: string): ((p: StepProps) => JSX.Element) =>
+  (p) =>
+    <StoryScreen {...p} src={src} />;
+
+// Une étape par question du quiz.
+const quizSteps: Step[] = ONBOARDING_QUESTIONS.map((q) => ({
+  id: `quiz-${q.id}`,
+  label: "Profil",
+  Component: (p: StepProps) => <QuizScreen {...p} question={q} />,
+}));
+
 const STEPS: Step[] = [
-  { id: "intro", label: "Scan", Component: Intro },
-  { id: "guide", label: "Guide", Component: Guide },
+  { id: "intro", label: "Bienvenue", Component: Intro },
+  { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.png") },
+  ...quizSteps,
+  { id: "story-ia", label: "Analyse IA", Component: story("/onboarding/analyse-ia.png") },
+  { id: "guide", label: "Photo", Component: Guide },
   { id: "capture", label: "Photo", Component: Capture },
   { id: "analyze", label: "Analyse", Component: Analyzing },
+  { id: "story-ready", label: "Recommandations", Component: story("/onboarding/recommandations.png") },
   { id: "reveal", label: "Diagnostic", Component: Reveal },
   { id: "paywall", label: "Accès", Component: Paywall },
   { id: "checkout", label: "Paiement", Component: Checkout },

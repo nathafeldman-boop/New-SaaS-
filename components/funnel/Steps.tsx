@@ -401,7 +401,14 @@ export function Analyzing({ data, update, next }: StepProps) {
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec de l'analyse");
-      update({ analysis: json.data, analysisDemo: json.demo });
+      // On greffe les réponses du quiz à l'analyse : coupes, routine et scores
+      // les reçoivent ainsi automatiquement (personnalisation).
+      update({
+        analysis: data.quizAnswers
+          ? { ...json.data, quiz: data.quizAnswers }
+          : json.data,
+        analysisDemo: json.demo,
+      });
       done.current = true;
       setPct(100);
       setTimeout(next, 700);
@@ -1576,6 +1583,7 @@ export function RoutineView({ data }: StepProps) {
         choice: data.choice,
         routineTime: data.routineTime,
         routineTzOffset: data.routineTzOffset,
+        quizAnswers: data.quizAnswers,
       }),
     }).catch(() => {});
   }, [data.routine, data.analysis, data.cuts, data.choice, data.routineTime, data.routineTzOffset]);
