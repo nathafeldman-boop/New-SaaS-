@@ -19,25 +19,15 @@ export function Hero() {
       <div className="container-page relative grid items-center gap-14 pb-24 lg:grid-cols-2 lg:pb-32">
         {/* Colonne texte */}
         <div className="relative z-10 max-w-xl">
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease }}
-            className="inline-flex items-center gap-2 rounded-full border border-clay-300 bg-paper/70 px-3.5 py-1.5 text-sm text-cocoa-700"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-cocoa-700" />
-            Diagnostic capillaire par IA · gratuit
-          </motion.span>
-
           <motion.h1
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.05, ease }}
-            className="display-1 mt-5 text-balance text-[2.8rem] text-ink sm:text-6xl lg:text-[4.2rem]"
+            transition={{ duration: 0.7, ease }}
+            className="display-1 text-balance text-[2.8rem] text-ink sm:text-6xl lg:text-[4.2rem]"
           >
-            De cheveux abîmés à{" "}
+            Retrouve des cheveux{" "}
             <span className="relative whitespace-nowrap">
-              <span className="italic text-cocoa-700">cheveux de fou</span>
+              <span className="italic text-cocoa-700">denses et sains</span>
               <svg
                 className="absolute -bottom-2 left-0 w-full text-clay-400"
                 viewBox="0 0 220 12"
@@ -71,24 +61,11 @@ export function Hero() {
             besoin de t'y connaître ni d'être discipliné — on te guide.
           </motion.p>
 
-          {/* Accroche score (preuve de la transformation) */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease }}
-            className="mt-6 inline-flex items-center gap-3 rounded-2xl border border-clay-200 bg-paper/70 px-4 py-3"
-          >
-            <span className="font-display text-2xl text-cocoa-500">71<span className="text-sm">/100</span></span>
-            <IconArrow className="h-4 w-4 text-cocoa-600" />
-            <span className="font-display text-2xl text-ink">94<span className="text-sm text-cocoa-500">/100</span></span>
-            <span className="text-sm text-cocoa-600">ton potentiel en 30 jours</span>
-          </motion.div>
-
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease }}
-            className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+            className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
             <a href="/scan" className="btn-primary group">
               {siteConfig.cta.primary}
