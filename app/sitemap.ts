@@ -9,7 +9,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const base = siteConfig.url;
 
-  const cuts = await getAllCuts();
+  // Les coupes viennent de la base : si l'appel échoue, on n'empêche PAS le
+  // sitemap de se générer (sinon Google voit "Impossible de récupérer").
+  let cuts: Awaited<ReturnType<typeof getAllCuts>> = [];
+  try {
+    cuts = await getAllCuts();
+  } catch {
+    cuts = [];
+  }
 
   const cutUrls: MetadataRoute.Sitemap = cuts.map((c) => ({
     url: `${base}/coupes/${c.slug}`,
