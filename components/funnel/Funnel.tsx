@@ -26,11 +26,11 @@ type Step = {
   Component: (p: StepProps) => JSX.Element | null;
 };
 
-// Une étape "story" par illustration générée.
+// Une étape "story" par illustration générée (dimensions natives → pas de déformation).
 const story =
-  (src: string): ((p: StepProps) => JSX.Element) =>
+  (src: string, width = 768, height = 1376): ((p: StepProps) => JSX.Element) =>
   (p) =>
-    <StoryScreen {...p} src={src} />;
+    <StoryScreen {...p} src={src} width={width} height={height} />;
 
 // Une étape par question du quiz.
 const quizSteps: Step[] = ONBOARDING_QUESTIONS.map((q) => ({
@@ -41,7 +41,7 @@ const quizSteps: Step[] = ONBOARDING_QUESTIONS.map((q) => ({
 
 const STEPS: Step[] = [
   { id: "intro", label: "Bienvenue", Component: Intro },
-  { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.png") },
+  { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.jpg", 968, 1307) },
   ...quizSteps,
   { id: "story-ia", label: "Analyse IA", Component: story("/onboarding/analyse-ia.png") },
   { id: "guide", label: "Photo", Component: Guide },

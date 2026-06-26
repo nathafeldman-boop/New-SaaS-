@@ -12,7 +12,12 @@ const ease = [0.22, 1, 0.36, 1] as const;
  *  Sert à casser le rythme des questions et à montrer la valeur.
  *  Animations légères : fade-in, flottement doux, glow discret.
  * ────────────────────────────────────────────────────────────────────────── */
-export function StoryScreen({ src, next }: StepProps & { src: string }) {
+export function StoryScreen({
+  src,
+  width = 768,
+  height = 1376,
+  next,
+}: StepProps & { src: string; width?: number; height?: number }) {
   return (
     <div className="mx-auto flex max-w-sm flex-col items-center">
       <motion.div
@@ -31,8 +36,8 @@ export function StoryScreen({ src, next }: StepProps & { src: string }) {
           <Image
             src={src}
             alt=""
-            width={768}
-            height={1376}
+            width={width}
+            height={height}
             sizes="(max-width: 480px) 92vw, 384px"
             className="h-auto w-full rounded-[2rem] shadow-soft ring-1 ring-clay-200/60"
             priority
