@@ -44,6 +44,12 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <a
+            href="/login"
+            className="hidden rounded-full px-3.5 py-2 text-sm text-cocoa-700 transition-colors hover:bg-sand/70 hover:text-ink sm:inline-flex"
+          >
+            Se connecter
+          </a>
           <a href="/scan" className="btn-primary hidden px-5 py-2.5 sm:inline-flex">
             {siteConfig.cta.primary}
           </a>
@@ -118,10 +124,17 @@ export function Nav() {
             </ul>
             <motion.div
               variants={{ hidden: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}
-              className="p-3"
+              className="space-y-2 p-3"
             >
               <a href="/scan" onClick={() => setOpen(false)} className="btn-primary w-full">
                 {siteConfig.cta.primary}
+              </a>
+              <a
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="block w-full rounded-full border border-clay-300 py-3 text-center text-sm font-medium text-cocoa-700 transition hover:bg-sand/60"
+              >
+                Se connecter
               </a>
             </motion.div>
           </motion.div>

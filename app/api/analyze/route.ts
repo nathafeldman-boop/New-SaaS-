@@ -8,8 +8,9 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   let image: string | undefined;
+  let quiz: Record<string, string> | undefined;
   try {
-    ({ image } = await req.json());
+    ({ image, quiz } = await req.json());
   } catch {
     return json({ ok: false, error: "Corps de requête invalide" }, 400);
   }
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await analyzeHair(image);
+    const data = await analyzeHair(image, quiz);
     return json({ ok: true, data });
   } catch (e) {
     // repli démo clairement signalé plutôt qu'un écran cassé

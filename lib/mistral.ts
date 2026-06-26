@@ -85,12 +85,29 @@ function parseJSON<T>(raw: string): T {
 }
 
 /* ── Analyse capillaire (vision) ─────────────────────────────── */
-export async function analyzeHair(imageDataUrl: string): Promise<HairAnalysis> {
+const HAIR_TYPE_LABELS: Record<string, string> = {
+  raides: "raides (type 1)",
+  ondules: "ondulés (type 2)",
+  boucles: "bouclés (type 3)",
+  crepus: "crépus (type 4)",
+};
+
+export async function analyzeHair(
+  imageDataUrl: string,
+  quiz?: Record<string, string>,
+): Promise<HairAnalysis> {
+  const declaredType = quiz?.type ? HAIR_TYPE_LABELS[quiz.type] : null;
   const system =
     HAIR_KNOWLEDGE +
     "\n\nTu es un expert capillaire (trichologue + barbier). Tu analyses une photo " +
     "de cheveux et tu réponds STRICTEMENT en JSON, en français, sans texte autour. " +
     "Identifie le type Walker (1-4) et fonde ton analyse sur le référentiel ci-dessus. " +
+    (declaredType
+      ? `IMPORTANT : l'utilisateur DÉCLARE lui-même avoir des cheveux ${declaredType}. ` +
+        "Considère cette déclaration comme la VÉRITÉ pour le type (hairType / classification " +
+        "Walker) : ne le classe JAMAIS dans un autre type, même si la photo prête à confusion " +
+        "(lumière, humidité, coiffage). Affine seulement l'état, la santé et les coupes. "
+      : "") +
     "Sois bienveillant, précis et concret. Schéma attendu : " +
     '{"summary": string (2 phrases), "hairType": string, "condition": string, ' +
     '"strengths": string[2..3], "concerns": string[2..3], "faceShape": string, ' +
@@ -106,7 +123,12 @@ export async function analyzeHair(imageDataUrl: string): Promise<HairAnalysis> {
       content: [
         {
           type: "text",
-          text: "Analyse l'état et le type de ces cheveux à partir de la photo. Estime le stade de Norwood (norwoodStage, 1 à 7) d'après la ligne frontale et le vertex visibles. Indique si la coupe actuelle est déjà le meilleur choix (keepCurrentCut).",
+          text:
+            (declaredType
+              ? `Type déclaré par l'utilisateur : ${declaredType} (à respecter). `
+              : "") +
+            (quiz ? `Réponses du quiz utilisateur : ${JSON.stringify(quiz)}. ` : "") +
+            "Analyse l'état et le type de ces cheveux à partir de la photo. Estime le stade de Norwood (norwoodStage, 1 à 7) d'après la ligne frontale et le vertex visibles. Indique si la coupe actuelle est déjà le meilleur choix (keepCurrentCut).",
         },
         { type: "image_url", image_url: imageDataUrl },
       ],

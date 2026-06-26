@@ -397,7 +397,7 @@ export function Analyzing({ data, update, next }: StepProps) {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: data.photo }),
+        body: JSON.stringify({ image: data.photo, quiz: data.quizAnswers }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec de l'analyse");
