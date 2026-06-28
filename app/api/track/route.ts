@@ -11,8 +11,16 @@ const ALLOWED = new Set([
   "purchase",
 ]);
 
+/** Robots / crawlers à ne PAS compter dans les stats (Googlebot & cie). */
+const BOT_RE =
+  /bot|crawl|spider|slurp|bingpreview|googlebot|google-inspectiontool|adsbot|mediapartners|facebookexternalhit|whatsapp|telegram|pingdom|uptimerobot|headless|lighthouse|preview|monitor|python-requests|curl|wget|axios|node-fetch|go-http/i;
+
 /** Enregistre un événement de tracking (visites, clics, étapes du funnel). */
 export async function POST(req: Request) {
+  // On ignore les robots : ils ne doivent pas gonfler les visites.
+  const ua = req.headers.get("user-agent") ?? "";
+  if (!ua || BOT_RE.test(ua)) return new NextResponse(null, { status: 204 });
+
   let payload: {
     name?: string;
     sessionId?: string;
