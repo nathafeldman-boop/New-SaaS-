@@ -169,7 +169,11 @@ export async function recommendCuts(
     '{"keepCurrent": boolean, "reason": string, "currentCutName": string, ' +
     '"cuts": [{"id": string, "name": string, "description": string, ' +
     '"why": string, "maintenance": string, "vibe": string}] (exactement 15)}. ' +
-    "keepCurrent = true seulement si garder la coupe actuelle est réellement le meilleur choix.";
+    "keepCurrent = true seulement si garder la coupe actuelle est réellement le meilleur choix. " +
+    "Tiens compte du champ 'quiz' de l'analyse : privilégie des coupes à ENTRETIEN FAIBLE si le " +
+    "temps dispo est court (time), oriente le style vers l'objectif (goal) et le niveau de confiance " +
+    "(confidence), et si le stade de Norwood est élevé propose des coupes qui masquent malinement le " +
+    "recul frontal. Dans chaque 'why', explique pourquoi CETTE coupe lui va (visage + type + objectif).";
 
   const messages: Message[] = [
     { role: "system", content: system },
@@ -238,7 +242,17 @@ export async function generateRoutine(
     'aujourd\'hui, pédagogique et motivant), "tip": string (1 astuce concrète de pro), ' +
     '"steps": string[3..5] (étapes précises et actionnables)}] (EXACTEMENT 7 jours, ' +
     "variés : lavage, hydratation, repos, soin, coiffage). Sois concret, expert et " +
-    "encourageant. Adapte tout à l'analyse et à la coupe choisie.";
+    "encourageant. Adapte tout à l'analyse et à la coupe choisie.\n\n" +
+    "PERSONNALISE À FOND avec le champ 'quiz' de l'analyse (s'il existe) — la routine " +
+    "doit sembler faite SUR-MESURE pour cette personne :\n" +
+    "- DURÉE quotidienne calée sur le temps dispo (time : <2min → routine ultra-express ; " +
+    ">10min → soins plus poussés) ;\n" +
+    "- routine CENTRÉE sur le problème n°1 (problem) et la priorité (priority) ;\n" +
+    "- fréquence de lavage/soins cohérente avec washFreq et oiliness ;\n" +
+    "- part du niveau produits actuel (products) : ne surcharge pas un débutant, " +
+    "enrichis un initié ;\n" +
+    "- ton plus rassurant si la confiance (confidence) est basse ;\n" +
+    "- l'overview et les weeklyTips parlent DIRECTEMENT de son objectif (goal).";
 
   const messages: Message[] = [
     { role: "system", content: system },
