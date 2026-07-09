@@ -780,68 +780,112 @@ export function Paywall({ data, next, back }: StepProps) {
     { t: "Ton score capillaire qui progresse", d: "une preuve concrète, semaine après semaine" },
   ];
 
+  const { amount, period, original, discount } = siteConfig.price;
+  const item = {
+    hidden: { opacity: 0, y: 16 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
+  };
+
   return (
     <div className="mx-auto max-w-md">
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-clay-300/60 bg-paper p-7 shadow-soft sm:p-9">
-        <LivingStrands delay={1.2} className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/40" />
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } } }}
+        className="relative overflow-hidden rounded-5xl p-7 shadow-glow ring-1 ring-clay-400/25 sm:p-9"
+        style={{ background: "linear-gradient(158deg,#2C211A 0%,#43321F 62%,#3a2c22 100%)" }}
+      >
+        {/* auras animées (profondeur / futuriste) */}
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-clay-400/25 blur-3xl"
+          animate={{ x: [0, 20, 0], y: [0, 16, 0], scale: [1, 1.15, 1] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-cocoa-600/40 blur-3xl"
+          animate={{ x: [0, -16, 0], y: [0, -12, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <LivingStrands className="pointer-events-none absolute right-0 top-6 h-56 w-56 text-clay-400/15" />
+
         <div className="relative">
-          {/* badge diagnostic terminé */}
-          <div className="flex justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1 text-xs font-medium text-cocoa-700">
-              <IconCheck className="h-3 w-3 text-ink" />
+          {/* badge diagnostic terminé (pulse) */}
+          <motion.div variants={item} className="flex justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-clay-400/30 bg-cream/5 px-3.5 py-1.5 text-xs font-medium text-clay-200 backdrop-blur">
+              <motion.span
+                className="grid h-4 w-4 place-items-center rounded-full bg-clay-400 text-ink"
+                animate={{ boxShadow: ["0 0 0 0 rgba(201,162,126,.55)", "0 0 0 7px rgba(201,162,126,0)"] }}
+                transition={{ duration: 1.8, repeat: Infinity }}
+              >
+                <IconCheck className="h-2.5 w-2.5" />
+              </motion.span>
               Diagnostic terminé
             </span>
-          </div>
+          </motion.div>
 
-          <h2 className="display-2 mt-4 text-center text-[1.7rem] leading-tight text-ink">
+          <motion.h2 variants={item} className="display-2 mt-5 text-center text-[1.75rem] leading-tight text-cream">
             {headline}
-          </h2>
-          <p className="mx-auto mt-3 max-w-sm text-center text-[0.95rem] text-cocoa-700">
+          </motion.h2>
+          <motion.p variants={item} className="mx-auto mt-3 max-w-sm text-center text-[0.95rem] leading-relaxed text-clay-200/85">
             {sub}
-          </p>
+          </motion.p>
 
           {/* ancrage de prix */}
-          <div className="mt-6 flex flex-col items-center">
+          <motion.div variants={item} className="mt-7 flex flex-col items-center">
             <div className="flex items-end gap-2">
-              {siteConfig.price.original && (
-                <span className="pb-2 text-lg text-cocoa-500 line-through">
-                  {siteConfig.price.original}
-                </span>
-              )}
-              <span className="font-display text-5xl font-light text-ink">
-                {siteConfig.price.amount}
-              </span>
-              <span className="pb-1.5 text-cocoa-600">{siteConfig.price.period}</span>
+              {original && <span className="pb-2 text-lg text-clay-300/70 line-through">{original}</span>}
+              <span className="font-display text-6xl font-light tracking-tight text-cream">{amount}</span>
+              <span className="pb-2 text-clay-300">{period}</span>
             </div>
-            {siteConfig.price.discount && (
-              <span className="mt-2 rounded-full bg-ink px-3 py-1 text-xs font-semibold text-clay-200">
-                Offre de lancement · {siteConfig.price.discount}
-              </span>
+            {discount && (
+              <motion.span
+                className="mt-3 rounded-full bg-gradient-to-r from-clay-400 to-clay-500 px-3.5 py-1 text-xs font-semibold text-ink"
+                animate={{ scale: [1, 1.06, 1] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                Offre de lancement · {discount}
+              </motion.span>
             )}
-          </div>
+          </motion.div>
 
           {/* value stack */}
-          <ul className="mt-7 space-y-3.5 text-left">
+          <ul className="mt-8 space-y-3.5 text-left">
             {perks.map((p) => (
-              <li key={p.t} className="flex items-start gap-3">
-                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-clay-300 text-ink">
+              <motion.li key={p.t} variants={item} className="flex items-start gap-3">
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-clay-400/20 text-clay-300 ring-1 ring-clay-400/40">
                   <IconCheck className="h-3 w-3" />
                 </span>
                 <span>
-                  <span className="block text-[0.95rem] font-medium text-ink">{p.t}</span>
-                  <span className="block text-[0.82rem] text-cocoa-600">{p.d}</span>
+                  <span className="block text-[0.95rem] font-medium text-cream">{p.t}</span>
+                  <span className="block text-[0.82rem] text-clay-200/65">{p.d}</span>
                 </span>
-              </li>
+              </motion.li>
             ))}
           </ul>
 
-          <button onClick={next} className="btn-primary group mt-7 w-full">
-            Débloquer mon programme
-            <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </button>
+          {/* CTA — glow pulsé + shimmer */}
+          <motion.button
+            variants={item}
+            onClick={next}
+            whileTap={{ scale: 0.98 }}
+            className="group relative mt-8 flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-cream px-6 py-4 text-[0.98rem] font-semibold text-ink"
+            animate={{ boxShadow: ["0 10px 30px -12px rgba(201,162,126,.5)", "0 14px 44px -8px rgba(201,162,126,.85)", "0 10px 30px -12px rgba(201,162,126,.5)"] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <motion.span
+              aria-hidden
+              className="absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-white/50 blur-md"
+              animate={{ x: ["-40%", "420%"] }}
+              transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.1 }}
+            />
+            <span className="relative">Débloquer mon programme</span>
+            <IconArrow className="relative h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </motion.button>
 
-          {/* réassurance / risk reversal */}
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-cocoa-600">
+          {/* réassurance */}
+          <motion.div variants={item} className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-clay-200/65">
             <span className="flex items-center gap-1.5">
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none">
                 <rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
@@ -851,13 +895,13 @@ export function Paywall({ data, next, back }: StepProps) {
             </span>
             <span>· Sans engagement</span>
             <span>· Annulable en 1 clic</span>
-          </div>
+          </motion.div>
 
-          <button onClick={back} className="mt-4 block w-full text-center text-sm text-cocoa-600 hover:underline">
+          <button onClick={back} className="mt-4 block w-full text-center text-sm text-clay-300/70 transition hover:text-clay-200 hover:underline">
             Revenir au diagnostic
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
