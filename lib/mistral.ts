@@ -108,13 +108,31 @@ export async function analyzeHair(
         "Walker) : ne le classe JAMAIS dans un autre type, même si la photo prête à confusion " +
         "(lumière, humidité, coiffage). Affine seulement l'état, la santé et les coupes. "
       : "") +
-    "Sois bienveillant, précis et concret. Schéma attendu : " +
-    '{"summary": string (2 phrases), "hairType": string, "condition": string, ' +
-    '"strengths": string[2..3], "concerns": string[2..3], "faceShape": string, ' +
+    "Sois bienveillant, précis et concret.\n\n" +
+    "RÈGLES DU DIAGNOSTIC — il est lu JUSTE avant l'offre payante, il doit donner " +
+    "envie d'agir SANS jamais mentir, exagérer ni évoquer une maladie :\n" +
+    "1) Personnalise à fond : parle à CETTE personne en t'appuyant sur son type, " +
+    "l'état visible ET ses réponses au quiz (objectif, problème n°1, temps dispo, " +
+    "niveau de confiance). Cite implicitement ce qui la concerne.\n" +
+    "2) Éduque : explique brièvement le POURQUOI (mécanisme) de chaque point faible " +
+    "→ ça crée la crédibilité et la confiance.\n" +
+    "3) Crée l'écart : montre le vrai potentiel atteignable et ce qui l'empêche " +
+    "AUJOURD'HUI (mauvaises habitudes, produits pris au hasard, entretien inadapté) " +
+    "pour donner envie de combler cet écart.\n" +
+    "4) Urgence honnête : rappelle que prévenir vaut mieux que réparer, surtout tôt " +
+    "(densité, casse), sans jamais faire peur.\n" +
+    "5) Cadre la solution : la clé n'est pas PLUS de produits, c'est LA BONNE MÉTHODE " +
+    "adaptée à son type, jour après jour — précisément ce qu'apporte un programme suivi.\n" +
+    "6) Ton expert, franc et encourageant ; jamais culpabilisant ni de promesse médicale.\n\n" +
+    "Schéma attendu : " +
+    '{"summary": string (2 phrases PERCUTANTES et personnalisées : ce qui va + le potentiel à débloquer), ' +
+    '"hairType": string, "condition": string, ' +
+    '"strengths": string[2..3] (atouts réels à valoriser), ' +
+    '"concerns": string[2..3] (points faibles concrets, formulés de façon actionnable), "faceShape": string, ' +
     '"norwoodStage": number (1 à 7, estimation de la calvitie/ligne frontale sur ' +
     "l'échelle de Norwood : 1 = aucun recul, 2-3 = golfes qui se creusent, " +
     "4-5 = dégarnissement frontal + vertex, 6-7 = avancé), " +
-    '"keepCurrentCut": boolean, "keepReason": string}.';
+    '"keepCurrentCut": boolean, "keepReason": string (une phrase motivante qui justifie le choix de coupe)}.';
 
   const messages: Message[] = [
     { role: "system", content: system },

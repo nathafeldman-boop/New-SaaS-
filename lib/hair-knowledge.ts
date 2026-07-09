@@ -31,6 +31,30 @@ FAITS ÉTABLIS :
 - Huile de coco : pénètre la fibre (acide laurique) et réduit réellement la perte de protéines, contrairement aux huiles minérale et de tournesol qui ne font que recouvrir.
 - Silicones hydrosolubles (PEG-/PPG-) se rincent ; non hydrosolubles (diméthicone) nécessitent une clarification périodique.
 
+INGRÉDIENTS QUI COMPTENT (avec preuves) :
+- Humectants (attirent l'eau) : glycérine, panthénol (pro-vitamine B5) — à doser selon l'hygrométrie.
+- Émollients/scellants : huile de coco (pénètre), karité, huiles végétales — scellent l'hydratation, réduisent la casse par friction.
+- Renfort protéique : hydrolysats de kératine/soie/blé — comblent temporairement la cuticule abîmée. À ALTERNER avec l'hydratation (excès de protéines = fibre rigide et cassante).
+- Céramides : renforcent la barrière lipidique de la cuticule (moins de porosité, moins de casse).
+- Cuir chevelu : niacinamide, caféine, extrait de romarin (données prometteuses sur la densité) ; pyrithione de zinc / kétoconazole contre les pellicules (Malassezia).
+- Domaine MÉDICAL (minoxidil, finastéride, PRP) : du ressort d'un médecin — ne JAMAIS le prescrire ni le promettre.
+
+CUIR CHEVELU = LE TERRAIN :
+- Un cheveu sain pousse d'un cuir chevelu sain. Inflammation, sébum oxydé, excès de Malassezia → démangeaisons, pellicules, fibre affaiblie.
+- Le massage du cuir chevelu stimule la microcirculation et l'ancrage du follicule.
+
+DENSITÉ, RECUL & PRÉVENTION (crucial dès la trentaine) :
+- La perte de densité androgénétique est PROGRESSIVE : les follicules se miniaturisent avant de disparaître (échelle de Norwood).
+- Fenêtre d'action : plus on agit tôt (cuir chevelu sain, moins de casse, bonnes habitudes), plus on préserve le capital. On ne ressuscite pas un follicule mort, mais on protège ceux qui restent et on maximise la fibre existante.
+- Message-clé, surtout à 28-40 ans : PRÉVENIR vaut bien mieux (et coûte bien moins) que réparer.
+
+ÉQUILIBRE PROTÉINES / HYDRATATION :
+- Trop hydratée & sous-protéinée : fibre molle, élastique, sans ressort.
+- Trop protéinée & sous-hydratée : fibre rêche, cassante. → viser l'équilibre selon l'état réel.
+
+IMPACT CONFIANCE :
+- Les cheveux sont un marqueur social fort (première impression, image de soi). Une amélioration visible = gain de confiance concret. À évoquer avec justesse, jamais de culpabilisation.
+
 MYTHES À NE JAMAIS RELAYER :
 - Couper les pointes ne fait PAS pousser plus vite.
 - Sans-sulfates ≠ automatiquement mieux (tout dépend de la formulation).
