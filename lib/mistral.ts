@@ -155,6 +155,42 @@ function parseJSON<T>(raw: string): T {
   }
 }
 
+/* ── Bilan de santé de l'IA (endpoint /api/ai-health) ────────── */
+// Image JPEG 1x1 minimale : suffit à vérifier qu'un modèle VISION accepte
+// bien une image (le contenu importe peu, on teste la tuyauterie).
+const TINY_JPEG =
+  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
+
+export async function checkAiHealth(): Promise<{
+  ok: boolean;
+  vision: { ok: boolean; model?: string; error?: string };
+  text: { ok: boolean; model?: string; error?: string };
+}> {
+  const probe = async (role: ModelRole, messages: Message[]) => {
+    try {
+      await chatJSONResilient<Record<string, unknown>>(role, messages, 30);
+      return { ok: true, model: resolvedModel[role] };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
+  };
+
+  const vision = await probe("vision", [
+    {
+      role: "user",
+      content: [
+        { type: "text", text: 'Réponds en JSON: {"ok":true}' },
+        { type: "image_url", image_url: TINY_JPEG },
+      ],
+    },
+  ]);
+  const text = await probe("text", [
+    { role: "user", content: 'Réponds en JSON: {"ok":true}' },
+  ]);
+
+  return { ok: vision.ok && text.ok, vision, text };
+}
+
 /* ── Analyse capillaire (vision) ─────────────────────────────── */
 const HAIR_TYPE_LABELS: Record<string, string> = {
   raides: "raides (type 1)",
