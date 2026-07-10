@@ -34,7 +34,7 @@ export function Footer() {
               links={[
                 { label: "Mentions légales", href: "/mentions-legales" },
                 { label: "Confidentialité", href: "/mentions-legales#donnees" },
-                { label: "Contact", href: "mailto:contact@capilatyx.website" },
+                { label: "Contact", href: "mailto:nathanaelsaas@gmail.com" },
               ]}
             />
           </div>

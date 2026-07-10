@@ -31,11 +31,11 @@ export default function MentionsLegalesPage() {
             </p>
             <ul className="mt-3 space-y-1">
               <li>Nathanaël Feldman, personne physique.</li>
-              <li>Adresse : 23 rue Falret, [code postal] [ville].</li>
+              <li>Adresse : 3 bis rue Falret, 92170 Vanves.</li>
               <li>
                 Contact :{" "}
-                <a href="mailto:contact@capilatyx.website" className="underline">
-                  contact@capilatyx.website
+                <a href="mailto:nathanaelsaas@gmail.com" className="underline">
+                  nathanaelsaas@gmail.com
                 </a>
                 .
               </li>
@@ -90,8 +90,8 @@ export default function MentionsLegalesPage() {
               Conformément au Règlement général sur la protection des données (RGPD) et à la loi
               Informatique et Libertés, vous disposez d&apos;un droit d&apos;accès, de rectification
               et de suppression de vos données. Pour l&apos;exercer, écrivez à{" "}
-              <a href="mailto:contact@capilatyx.website" className="underline">
-                contact@capilatyx.website
+              <a href="mailto:nathanaelsaas@gmail.com" className="underline">
+                nathanaelsaas@gmail.com
               </a>
               . Vous pouvez également introduire une réclamation auprès de la CNIL (
               <a href="https://www.cnil.fr" className="underline">
