@@ -42,9 +42,6 @@ const quizSteps: Step[] = ONBOARDING_QUESTIONS.map((q) => ({
 const STEPS: Step[] = [
   { id: "intro", label: "Bienvenue", Component: Intro },
   { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.png") },
-  // Le questionnaire précède l'analyse : ses réponses (dont le type de cheveux)
-  // guident l'IA et rendent le diagnostic bien plus juste et personnalisé.
-  ...quizSteps,
   { id: "story-ia", label: "Analyse IA", Component: story("/onboarding/analyse-ia.png") },
   { id: "guide", label: "Photo", Component: Guide },
   { id: "capture", label: "Photo", Component: Capture },
@@ -53,6 +50,9 @@ const STEPS: Step[] = [
   { id: "reveal", label: "Diagnostic", Component: Reveal },
   { id: "paywall", label: "Accès", Component: Paywall },
   { id: "checkout", label: "Paiement", Component: Checkout },
+  // Le questionnaire vient APRÈS le paiement : parcours ultra-simple avant
+  // (photo → analyse → paiement), puis on personnalise coupes & routine.
+  ...quizSteps,
   { id: "cuts", label: "Coupes", Component: Cuts },
   { id: "generate", label: "Génération", Component: Generating },
   { id: "schedule", label: "Horaire", Component: Schedule },
@@ -90,7 +90,8 @@ export function Funnel() {
     const canceled = params.get("canceled");
 
     const checkoutIndex = STEPS.findIndex((s) => s.id === "checkout");
-    const cutsIndex = STEPS.findIndex((s) => s.id === "cuts");
+    // Après paiement, on enchaîne sur le questionnaire (désormais post-paiement).
+    const afterPayIndex = STEPS.findIndex((s) => s.id.startsWith("quiz-"));
     const paywallIndex = STEPS.findIndex((s) => s.id === "paywall");
 
     // Restaure l'état du funnel sauvegardé juste avant un départ vers Stripe.
@@ -132,7 +133,7 @@ export function Funnel() {
       } catch {}
       if (paid) {
         setData((d) => ({ ...d, paid: true }));
-        setIndex(cutsIndex);
+        setIndex(afterPayIndex);
       } else {
         setIndex(paywallIndex);
       }
