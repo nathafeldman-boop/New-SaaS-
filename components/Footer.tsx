@@ -32,9 +32,9 @@ export function Footer() {
             <FooterCol
               title="Ressources"
               links={[
-                { label: "Confidentialité", href: "#" },
-                { label: "Conditions", href: "#" },
-                { label: "Contact", href: "#" },
+                { label: "Mentions légales", href: "/mentions-legales" },
+                { label: "Confidentialité", href: "/mentions-legales#donnees" },
+                { label: "Contact", href: "mailto:contact@capilatyx.website" },
               ]}
             />
           </div>
