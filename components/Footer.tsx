@@ -33,7 +33,8 @@ export function Footer() {
               title="Ressources"
               links={[
                 { label: "Mentions légales", href: "/mentions-legales" },
-                { label: "Confidentialité", href: "/mentions-legales#donnees" },
+                { label: "CGV", href: "/cgv" },
+                { label: "Confidentialité", href: "/confidentialite" },
                 { label: "Contact", href: "mailto:nathanaelsaas@gmail.com" },
               ]}
             />
