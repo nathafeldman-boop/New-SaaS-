@@ -395,21 +395,16 @@ export function Analyzing({ data, update, next }: StepProps) {
   async function run() {
     setError(null);
     try {
+      // Diagnostic établi PAR L'IA seule, à partir de la seule photo (le quiz
+      // n'intervient qu'après le paiement pour personnaliser coupes & routine).
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: data.photo, quiz: data.quizAnswers }),
+        body: JSON.stringify({ image: data.photo }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec de l'analyse");
-      // On greffe les réponses du quiz à l'analyse : coupes, routine et scores
-      // les reçoivent ainsi automatiquement (personnalisation).
-      update({
-        analysis: data.quizAnswers
-          ? { ...json.data, quiz: data.quizAnswers }
-          : json.data,
-        analysisDemo: json.demo,
-      });
+      update({ analysis: json.data, analysisDemo: json.demo });
       done.current = true;
       setPct(100);
       setTimeout(next, 700);
@@ -1331,7 +1326,13 @@ export function Cuts({ data, update, next }: StepProps) {
       const res = await fetch("/api/cuts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysis: data.analysis }),
+        // On greffe les réponses du quiz (recueillies après paiement) à
+        // l'analyse : les coupes sont ainsi personnalisées au profil.
+        body: JSON.stringify({
+          analysis: data.quizAnswers
+            ? { ...data.analysis, quiz: data.quizAnswers }
+            : data.analysis,
+        }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec");
@@ -1479,7 +1480,12 @@ export function Generating({ data, update, next }: StepProps) {
       const res = await fetch("/api/routine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysis: data.analysis, cut }),
+        body: JSON.stringify({
+          analysis: data.quizAnswers
+            ? { ...data.analysis, quiz: data.quizAnswers }
+            : data.analysis,
+          cut,
+        }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec");

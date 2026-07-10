@@ -102,6 +102,15 @@ export async function analyzeHair(
     "\n\nTu es un expert capillaire (trichologue + barbier). Tu analyses une photo " +
     "de cheveux et tu réponds STRICTEMENT en JSON, en français, sans texte autour. " +
     "Identifie le type Walker (1-4) et fonde ton analyse sur le référentiel ci-dessus. " +
+    "CLASSIFICATION DU TYPE — sois rigoureux, c'est l'erreur la plus fréquente : " +
+    "observe le MOTIF de la fibre, pas seulement le volume global. " +
+    "Type 2 (ondulé) = vagues en S larges, PAS de boucle fermée. " +
+    "Type 3 (bouclé) = vraies boucles en spirale/tire-bouchon (de la taille d'un doigt " +
+    "à un stylo), bien refermées sur elles-mêmes. " +
+    "Type 4 (crépu) = frisures très serrées en Z/ressort, motif dense et compact. " +
+    "En cas de doute entre ondulé et bouclé/crépu, si tu vois des spirales ou des " +
+    "frisures serrées c'est du 3 ou du 4, JAMAIS du 2. Ne sous-estime jamais la " +
+    "texture : mieux vaut reconnaître des boucles/crépus marqués que les aplatir en « ondulé ». " +
     (declaredType
       ? `IMPORTANT : l'utilisateur DÉCLARE lui-même avoir des cheveux ${declaredType}. ` +
         "Considère cette déclaration comme la VÉRITÉ pour le type (hairType / classification " +

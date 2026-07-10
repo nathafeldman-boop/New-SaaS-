@@ -26,13 +26,12 @@ export async function POST(req: Request) {
     const data = await analyzeHair(image, quiz);
     return json({ ok: true, data });
   } catch (e) {
-    // repli démo clairement signalé plutôt qu'un écran cassé
-    return json({
-      ok: true,
-      demo: true,
-      data: demoAnalysis,
-      error: e instanceof Error ? e.message : "Erreur Mistral",
-    });
+    // La clé est configurée mais l'appel a échoué (clé invalide, quota, modèle,
+    // réseau…). On NE renvoie PAS un faux diagnostic « exemple » présenté comme
+    // réel : on remonte l'erreur pour que l'étape d'analyse propose « Réessayer »
+    // et que la cause soit visible (utile pour diagnostiquer une clé HS).
+    const detail = e instanceof Error ? e.message : "Erreur Mistral";
+    return json({ ok: false, error: `Analyse indisponible — ${detail}` }, 502);
   }
 }
 
