@@ -21,7 +21,7 @@ export function Faq() {
           </Reveal>
         </div>
 
-        <div className="divide-y divide-clay-200">
+        <Reveal className="divide-y divide-clay-200" delay={0.1}>
           {faqs.map((item, i) => {
             const isOpen = open === i;
             return (
@@ -61,7 +61,7 @@ export function Faq() {
               </div>
             );
           })}
-        </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { Reveal } from "./Reveal";
+
 const words = [
   "Hydratation",
   "Coupe sur-mesure",
@@ -31,11 +33,13 @@ function Strip() {
 
 export function Marquee() {
   return (
-    <div className="mask-fade-x relative flex overflow-hidden border-y border-clay-200/70 bg-sand/40 py-5">
-      <div className="flex animate-marquee">
-        <Strip />
-        <Strip />
+    <Reveal>
+      <div className="mask-fade-x relative flex overflow-hidden border-y border-clay-200/70 bg-sand/40 py-5">
+        <div className="flex animate-marquee">
+          <Strip />
+          <Strip />
+        </div>
       </div>
-    </div>
+    </Reveal>
   );
 }

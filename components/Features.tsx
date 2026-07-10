@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Reveal } from "./Reveal";
+import { LivingStrands } from "./LivingStrands";
 import { IconCalendar, IconCamera, IconCheck, IconScissors } from "./Illustrations";
 
 export function Features() {
@@ -173,8 +174,9 @@ function Plan30() {
   const days = Array.from({ length: 30 }, (_, i) => i + 1);
   const current = 12;
   return (
-    <div className="bg-cream py-24 sm:py-28">
-      <div className="container-page">
+    <div className="relative overflow-hidden bg-cream py-24 sm:py-28">
+      <LivingStrands delay={1.4} className="pointer-events-none absolute -right-20 top-8 h-[380px] w-[380px] text-clay-300/25" />
+      <div className="container-page relative">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
             <span className="eyebrow">
