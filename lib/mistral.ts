@@ -16,11 +16,45 @@ import { HAIR_KNOWLEDGE } from "./hair-knowledge";
 
 const API_URL = "https://api.mistral.ai/v1/chat/completions";
 
-// Modèles surchargeables via variables d'environnement.
-const VISION_MODEL = process.env.MISTRAL_VISION_MODEL ?? "pixtral-large-latest";
-const TEXT_MODEL = process.env.MISTRAL_TEXT_MODEL ?? "mistral-large-latest";
-// Modèle rapide pour les appels moins critiques (scores, produits) → moins d'attente.
-const FAST_MODEL = process.env.MISTRAL_FAST_MODEL ?? "mistral-small-latest";
+// ──────────────────────────────────────────────────────────────────────────
+// Sélection de modèle « auto-réparante ».
+// Les alias de modèles Mistral changent (ex. « pixtral-large-latest » a été
+// retiré → erreur 400 invalid_model). Plutôt que de dépendre d'un seul nom, on
+// donne une LISTE de candidats par rôle et on prend le premier qui répond. Le
+// modèle qui marche est mémorisé pour les appels suivants (pas de latence en
+// plus). Chaque rôle reste surchargeable via variable d'environnement.
+// ──────────────────────────────────────────────────────────────────────────
+type ModelRole = "vision" | "text" | "fast";
+
+const dedupe = (a: (string | undefined)[]) =>
+  [...new Set(a.filter(Boolean) as string[])];
+
+const MODEL_CANDIDATES: Record<ModelRole, string[]> = {
+  // Modèles multimodaux (analyse photo).
+  vision: dedupe([
+    process.env.MISTRAL_VISION_MODEL,
+    "mistral-medium-latest",
+    "pixtral-12b-2409",
+    "pixtral-large-latest",
+    "mistral-small-latest",
+  ]),
+  // Modèles texte haut de gamme (coupes, routine).
+  text: dedupe([
+    process.env.MISTRAL_TEXT_MODEL,
+    "mistral-large-latest",
+    "mistral-medium-latest",
+    "mistral-small-latest",
+  ]),
+  // Modèle rapide pour les appels moins critiques (scores, produits).
+  fast: dedupe([
+    process.env.MISTRAL_FAST_MODEL,
+    "mistral-small-latest",
+    "mistral-medium-latest",
+  ]),
+};
+
+// Modèle retenu (celui qui a répondu) par rôle, mémorisé le temps de l'instance.
+const resolvedModel: Partial<Record<ModelRole, string>> = {};
 
 type Part =
   | { type: "text"; text: string }
@@ -68,6 +102,43 @@ async function chatJSON<T>(
   const json = await res.json();
   const content: string = json?.choices?.[0]?.message?.content ?? "";
   return parseJSON<T>(content);
+}
+
+// Extrait le code HTTP d'une MistralError (message « Mistral 400: … »).
+function mistralStatus(e: unknown): number | null {
+  if (e instanceof MistralError) {
+    const m = e.message.match(/Mistral (\d{3}):/);
+    if (m) return Number(m[1]);
+  }
+  return null;
+}
+
+// Essaie les modèles candidats du rôle jusqu'à en trouver un qui répond.
+// - 401/402/429 (clé, crédits, quota) → inutile d'essayer d'autres modèles.
+// - 400/403/404 (modèle indisponible / non accessible) → on tente le suivant.
+// - autre (réseau, 5xx, parse) → on remonte l'erreur.
+async function chatJSONResilient<T>(
+  role: ModelRole,
+  messages: Message[],
+  maxTokens = 2048,
+): Promise<T> {
+  const cached = resolvedModel[role];
+  const candidates = cached ? [cached] : MODEL_CANDIDATES[role];
+  let lastErr: unknown = new MistralError(`Aucun modèle ${role} disponible`);
+  for (const model of candidates) {
+    try {
+      const out = await chatJSON<T>(model, messages, maxTokens);
+      resolvedModel[role] = model; // on mémorise celui qui marche
+      return out;
+    } catch (e) {
+      lastErr = e;
+      const st = mistralStatus(e);
+      if (st === 401 || st === 402 || st === 429) throw e;
+      if (st === 400 || st === 403 || st === 404) continue;
+      throw e;
+    }
+  }
+  throw lastErr;
 }
 
 function parseJSON<T>(raw: string): T {
@@ -162,7 +233,7 @@ export async function analyzeHair(
     },
   ];
 
-  return chatJSON<HairAnalysis>(VISION_MODEL, messages, 1024);
+  return chatJSONResilient<HairAnalysis>("vision", messages, 1024);
 }
 
 /* ── Recommandation de 15 coupes ─────────────────────────────── */
@@ -195,7 +266,7 @@ export async function recommendCuts(
     },
   ];
 
-  return chatJSON<CutsResult>(TEXT_MODEL, messages, 3000);
+  return chatJSONResilient<CutsResult>("text", messages, 3000);
 }
 
 /* ── Génération de la routine 30 jours ───────────────────────── */
@@ -276,7 +347,7 @@ export async function generateRoutine(
     },
   ];
 
-  const plan = await chatJSON<RoutinePlan>(TEXT_MODEL, messages, 2400);
+  const plan = await chatJSONResilient<RoutinePlan>("text", messages, 2400);
 
   // dépliage en 30 jours, avec décalage du cycle chaque semaine pour éviter
   // que le jour 8 soit identique au jour 1 (variété + sensation de progression).
@@ -337,8 +408,8 @@ export async function computeScores(analysis: HairAnalysis): Promise<HairScores>
     { role: "user", content: "Analyse :\n" + JSON.stringify(analysis) },
   ];
 
-  const raw = await chatJSON<{ scores: Record<string, ScorePair> }>(
-    FAST_MODEL,
+  const raw = await chatJSONResilient<{ scores: Record<string, ScorePair> }>(
+    "fast",
     messages,
     600,
   );
@@ -383,7 +454,7 @@ export async function recommendProducts(
     },
   ];
 
-  const raw = await chatJSON<{ products: any[] }>(FAST_MODEL, messages, 1800);
+  const raw = await chatJSONResilient<{ products: any[] }>("fast", messages, 1800);
   const list = Array.isArray(raw.products) ? raw.products : [];
   return list.slice(0, 6).map((p, i) => ({
     id: `prod-${i + 1}`,
@@ -438,8 +509,8 @@ export async function analyzeProduct(
   ];
 
   // Vision si photo fournie, sinon modèle texte.
-  const model = input.image?.startsWith("data:image") ? VISION_MODEL : TEXT_MODEL;
-  const raw = await chatJSON<ProductAnalysis>(model, messages, 1100);
+  const role: ModelRole = input.image?.startsWith("data:image") ? "vision" : "text";
+  const raw = await chatJSONResilient<ProductAnalysis>(role, messages, 1100);
 
   return {
     productName: String(raw.productName ?? input.name ?? "Produit"),
