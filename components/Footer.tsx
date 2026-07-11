@@ -25,6 +25,9 @@ export function Footer() {
             <FooterCol
               title="Guides"
               links={[
+                { label: "Tous les guides cheveux", href: "/guides" },
+                { label: "Routine capillaire homme", href: "/guides/routine-capillaire-homme" },
+                { label: "Quel type de cheveux ?", href: "/guides/type-de-cheveux" },
                 { label: "Coupes de cheveux homme", href: "/coupes" },
                 { label: "Échelle de Norwood", href: "/calvitie" },
               ]}
