@@ -2,9 +2,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   ADMIN_CODE,
+  getLeads,
   getMetrics,
   getSignups,
   type DayPoint,
+  type Lead,
   type Metrics,
   type Signup,
 } from "@/lib/admin-metrics";
@@ -62,6 +64,7 @@ export default async function AdminPage({
   const tab: Tab = TABS.find((t) => t.id === searchParams?.tab)?.id ?? "overview";
   const m = await getMetrics();
   const signups = tab === "signups" ? await getSignups() : [];
+  const leads = tab === "signups" ? await getLeads() : [];
 
   return (
     <Shell>
@@ -118,6 +121,11 @@ export default async function AdminPage({
             />
             <Kpi label="Inscrits (total)" value={String(m.signups.total)} hint={`+${m.signups.last7} sur 7 j`} />
             <Kpi label="Inscrits aujourd'hui" value={String(m.signups.today)} />
+            <Kpi
+              label="Emails captés"
+              value={String(m.leads.total)}
+              hint={`Leads avant paywall · +${m.leads.today} aujourd'hui`}
+            />
           </div>
 
           <SectionLabel emoji="📈" title="Tendances" sub="L'évolution jour par jour" />
@@ -177,7 +185,12 @@ export default async function AdminPage({
         </>
       )}
 
-      {tab === "signups" && <SignupsTable signups={signups} />}
+      {tab === "signups" && (
+        <>
+          <SignupsTable signups={signups} />
+          <LeadsTable leads={leads} />
+        </>
+      )}
     </Shell>
   );
 }
@@ -470,6 +483,55 @@ const dayLabel = (iso: string) => {
   const [, mm, dd] = iso.split("-");
   return `${dd}/${mm}`;
 };
+
+function LeadsTable({ leads }: { leads: Lead[] }) {
+  const emails = leads.map((l) => l.email).join(", ");
+  return (
+    <section className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-lg text-ink">
+          Leads — emails captés avant paiement ({leads.length})
+        </h2>
+        {emails && <CopyButton text={emails} />}
+      </div>
+      <p className="mt-2 text-sm text-cocoa-600">
+        Ils ont fait le scan mais n&apos;ont pas (encore) payé : ta liste de relance
+        email — copie-la dans Resend ou ton outil d&apos;emailing.
+      </p>
+      {leads.length === 0 ? (
+        <p className="mt-4 rounded-2xl bg-sand/40 px-4 py-4 text-center text-sm text-cocoa-500">
+          Aucun lead pour l&apos;instant — ils apparaîtront dès qu&apos;un visiteur
+          laissera son email avant le diagnostic.
+        </p>
+      ) : (
+        <div className="mt-4 overflow-hidden rounded-2xl ring-1 ring-clay-200/60">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-sand/60 text-cocoa-600">
+              <tr>
+                <th className="px-4 py-2.5 font-medium">Email</th>
+                <th className="px-4 py-2.5 font-medium">Capté le</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-clay-200/70">
+              {leads.map((l) => (
+                <tr key={l.email} className="text-ink">
+                  <td className="px-4 py-2.5">{l.email}</td>
+                  <td className="px-4 py-2.5 text-cocoa-700">
+                    {new Date(l.created_at).toLocaleDateString("fr-FR", {
+                      day: "2-digit",
+                      month: "short",
+                      timeZone: "Europe/Paris",
+                    })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function BarChart({ series, money }: { series: DayPoint[]; money?: boolean }) {
   const max = Math.max(...series.map((d) => d.value), 0);

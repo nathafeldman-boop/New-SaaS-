@@ -10,6 +10,7 @@ import {
   Capture,
   Checkout,
   Cuts,
+  EmailGate,
   Generating,
   Guide,
   Intro,
@@ -72,6 +73,9 @@ const STEPS: Step[] = [
   { id: "capture", label: "Photo", Component: Capture },
   { id: "analyze", label: "Analyse", Component: Analyzing },
   { id: "story-ready", label: "Recommandations", Component: story("/onboarding/recommandations.png") },
+  // Capture d'email juste avant le diagnostic : échange de valeur clair
+  // (« ton diagnostic est prêt ») → leads pour relancer les abandons.
+  { id: "email", label: "Ton diagnostic", Component: EmailGate },
   { id: "reveal", label: "Diagnostic", Component: Reveal },
   { id: "paywall", label: "Accès", Component: Paywall },
   { id: "checkout", label: "Paiement", Component: Checkout },

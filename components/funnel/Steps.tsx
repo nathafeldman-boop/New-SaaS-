@@ -552,6 +552,98 @@ export function Analyzing({ data, update, next }: StepProps) {
   );
 }
 
+/* ── 4bis. Capture d'email (avant le diagnostic) ──────────────── */
+export function EmailGate({ data, update, next }: StepProps) {
+  const [email, setEmail] = useState(data.leadEmail ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const skipped = useRef(false);
+
+  // Utilisateur déjà connecté → on a déjà son email, pas de friction inutile.
+  useEffect(() => {
+    createClient()
+      .auth.getUser()
+      .then(({ data: { user } }) => {
+        if (user?.email && !skipped.current) {
+          skipped.current = true;
+          update({ leadEmail: user.email });
+          next();
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const clean = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(clean)) {
+      setError("Cette adresse ne semble pas valide.");
+      return;
+    }
+    setBusy(true);
+    // Best-effort : l'échec d'enregistrement ne bloque jamais le parcours.
+    try {
+      await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clean, quiz: data.quizAnswers, source: "funnel" }),
+      });
+    } catch {}
+    update({ leadEmail: clean });
+    next();
+  }
+
+  return (
+    <div className="mx-auto max-w-md text-center">
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease }}
+        className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-cocoa-700 text-cream"
+      >
+        <IconCheck className="h-7 w-7" />
+      </motion.div>
+      <h2 className="display-2 mt-6 text-balance text-3xl text-ink sm:text-4xl">
+        Ton diagnostic est prêt.
+      </h2>
+      <p className="mt-3 text-cocoa-700">
+        Entre ton email pour le découvrir — on te l&apos;envoie aussi par écrit,
+        pour le garder sous la main.
+      </p>
+
+      <form onSubmit={submit} className="mt-7 space-y-3">
+        <input
+          type="email"
+          required
+          autoFocus
+          autoComplete="email"
+          placeholder="ton@email.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError(null);
+          }}
+          className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3.5 text-center text-ink outline-none focus:border-cocoa-400"
+        />
+        {error && <p className="text-sm text-clay-600">{error}</p>}
+        <button type="submit" disabled={busy} className="btn-primary group w-full disabled:opacity-60">
+          {busy ? "Un instant…" : "Voir mon diagnostic"}
+          {!busy && <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
+        </button>
+      </form>
+
+      <p className="mt-4 text-xs leading-relaxed text-cocoa-500">
+        En continuant, tu acceptes de recevoir ton diagnostic et nos conseils
+        cheveux par email. Désinscription en 1 clic, jamais de spam.{" "}
+        <a href="/confidentialite" className="underline" target="_blank">
+          Confidentialité
+        </a>
+      </p>
+    </div>
+  );
+}
+
 /* ── 5. Révélation (avant / après) ────────────────────────────── */
 export function Reveal({ data, next }: StepProps) {
   const a = data.analysis;
@@ -930,7 +1022,8 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
 
   // Compte : on doit relier le paiement à un utilisateur.
   const [authed, setAuthed] = useState<boolean | null>(null);
-  const [email, setEmail] = useState("");
+  // Prérempli avec l'email capté avant le diagnostic (moins de friction).
+  const [email, setEmail] = useState(data.leadEmail ?? "");
   const [password, setPassword] = useState("");
 
   // Code d'accès (valide l'abonnement sans Stripe).

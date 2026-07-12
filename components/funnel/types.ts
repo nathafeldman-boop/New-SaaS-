@@ -22,6 +22,8 @@ export type FunnelData = {
   routineTzOffset?: number;
   /** Réponses du quiz d'onboarding (id question → valeur choisie). */
   quizAnswers?: Record<string, string>;
+  /** Email capté avant le paywall (lead) — préremplit le paiement. */
+  leadEmail?: string;
   paid?: boolean;
 };
 

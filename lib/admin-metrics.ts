@@ -51,8 +51,21 @@ export async function getSignups(): Promise<Signup[]> {
   });
 }
 
+export type Lead = { email: string; created_at: string; source: string | null };
+
+/** Emails captés avant le paywall (leads marketing), plus récents d'abord. */
+export async function getLeads(): Promise<Lead[]> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("leads")
+    .select("email, created_at, source")
+    .order("created_at", { ascending: false });
+  return (data ?? []) as Lead[];
+}
+
 export type Metrics = {
   signups: { total: number; today: number; last7: number; last30: number; series: DayPoint[] };
+  leads: { total: number; today: number };
   subscribers: { active: number; activeStripe: number; activeCode: number; canceled: number };
   revenue: { mrr: number; arr: number; last30: number; thisMonth: number; series: DayPoint[] };
   churnRate: number;
@@ -80,18 +93,20 @@ export async function getMetrics(): Promise<Metrics> {
   const now = Date.now();
   const since30 = new Date(now - 30 * DAY).toISOString();
 
-  const [profilesRes, subsRes, eventsRes] = await Promise.all([
+  const [profilesRes, subsRes, eventsRes, leadsRes] = await Promise.all([
     admin.from("profiles").select("created_at"),
     admin.from("subscriptions").select("status, price_id, created_at"),
     admin
       .from("events")
       .select("name, session_id, path, props, created_at")
       .gte("created_at", since30),
+    admin.from("leads").select("created_at"),
   ]);
 
   const profiles = profilesRes.data ?? [];
   const subs = subsRes.data ?? [];
   const events = eventsRes.data ?? [];
+  const leadRows = leadsRes.data ?? [];
 
   /* ---- Inscrits ---- */
   const signupSeries = emptySeries(30);
@@ -178,8 +193,11 @@ export async function getMetrics(): Promise<Metrics> {
     { label: "Inscrits (payés)", sessions: activeStripe + activeCode },
   ];
 
+  const leadsToday = leadRows.filter((l) => dayKey(new Date(l.created_at)) === todayKey).length;
+
   return {
     signups: { total: profiles.length, today: sToday, last7: s7, last30: s30, series: signupSeries },
+    leads: { total: leadRows.length, today: leadsToday },
     subscribers: { active: activeStripe + activeCode, activeStripe, activeCode, canceled },
     revenue: { mrr, arr: mrr * 12, last30: rev30, thisMonth: revThisMonth, series: revenueSeries },
     churnRate,
