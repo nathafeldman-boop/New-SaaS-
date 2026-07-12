@@ -72,7 +72,12 @@ export default async function AdminPage({
         </div>
         <p className="text-xs text-cocoa-500">
           Mis à jour le{" "}
-          {new Date(m.generatedAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
+          {new Date(m.generatedAt).toLocaleString("fr-FR", {
+            dateStyle: "short",
+            timeStyle: "short",
+            timeZone: "Europe/Paris",
+          })}{" "}
+          (Paris)
         </p>
       </div>
 
@@ -80,24 +85,59 @@ export default async function AdminPage({
 
       {tab === "overview" && (
         <>
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            <Kpi label="MRR" value={euro(m.revenue.mrr)} hint="Revenu récurrent mensuel" accent />
-            <Kpi label="Abonnés actifs" value={String(m.subscribers.active)} hint={`${m.subscribers.activeStripe} payants · ${m.subscribers.activeCode} via code`} />
+          {/* Le parcours en un coup d'œil : où vont (et où se perdent) les visiteurs. */}
+          <ConversionStrip
+            visits={m.visits.unique}
+            clicks={m.visits.ctaClicks}
+            signups={m.signups.series.reduce((s, d) => s + d.value, 0)}
+          />
+
+          <SectionLabel emoji="💶" title="Argent" sub="Ce que le site rapporte" />
+          <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Kpi label="MRR" value={euro(m.revenue.mrr)} hint="Revenu récurrent / mois" accent />
+            <Kpi label="Revenus ce mois" value={euro(m.revenue.thisMonth)} hint="Encaissé depuis le 1er" />
+            <Kpi
+              label="Abonnés actifs"
+              value={String(m.subscribers.active)}
+              hint={`${m.subscribers.activeStripe} payants · ${m.subscribers.activeCode} via code`}
+            />
+            <Kpi label="Churn" value={pct(m.churnRate)} hint="Abonnés qui résilient" />
+          </div>
+
+          <SectionLabel emoji="🚪" title="Acquisition" sub="Qui arrive sur le site (30 jours)" />
+          <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Kpi label="Visiteurs uniques" value={String(m.visits.unique)} hint={`${m.visits.total} pages vues`} />
+            <Kpi
+              label="Clics « scan »"
+              value={String(m.visits.ctaClicks)}
+              hint={
+                m.visits.unique > 0
+                  ? `${pct(m.visits.ctaClicks / m.visits.unique)} des visiteurs`
+                  : "Clics vers le funnel"
+              }
+            />
             <Kpi label="Inscrits (total)" value={String(m.signups.total)} hint={`+${m.signups.last7} sur 7 j`} />
             <Kpi label="Inscrits aujourd'hui" value={String(m.signups.today)} />
-            <Kpi label="Visites (uniques)" value={String(m.visits.unique)} hint={`${m.visits.total} pages vues`} />
-            <Kpi label="Clics « scan »" value={String(m.visits.ctaClicks)} hint="Clics vers le funnel" />
-            <Kpi label="Churn" value={pct(m.churnRate)} hint="Résiliés / total" />
-            <Kpi label="Revenus ce mois" value={euro(m.revenue.thisMonth)} />
           </div>
-          <Card title="Croissance des inscrits (cumul 30 j)">
+
+          <SectionLabel emoji="📈" title="Tendances" sub="L'évolution jour par jour" />
+          <Card
+            title="Croissance des inscrits"
+            sub="Nombre total de comptes, cumulé sur les 30 derniers jours."
+          >
             <GrowthChart series={m.signups.series} />
           </Card>
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card title="Inscrits par jour (30 j)">
+            <Card
+              title="Inscrits par jour"
+              sub="Chaque barre = nouveaux comptes ce jour-là."
+            >
               <BarChart series={m.signups.series} />
             </Card>
-            <Card title="Visites par jour (30 j)">
+            <Card
+              title="Visites par jour"
+              sub="Chaque barre = visiteurs uniques ce jour-là."
+            >
               <BarChart series={m.visits.series} />
             </Card>
           </div>
@@ -207,12 +247,88 @@ function Kpi({
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({
+  title,
+  sub,
+  children,
+}: {
+  title: string;
+  sub?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
       <h2 className="font-display text-lg text-ink">{title}</h2>
+      {sub && <p className="mt-0.5 text-xs text-cocoa-500">{sub}</p>}
       <div className="mt-4">{children}</div>
     </section>
+  );
+}
+
+function SectionLabel({ emoji, title, sub }: { emoji: string; title: string; sub: string }) {
+  return (
+    <div className="mt-8 flex items-baseline gap-2.5">
+      <span aria-hidden>{emoji}</span>
+      <h2 className="font-display text-xl text-ink">{title}</h2>
+      <span className="text-xs text-cocoa-500">· {sub}</span>
+    </div>
+  );
+}
+
+/** Le parcours visiteur → client en une bande : chaque flèche montre le taux de passage. */
+function ConversionStrip({
+  visits,
+  clicks,
+  signups,
+}: {
+  visits: number;
+  clicks: number;
+  signups: number;
+}) {
+  const stages = [
+    { label: "Visiteurs", value: visits, hint: "arrivent sur le site" },
+    { label: "Cliquent « scan »", value: clicks, hint: "entrent dans le funnel" },
+    { label: "S'inscrivent", value: signups, hint: "créent un compte" },
+  ];
+  return (
+    <div className="mt-5 rounded-3xl bg-ink p-5 text-cream">
+      <p className="text-xs uppercase tracking-[0.18em] text-clay-300">
+        Le parcours sur 30 jours — où vont tes visiteurs
+      </p>
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-0">
+        {stages.map((s, i) => {
+          const prev = stages[i - 1]?.value ?? 0;
+          const rate = i > 0 && prev > 0 ? s.value / prev : null;
+          return (
+            <div key={s.label} className="flex flex-1 items-center gap-3 sm:gap-0">
+              {i > 0 && (
+                <div className="flex shrink-0 flex-col items-center px-1 sm:px-3">
+                  <span aria-hidden className="text-clay-400">→</span>
+                  <span
+                    className={`mt-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      rate !== null && rate < 0.1
+                        ? "bg-red-400/20 text-red-200"
+                        : "bg-clay-400/20 text-clay-200"
+                    }`}
+                  >
+                    {rate !== null ? pct(rate) : "—"}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 rounded-2xl bg-cream/5 px-4 py-3 ring-1 ring-cream/10">
+                <p className="font-display text-3xl leading-none">{s.value}</p>
+                <p className="mt-1 text-sm font-medium text-clay-100">{s.label}</p>
+                <p className="text-[11px] text-clay-300/80">{s.hint}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-[11px] text-clay-300/80">
+        Le % sous chaque flèche = la part qui passe à l&apos;étape suivante. C&apos;est là que tu vois
+        où ça bloque. Détail étape par étape dans l&apos;onglet Funnel.
+      </p>
+    </div>
   );
 }
 
@@ -239,20 +355,31 @@ function TabNav({ active }: { active: Tab }) {
 function GrowthChart({ series }: { series: DayPoint[] }) {
   let acc = 0;
   const pts = series.map((d) => (acc += d.value));
+  const last = pts[pts.length - 1] ?? 0;
   const max = Math.max(1, ...pts);
   const w = 600;
   const h = 150;
   const stepX = pts.length > 1 ? w / (pts.length - 1) : w;
-  const coords = pts.map((v, i) => [i * stepX, h - 6 - (v / max) * (h - 16)] as const);
+  const coords = pts.map((v, i) => [i * stepX, h - 8 - (v / max) * (h - 24)] as const);
   const line = coords.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
   const area = `${line} L${w} ${h} L0 ${h} Z`;
+  const [endX, endY] = coords[coords.length - 1] ?? [w, h];
   return (
     <div className="text-cocoa-700">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-40 w-full">
-        <path d={area} fill="currentColor" opacity="0.12" />
-        <path d={line} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
-      </svg>
-      <p className="mt-2 text-xs text-cocoa-500">Total cumulé sur la période : {pts[pts.length - 1] ?? 0} inscrits</p>
+      <div className="relative">
+        <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-40 w-full">
+          <path d={area} fill="currentColor" opacity="0.12" />
+          <path d={line} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
+          <circle cx={endX} cy={endY} r="5" fill="#43321F" stroke="#FBF7F1" strokeWidth="2" />
+        </svg>
+        <span className="absolute right-0 top-0 rounded-full bg-cocoa-700 px-2.5 py-1 text-xs font-semibold text-cream">
+          {last} inscrit{last > 1 ? "s" : ""}
+        </span>
+      </div>
+      <div className="mt-1.5 flex justify-between text-[10px] text-cocoa-500">
+        <span>{series[0] ? dayLabel(series[0].day) : ""}</span>
+        <span>aujourd&apos;hui</span>
+      </div>
     </div>
   );
 }
@@ -303,6 +430,7 @@ function SignupsTable({ signups }: { signups: Signup[] }) {
                       day: "2-digit",
                       month: "short",
                       year: "2-digit",
+                      timeZone: "Europe/Paris",
                     })}
                   </td>
                   <td className="px-4 py-2.5">
@@ -338,50 +466,132 @@ function SignupsTable({ signups }: { signups: Signup[] }) {
   );
 }
 
+const dayLabel = (iso: string) => {
+  const [, mm, dd] = iso.split("-");
+  return `${dd}/${mm}`;
+};
+
 function BarChart({ series, money }: { series: DayPoint[]; money?: boolean }) {
-  const max = Math.max(1, ...series.map((d) => d.value));
+  const max = Math.max(...series.map((d) => d.value), 0);
+  const total = series.reduce((s, d) => s + d.value, 0);
+  const nonZero = series.filter((d) => d.value > 0).length;
+  // Valeurs affichées au-dessus des barres tant que ça reste lisible.
+  const showValues = nonZero > 0 && nonZero <= 12;
+
+  if (max === 0) {
+    return (
+      <div className="grid h-32 place-items-center rounded-2xl bg-sand/40 text-sm text-cocoa-500">
+        Aucune donnée sur la période — ça se remplira au fil des jours.
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-40 items-end gap-[3px]">
-      {series.map((d) => (
-        <div key={d.day} className="group relative flex-1">
-          <div
-            className="w-full rounded-t bg-clay-400 transition group-hover:bg-cocoa-700"
-            style={{ height: `${(d.value / max) * 100}%`, minHeight: d.value > 0 ? 3 : 0 }}
-          />
-          <span className="pointer-events-none absolute -top-6 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-ink px-1.5 py-0.5 text-[10px] text-cream group-hover:block">
-            {d.day.slice(5)} · {money ? euro(d.value) : d.value}
-          </span>
-        </div>
-      ))}
+    <div>
+      <div className="flex items-baseline justify-between text-xs text-cocoa-500">
+        <span>
+          Total sur 30 j :{" "}
+          <b className="font-semibold text-ink">{money ? euro(total) : total}</b>
+        </span>
+        <span>pic : {money ? euro(max) : max}</span>
+      </div>
+      <div className="mt-2 flex h-36 items-end gap-[3px] border-b border-clay-200 pb-px">
+        {series.map((d) => (
+          <div key={d.day} className="group relative flex h-full flex-1 items-end">
+            {showValues && d.value > 0 && (
+              <span className="absolute -top-1 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-cocoa-700">
+                {money ? Math.round(d.value) : d.value}
+              </span>
+            )}
+            <div
+              className={`w-full rounded-t transition group-hover:bg-cocoa-700 ${
+                d.value > 0 ? "bg-clay-500" : "bg-clay-200/50"
+              }`}
+              style={{
+                height: d.value > 0 ? `${Math.max((d.value / max) * 88, 6)}%` : "2px",
+              }}
+            />
+            <span className="pointer-events-none absolute -top-7 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-ink px-1.5 py-0.5 text-[10px] text-cream group-hover:block">
+              {dayLabel(d.day)} · {money ? euro(d.value) : d.value}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-1.5 flex justify-between text-[10px] text-cocoa-500">
+        <span>{series[0] ? dayLabel(series[0].day) : ""}</span>
+        <span>{series[Math.floor(series.length / 2)] ? dayLabel(series[Math.floor(series.length / 2)].day) : ""}</span>
+        <span>{series[series.length - 1] ? `aujourd'hui` : ""}</span>
+      </div>
     </div>
   );
 }
 
 function FunnelChart({ steps }: { steps: Metrics["funnel"] }) {
   const top = Math.max(1, steps[0]?.sessions ?? 1);
+  const last = steps[steps.length - 1]?.sessions ?? 0;
+  const globalRate = steps.length > 1 ? last / top : null;
+
+  // Repère la plus grosse perte (le taux de passage le plus faible) pour
+  // pointer directement l'étape à travailler.
+  let worstIdx = -1;
+  let worstRate = 1;
+  steps.forEach((s, i) => {
+    const prev = steps[i - 1]?.sessions ?? 0;
+    if (i > 0 && prev >= 3) {
+      const r = s.sessions / prev;
+      if (r < worstRate) {
+        worstRate = r;
+        worstIdx = i;
+      }
+    }
+  });
+
   return (
-    <div className="space-y-2">
-      {steps.map((s, i) => {
-        const fromTop = top > 0 ? s.sessions / top : 0;
-        const prev = steps[i - 1]?.sessions ?? 0;
-        const stepRate = i > 0 && prev > 0 ? s.sessions / prev : null;
-        return (
-          <div key={s.label} className="flex items-center gap-3">
-            <span className="w-44 shrink-0 text-sm text-cocoa-700">{s.label}</span>
-            <div className="relative h-8 flex-1 overflow-hidden rounded-lg bg-sand/60">
-              <div
-                className="flex h-full items-center rounded-lg bg-cocoa-700 px-2 text-sm font-medium text-cream"
-                style={{ width: `${Math.max(fromTop * 100, s.sessions > 0 ? 8 : 0)}%` }}
-              >
-                {s.sessions}
+    <div>
+      <div className="space-y-2">
+        {steps.map((s, i) => {
+          const fromTop = top > 0 ? s.sessions / top : 0;
+          const prev = steps[i - 1]?.sessions ?? 0;
+          const stepRate = i > 0 && prev > 0 ? s.sessions / prev : null;
+          const isWorst = i === worstIdx;
+          return (
+            <div key={s.label} className="flex items-center gap-3">
+              <span className="w-44 shrink-0 text-sm text-cocoa-700">{s.label}</span>
+              <div className="relative h-8 flex-1 overflow-hidden rounded-lg bg-sand/60">
+                <div
+                  className={`flex h-full items-center rounded-lg px-2 text-sm font-medium text-cream ${
+                    isWorst ? "bg-clay-600" : "bg-cocoa-700"
+                  }`}
+                  style={{ width: `${Math.max(fromTop * 100, s.sessions > 0 ? 8 : 0)}%` }}
+                >
+                  {s.sessions}
+                </div>
               </div>
+              <span
+                className={`w-24 shrink-0 text-right text-xs ${
+                  isWorst ? "font-semibold text-clay-600" : "text-cocoa-500"
+                }`}
+              >
+                {stepRate !== null ? pct(stepRate) : ""}
+                {isWorst && " ⚠️"}
+              </span>
             </div>
-            <span className="w-16 shrink-0 text-right text-xs text-cocoa-500">
-              {stepRate !== null ? pct(stepRate) : ""}
-            </span>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-sand/50 px-4 py-3 text-sm text-cocoa-800">
+        <span>
+          Conversion globale :{" "}
+          <b className="font-semibold text-ink">{globalRate !== null ? pct(globalRate) : "—"}</b>{" "}
+          des sessions vont du début à la fin.
+        </span>
+        {worstIdx >= 0 && (
+          <span>
+            ⚠️ Plus grosse perte : <b className="font-semibold">{steps[worstIdx].label}</b> — c&apos;est
+            l&apos;étape à améliorer en priorité.
+          </span>
+        )}
+      </div>
     </div>
   );
 }

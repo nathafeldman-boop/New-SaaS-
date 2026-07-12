@@ -9,7 +9,18 @@ export const ADMIN_CODE = process.env.ADMIN_DASHBOARD_CODE || "CAPILATYX2026";
 const DAY = 86_400_000;
 const isCode = (priceId: string | null) => Boolean(priceId?.startsWith("access_code:"));
 const isActive = (status: string | null) => status === "active" || status === "trialing";
-const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+
+// Toutes les journées du dashboard sont découpées en HEURE DE PARIS :
+// « aujourd'hui » commence à minuit chez toi, pas à minuit UTC.
+// (en-CA → format YYYY-MM-DD directement.)
+export const DASHBOARD_TZ = "Europe/Paris";
+const parisDayFmt = new Intl.DateTimeFormat("en-CA", {
+  timeZone: DASHBOARD_TZ,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+const dayKey = (d: Date) => parisDayFmt.format(d);
 
 export type DayPoint = { day: string; value: number };
 
@@ -59,7 +70,7 @@ function emptySeries(days: number): DayPoint[] {
 }
 
 function bumpSeries(series: DayPoint[], iso: string, by = 1) {
-  const k = iso.slice(0, 10);
+  const k = dayKey(new Date(iso));
   const p = series.find((s) => s.day === k);
   if (p) p.value += by;
 }
@@ -87,10 +98,10 @@ export async function getMetrics(): Promise<Metrics> {
   let sToday = 0,
     s7 = 0,
     s30 = 0;
-  const startOfToday = new Date(new Date().toISOString().slice(0, 10)).getTime();
+  const todayKey = dayKey(new Date());
   for (const p of profiles) {
     const t = new Date(p.created_at).getTime();
-    if (t >= startOfToday) sToday++;
+    if (dayKey(new Date(p.created_at)) === todayKey) sToday++;
     if (t >= now - 7 * DAY) s7++;
     if (t >= now - 30 * DAY) {
       s30++;
@@ -105,7 +116,7 @@ export async function getMetrics(): Promise<Metrics> {
   const revenueSeries = emptySeries(30);
   let rev30 = 0,
     revThisMonth = 0;
-  const monthPrefix = new Date().toISOString().slice(0, 7);
+  const monthPrefix = dayKey(new Date()).slice(0, 7);
   for (const s of subs) {
     const active = isActive(s.status);
     const code = isCode(s.price_id);
@@ -119,7 +130,7 @@ export async function getMetrics(): Promise<Metrics> {
         rev30 += MONTHLY_PRICE;
         bumpSeries(revenueSeries, s.created_at, MONTHLY_PRICE);
       }
-      if (s.created_at.slice(0, 7) === monthPrefix) revThisMonth += MONTHLY_PRICE;
+      if (dayKey(new Date(s.created_at)).slice(0, 7) === monthPrefix) revThisMonth += MONTHLY_PRICE;
     }
   }
   const mrr = activeStripe * MONTHLY_PRICE;
