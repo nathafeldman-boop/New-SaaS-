@@ -387,7 +387,21 @@ export async function generateRoutine(
 
   // dépliage en 30 jours, avec décalage du cycle chaque semaine pour éviter
   // que le jour 8 soit identique au jour 1 (variété + sensation de progression).
-  const pattern = plan.pattern?.length ? plan.pattern : fallbackPattern;
+  // Chaque jour est normalisé : si l'IA omet why/tip/duration ou renvoie moins
+  // de 3 étapes, on comble depuis le cycle expert — jamais de séance « vide ».
+  const rawPattern = plan.pattern?.length ? plan.pattern : fallbackPattern;
+  const pattern = rawPattern.map((p, i) => {
+    const fb = fallbackPattern[i % fallbackPattern.length];
+    return {
+      phase: p.phase || fb.phase,
+      title: p.title || fb.title,
+      focus: p.focus || fb.focus,
+      duration: p.duration || fb.duration,
+      why: p.why || fb.why,
+      tip: p.tip || fb.tip,
+      steps: p.steps?.length ? p.steps : fb.steps,
+    };
+  });
   const weeks = plan.weeks?.length ? plan.weeks : [];
   const days = Array.from({ length: 30 }, (_, i) => {
     const day = i + 1;

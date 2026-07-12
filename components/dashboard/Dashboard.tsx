@@ -13,6 +13,7 @@ import {
   nextUnlockMs,
   routineTimeLabel,
 } from "@/lib/routine-timer";
+import { enrichRoutineDay } from "@/lib/routine-enrich";
 import type { CutsResult, HairAnalysis, Routine, RoutineDay } from "@/lib/funnel-types";
 
 type Entry = {
@@ -89,7 +90,11 @@ export function Dashboard(props: Props) {
   const windowMs = unlockMs && lastAtMs ? unlockMs - lastAtMs : 24 * 60 * 60 * 1000;
   const inCooldown = Boolean(lastAt) && now < unlockMs;
   const ringDay = inCooldown ? Math.max(0, day - 1) : day;
-  const routineDay = props.program?.routine?.days?.[Math.max(0, day - 1)];
+  // Enrichit les jours « maigres » (programmes générés avant le format riche) :
+  // why / tip / duration comblés par phase pour que la séance ait du contenu.
+  const routineDay = enrichRoutineDay(
+    props.program?.routine?.days?.[Math.max(0, day - 1)],
+  );
   const completedCount = props.entries.filter((e) => e.completed).length;
 
   // Horloge du compte à rebours.
