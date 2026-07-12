@@ -286,6 +286,8 @@ export async function recommendCuts(
     '"cuts": [{"id": string, "name": string, "description": string, ' +
     '"why": string, "maintenance": string, "vibe": string}] (exactement 15)}. ' +
     "keepCurrent = true seulement si garder la coupe actuelle est réellement le meilleur choix. " +
+    "Si le champ 'quiz.type' de l'analyse contredit 'hairType', c'est la réponse de " +
+    "l'utilisateur (quiz.type) qui fait foi : il a confirmé ou corrigé le diagnostic. " +
     "Tiens compte du champ 'quiz' de l'analyse : privilégie des coupes à ENTRETIEN FAIBLE si le " +
     "temps dispo est court (time), oriente le style vers l'objectif (goal) et le niveau de confiance " +
     "(confidence), et si le stade de Norwood est élevé propose des coupes qui masquent malinement le " +
@@ -360,7 +362,8 @@ export async function generateRoutine(
     "variés : lavage, hydratation, repos, soin, coiffage). Sois concret, expert et " +
     "encourageant. Adapte tout à l'analyse et à la coupe choisie.\n\n" +
     "PERSONNALISE À FOND avec le champ 'quiz' de l'analyse (s'il existe) — la routine " +
-    "doit sembler faite SUR-MESURE pour cette personne :\n" +
+    "doit sembler faite SUR-MESURE pour cette personne. Si 'quiz.type' contredit " +
+    "'hairType', la réponse de l'utilisateur (quiz.type) fait foi :\n" +
     "- DURÉE quotidienne calée sur le temps dispo (time : <2min → routine ultra-express ; " +
     ">10min → soins plus poussés) ;\n" +
     "- routine CENTRÉE sur le problème n°1 (problem) et la priorité (priority) ;\n" +

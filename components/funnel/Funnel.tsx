@@ -18,7 +18,13 @@ import {
   RoutineView,
   Schedule,
 } from "./Steps";
-import { ONBOARDING_QUESTIONS, QuizScreen, StoryScreen } from "./Onboarding";
+import {
+  POST_QUESTIONS,
+  PRE_QUESTIONS,
+  QuizScreen,
+  StoryScreen,
+  typeConfirmQuestion,
+} from "./Onboarding";
 
 type Step = {
   id: string;
@@ -32,16 +38,35 @@ const story =
   (p) =>
     <StoryScreen {...p} src={src} width={width} height={height} />;
 
-// Une étape par question du quiz.
-const quizSteps: Step[] = ONBOARDING_QUESTIONS.map((q) => ({
-  id: `quiz-${q.id}`,
-  label: "Profil",
+// Quiz AVANT paiement : uniquement les objectifs de l'utilisateur — rien de
+// descriptif, pour que l'IA prouve d'elle-même ce qu'elle lit sur la photo.
+const preQuizSteps: Step[] = PRE_QUESTIONS.map((q) => ({
+  id: `quiz-pre-${q.id}`,
+  label: "Objectifs",
   Component: (p: StepProps) => <QuizScreen {...p} question={q} />,
 }));
+
+// Quiz APRÈS paiement : ouvre sur la confirmation du type détecté par l'IA
+// (elle montre qu'elle a vu juste), puis affine les habitudes.
+const postQuizSteps: Step[] = [
+  {
+    id: "quiz-post-type",
+    label: "Vérification",
+    Component: (p: StepProps) => (
+      <QuizScreen {...p} question={typeConfirmQuestion(p.data.analysis?.hairType)} />
+    ),
+  },
+  ...POST_QUESTIONS.map((q) => ({
+    id: `quiz-post-${q.id}`,
+    label: "Personnalisation",
+    Component: (p: StepProps) => <QuizScreen {...p} question={q} />,
+  })),
+];
 
 const STEPS: Step[] = [
   { id: "intro", label: "Bienvenue", Component: Intro },
   { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.png") },
+  ...preQuizSteps,
   { id: "story-ia", label: "Analyse IA", Component: story("/onboarding/analyse-ia.png") },
   { id: "guide", label: "Photo", Component: Guide },
   { id: "capture", label: "Photo", Component: Capture },
@@ -50,9 +75,7 @@ const STEPS: Step[] = [
   { id: "reveal", label: "Diagnostic", Component: Reveal },
   { id: "paywall", label: "Accès", Component: Paywall },
   { id: "checkout", label: "Paiement", Component: Checkout },
-  // Le questionnaire vient APRÈS le paiement : parcours ultra-simple avant
-  // (photo → analyse → paiement), puis on personnalise coupes & routine.
-  ...quizSteps,
+  ...postQuizSteps,
   { id: "cuts", label: "Coupes", Component: Cuts },
   { id: "generate", label: "Génération", Component: Generating },
   { id: "schedule", label: "Horaire", Component: Schedule },
@@ -90,8 +113,8 @@ export function Funnel() {
     const canceled = params.get("canceled");
 
     const checkoutIndex = STEPS.findIndex((s) => s.id === "checkout");
-    // Après paiement, on enchaîne sur le questionnaire (désormais post-paiement).
-    const afterPayIndex = STEPS.findIndex((s) => s.id.startsWith("quiz-"));
+    // Après paiement, on enchaîne sur le quiz post-paiement (confirmation IA).
+    const afterPayIndex = STEPS.findIndex((s) => s.id.startsWith("quiz-post"));
     const paywallIndex = STEPS.findIndex((s) => s.id === "paywall");
 
     // Restaure l'état du funnel sauvegardé juste avant un départ vers Stripe.

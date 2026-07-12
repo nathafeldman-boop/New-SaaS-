@@ -395,16 +395,22 @@ export function Analyzing({ data, update, next }: StepProps) {
   async function run() {
     setError(null);
     try {
-      // Parcours simple avant paiement : l'IA analyse directement la photo
-      // (le questionnaire arrive après le paiement pour personnaliser la suite).
+      // Le quiz pré-paiement ne contient QUE les objectifs (goal, problème,
+      // priorité, ressenti) — aucun champ descriptif : l'IA détecte le type
+      // et l'état sur la photo, seule. Les objectifs personnalisent le texte.
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: data.photo }),
+        body: JSON.stringify({ image: data.photo, quiz: data.quizAnswers }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec de l'analyse");
-      update({ analysis: json.data, analysisDemo: json.demo });
+      update({
+        analysis: data.quizAnswers
+          ? { ...json.data, quiz: data.quizAnswers }
+          : json.data,
+        analysisDemo: json.demo,
+      });
       done.current = true;
       setPct(100);
       setTimeout(next, 700);
