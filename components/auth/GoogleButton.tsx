@@ -41,9 +41,12 @@ function loadGsi(): Promise<void> {
 export default function GoogleButton({
   next,
   onError,
+  onSuccess,
 }: {
   next: string;
   onError?: (msg: string) => void;
+  /** Si fourni, appelé après connexion au lieu de la redirection vers `next`. */
+  onSuccess?: () => void;
 }) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,8 +65,12 @@ export default function GoogleButton({
           nonce: nonceRef.current,
         });
         if (error) throw error;
-        router.push(next);
-        router.refresh();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push(next);
+          router.refresh();
+        }
       } catch (err) {
         setPending(false);
         onError?.(
@@ -71,7 +78,7 @@ export default function GoogleButton({
         );
       }
     },
-    [next, router, onError],
+    [next, router, onError, onSuccess],
   );
 
   useEffect(() => {

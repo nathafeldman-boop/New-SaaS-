@@ -10,7 +10,6 @@ import {
   Capture,
   Checkout,
   Cuts,
-  EmailGate,
   Generating,
   Guide,
   Intro,
@@ -18,6 +17,7 @@ import {
   Reveal,
   RoutineView,
   Schedule,
+  SignupGate,
 } from "./Steps";
 import {
   POST_QUESTIONS,
@@ -66,6 +66,9 @@ const postQuizSteps: Step[] = [
 
 const STEPS: Step[] = [
   { id: "intro", label: "Bienvenue", Component: Intro },
+  // Compte créé dès l'entrée (Google 1 clic ou email + mot de passe) :
+  // chaque personne qui commence le scan devient un utilisateur relançable.
+  { id: "signup", label: "Ton compte", Component: SignupGate },
   { id: "story-transfo", label: "Transformation", Component: story("/onboarding/transformation.png") },
   ...preQuizSteps,
   { id: "story-ia", label: "Analyse IA", Component: story("/onboarding/analyse-ia.png") },
@@ -73,9 +76,6 @@ const STEPS: Step[] = [
   { id: "capture", label: "Photo", Component: Capture },
   { id: "analyze", label: "Analyse", Component: Analyzing },
   { id: "story-ready", label: "Recommandations", Component: story("/onboarding/recommandations.png") },
-  // Capture d'email juste avant le diagnostic : échange de valeur clair
-  // (« ton diagnostic est prêt ») → leads pour relancer les abandons.
-  { id: "email", label: "Ton diagnostic", Component: EmailGate },
   { id: "reveal", label: "Diagnostic", Component: Reveal },
   { id: "paywall", label: "Accès", Component: Paywall },
   { id: "checkout", label: "Paiement", Component: Checkout },

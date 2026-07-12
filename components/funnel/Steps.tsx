@@ -18,6 +18,7 @@ import {
 } from "@/components/Illustrations";
 import { LivingStrands } from "@/components/LivingStrands";
 import { OpenInBrowserNotice } from "@/components/OpenInBrowserNotice";
+import GoogleButton from "@/components/auth/GoogleButton";
 import { isInAppBrowser } from "@/lib/device";
 import {
   DEFAULT_ROUTINE_TIME,
@@ -548,6 +549,147 @@ export function Analyzing({ data, update, next }: StepProps) {
           transition={{ ease: "easeOut", duration: 0.5 }}
         />
       </div>
+    </div>
+  );
+}
+
+/* ── 1bis. Création de compte (dès l'entrée dans le scan) ─────── */
+export function SignupGate({ update, next }: StepProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
+  const skipped = useRef(false);
+
+  // Déjà connecté → on passe directement à la suite.
+  useEffect(() => {
+    createClient()
+      .auth.getUser()
+      .then(({ data: { user } }) => {
+        if (user && !skipped.current) {
+          skipped.current = true;
+          if (user.email) update({ leadEmail: user.email });
+          next();
+        } else {
+          setChecking(false);
+        }
+      })
+      .catch(() => setChecking(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Crée le compte (ou connecte si l'email existe déjà) puis continue.
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const reg = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      }).then((r) => r.json());
+
+      if (!reg.ok && !reg.exists) {
+        setError(reg.error || "Inscription impossible.");
+        setBusy(false);
+        return;
+      }
+
+      const { error: signInError } = await createClient().auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) {
+        setError(
+          reg.exists
+            ? "Cet email a déjà un compte — mauvais mot de passe ?"
+            : signInError.message,
+        );
+        setBusy(false);
+        return;
+      }
+
+      update({ leadEmail: email.trim().toLowerCase() });
+      next();
+    } catch {
+      setError("Une erreur est survenue. Réessaie.");
+      setBusy(false);
+    }
+  }
+
+  if (checking) return <Loader label="Un instant…" />;
+
+  return (
+    <div className="mx-auto max-w-md">
+      <div className="text-center">
+        <StepTitle
+          kicker="Ton scan gratuit"
+          title="Crée ton compte pour commencer."
+        />
+        <p className="mt-3 text-cocoa-700">
+          Ton diagnostic et ta progression seront sauvegardés — tu les
+          retrouveras à chaque connexion.
+        </p>
+      </div>
+
+      <div className="mt-7">
+        <GoogleButton
+          next="/scan"
+          onSuccess={() => {
+            createClient()
+              .auth.getUser()
+              .then(({ data: { user } }) => {
+                if (user?.email) update({ leadEmail: user.email });
+              })
+              .catch(() => {});
+            next();
+          }}
+          onError={(m) => setError(m)}
+        />
+      </div>
+
+      <div className="my-6 flex items-center gap-3 text-xs text-cocoa-500">
+        <span className="h-px flex-1 bg-clay-200" />
+        ou avec ton email
+        <span className="h-px flex-1 bg-clay-200" />
+      </div>
+
+      <form onSubmit={submit} className="space-y-3">
+        <input
+          type="email"
+          required
+          autoComplete="email"
+          placeholder="Ton email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-ink outline-none focus:border-cocoa-400"
+        />
+        <input
+          type="password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          placeholder="Mot de passe (6 caractères min.)"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-ink outline-none focus:border-cocoa-400"
+        />
+        {error && <p className="text-center text-sm text-clay-600">{error}</p>}
+        <button type="submit" disabled={busy} className="btn-primary group w-full disabled:opacity-60">
+          {busy ? "Création…" : "Commencer mon scan gratuit"}
+          {!busy && <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
+        </button>
+      </form>
+
+      <p className="mt-4 text-center text-xs leading-relaxed text-cocoa-500">
+        Gratuit, sans engagement. En continuant tu acceptes nos{" "}
+        <a href="/cgv" className="underline" target="_blank">CGV</a> et notre{" "}
+        <a href="/confidentialite" className="underline" target="_blank">
+          politique de confidentialité
+        </a>.
+      </p>
     </div>
   );
 }
