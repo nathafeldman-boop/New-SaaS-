@@ -611,6 +611,8 @@ export function SignupGate({ update, next }: StepProps) {
         return;
       }
 
+      // Attribution affilié (cookie ?ref=) — best-effort, sans bloquer.
+      fetch("/api/ref-attach", { method: "POST" }).catch(() => {});
       update({ leadEmail: email.trim().toLowerCase() });
       next();
     } catch {
@@ -638,6 +640,7 @@ export function SignupGate({ update, next }: StepProps) {
         <GoogleButton
           next="/scan"
           onSuccess={() => {
+            fetch("/api/ref-attach", { method: "POST" }).catch(() => {});
             createClient()
               .auth.getUser()
               .then(({ data: { user } }) => {

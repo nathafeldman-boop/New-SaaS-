@@ -16,6 +16,22 @@ export function Analytics() {
     track("pageview");
   }, [pathname]);
 
+  // Lien d'affiliation /?ref=pseudo : cookie 30 jours (attribution à
+  // l'inscription) + un événement de clic par session.
+  useEffect(() => {
+    try {
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      if (!ref) return;
+      const clean = ref.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32);
+      if (!clean) return;
+      document.cookie = `cpx_ref=${encodeURIComponent(clean)}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+      if (!sessionStorage.getItem("cpx_ref_clicked")) {
+        sessionStorage.setItem("cpx_ref_clicked", "1");
+        track("aff_click", { ref: clean });
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     function onClick(e: MouseEvent) {
       const target = e.target as HTMLElement | null;

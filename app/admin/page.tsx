@@ -11,6 +11,12 @@ import {
   type Signup,
 } from "@/lib/admin-metrics";
 import { CopyButton } from "@/components/admin/CopyButton";
+import {
+  addPayout,
+  createAffiliate,
+  listAffiliatesWithStats,
+} from "@/lib/affiliates";
+import { siteConfig } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Tableau de bord", robots: { index: false } };
@@ -37,18 +43,42 @@ const euro = (n: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
 const pct = (n: number) => `${(n * 100).toFixed(1)} %`;
 
-type Tab = "overview" | "funnel" | "revenue" | "signups";
+type Tab = "overview" | "funnel" | "revenue" | "signups" | "affiliates";
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Vue d'ensemble" },
   { id: "funnel", label: "Funnel" },
   { id: "revenue", label: "Revenus" },
   { id: "signups", label: "Inscrits" },
+  { id: "affiliates", label: "Affiliés" },
 ];
+
+/** Garde-fou des actions admin : vérifie le cookie avant d'agir. */
+async function assertAdmin() {
+  const store = await cookies();
+  if (store.get("cpx_admin")?.value !== ADMIN_CODE) redirect("/admin");
+}
+
+async function createAffiliateAction(formData: FormData) {
+  "use server";
+  await assertAdmin();
+  const res = await createAffiliate(String(formData.get("pseudo") ?? ""));
+  redirect(res.ok ? "/admin?tab=affiliates" : "/admin?tab=affiliates&aerror=1");
+}
+
+async function addPayoutAction(formData: FormData) {
+  "use server";
+  await assertAdmin();
+  const id = String(formData.get("affiliate_id") ?? "");
+  const amount = Number(String(formData.get("amount") ?? "").replace(",", "."));
+  const note = String(formData.get("note") ?? "");
+  if (id && amount > 0) await addPayout(id, amount, note);
+  redirect("/admin?tab=affiliates");
+}
 
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: { error?: string; tab?: string };
+  searchParams: { error?: string; tab?: string; aerror?: string };
 }) {
   const cookieStore = await cookies();
   const authed = cookieStore.get("cpx_admin")?.value === ADMIN_CODE;
@@ -65,6 +95,7 @@ export default async function AdminPage({
   const m = await getMetrics();
   const signups = tab === "signups" ? await getSignups() : [];
   const leads = tab === "signups" ? await getLeads() : [];
+  const affiliates = tab === "affiliates" ? await listAffiliatesWithStats() : [];
 
   return (
     <Shell>
@@ -190,6 +221,13 @@ export default async function AdminPage({
           <SignupsTable signups={signups} />
           <LeadsTable leads={leads} />
         </>
+      )}
+
+      {tab === "affiliates" && (
+        <AffiliatesAdmin
+          rows={affiliates}
+          error={searchParams?.aerror === "1"}
+        />
       )}
     </Shell>
   );
@@ -483,6 +521,107 @@ const dayLabel = (iso: string) => {
   const [, mm, dd] = iso.split("-");
   return `${dd}/${mm}`;
 };
+
+function AffiliatesAdmin({
+  rows,
+  error,
+}: {
+  rows: Awaited<ReturnType<typeof listAffiliatesWithStats>>;
+  error: boolean;
+}) {
+  return (
+    <>
+      <section className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
+        <h2 className="font-display text-lg text-ink">Créer un affilié</h2>
+        <p className="mt-1 text-sm text-cocoa-600">
+          Donne-lui son pseudo + le code généré : il se connecte sur{" "}
+          <b className="font-medium text-ink">{siteConfig.url.replace("https://", "")}/affilie</b>{" "}
+          et partage son lien <span className="font-mono text-xs">/?ref=pseudo</span>.
+          Commission : 60 % par vente.
+        </p>
+        <form action={createAffiliateAction} className="mt-4 flex flex-wrap gap-2">
+          <input
+            name="pseudo"
+            required
+            placeholder="pseudo (ex : lucas)"
+            className="flex-1 rounded-xl border border-clay-200 bg-cream px-4 py-2.5 text-ink outline-none focus:border-cocoa-700"
+          />
+          <button className="rounded-xl bg-ink px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90">
+            Créer
+          </button>
+        </form>
+        {error && (
+          <p className="mt-2 text-sm text-red-600">
+            Création impossible — pseudo déjà pris ou invalide (3 caractères min.).
+          </p>
+        )}
+      </section>
+
+      {rows.map(({ affiliate: a, stats: s }) => (
+        <section key={a.id} className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="font-display text-xl text-ink">{a.pseudo}</h3>
+              <p className="mt-0.5 text-xs text-cocoa-500">
+                Code d&apos;accès : <span className="font-mono font-semibold text-ink">{a.access_code}</span>
+                {" · "}lien : <span className="font-mono">{siteConfig.url.replace("https://", "")}/?ref={a.pseudo}</span>
+              </p>
+            </div>
+            <CopyButton
+              text={`Ton espace affilié Capilatyx : ${siteConfig.url}/affilie\nPseudo : ${a.pseudo}\nCode d'accès : ${a.access_code}\nTon lien à partager : ${siteConfig.url}/?ref=${a.pseudo}`}
+              label="Copier ses accès"
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
+            <MiniStat label="Clics" value={String(s.clicks)} />
+            <MiniStat label="Comptes" value={String(s.signups)} />
+            <MiniStat label="Ventes" value={String(s.sales)} />
+            <MiniStat label="Généré" value={euro(s.gross)} />
+            <MiniStat label="Versé" value={euro(s.paid)} />
+            <MiniStat label="À verser" value={euro(s.pending)} strong />
+          </div>
+
+          <form action={addPayoutAction} className="mt-4 flex flex-wrap items-center gap-2">
+            <input type="hidden" name="affiliate_id" value={a.id} />
+            <input
+              name="amount"
+              required
+              inputMode="decimal"
+              placeholder="Montant (€)"
+              className="w-32 rounded-xl border border-clay-200 bg-cream px-3 py-2 text-sm text-ink outline-none focus:border-cocoa-700"
+            />
+            <input
+              name="note"
+              placeholder="Note (ex : virement du 15/07)"
+              className="flex-1 rounded-xl border border-clay-200 bg-cream px-3 py-2 text-sm text-ink outline-none focus:border-cocoa-700"
+            />
+            <button className="rounded-xl border border-clay-300 bg-cream px-4 py-2 text-sm font-medium text-ink transition hover:bg-paper">
+              Marquer versé
+            </button>
+          </form>
+        </section>
+      ))}
+
+      {rows.length === 0 && (
+        <p className="mt-4 rounded-2xl border border-clay-200 bg-sand/50 px-4 py-3 text-sm text-cocoa-700">
+          Aucun affilié pour l&apos;instant — crée le premier ci-dessus.
+        </p>
+      )}
+    </>
+  );
+}
+
+function MiniStat({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={`rounded-2xl p-3 text-center ${strong ? "bg-cocoa-700 text-cream" : "bg-sand/60 text-ink"}`}>
+      <p className="font-display text-lg leading-tight">{value}</p>
+      <p className={`text-[10px] uppercase tracking-wide ${strong ? "text-cream/70" : "text-cocoa-500"}`}>
+        {label}
+      </p>
+    </div>
+  );
+}
 
 function LeadsTable({ leads }: { leads: Lead[] }) {
   const emails = leads.map((l) => l.email).join(", ");

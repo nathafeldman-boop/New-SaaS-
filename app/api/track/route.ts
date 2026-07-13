@@ -10,6 +10,7 @@ const ALLOWED = new Set([
   "cta_scan_click",
   "funnel_step",
   "purchase",
+  "aff_click",
 ]);
 
 /** Robots / crawlers à ne PAS compter dans les stats (Googlebot & cie). */
