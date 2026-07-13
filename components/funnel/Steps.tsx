@@ -19,6 +19,7 @@ import {
 import { LivingStrands } from "@/components/LivingStrands";
 import { OpenInBrowserNotice } from "@/components/OpenInBrowserNotice";
 import GoogleButton from "@/components/auth/GoogleButton";
+import { useLang } from "@/lib/i18n";
 import { isInAppBrowser } from "@/lib/device";
 import {
   DEFAULT_ROUTINE_TIME,
@@ -91,18 +92,30 @@ function Loader({ label }: { label: string }) {
 
 /* ── 1. Intro ─────────────────────────────────────────────────── */
 export function Intro({ next }: StepProps) {
-  const items = [
-    { icon: IconSparkle, t: "Une analyse de tes cheveux", d: "Type, état, points forts et axes d'amélioration." },
-    { icon: IconScissors, t: "Des coupes faites pour toi", d: "Une sélection à essayer, ou la confirmation de garder la tienne." },
-    { icon: IconCalendar, t: "Ta routine de 30 jours", d: "Un plan jour après jour pour des cheveux sains." },
-  ];
+  const [lang] = useLang();
+  const en = lang === "en";
+  const items = en
+    ? [
+        { icon: IconSparkle, t: "An analysis of your hair", d: "Type, condition, strengths and what to improve." },
+        { icon: IconScissors, t: "Haircuts made for you", d: "A selection to try on, or confirmation to keep yours." },
+        { icon: IconCalendar, t: "Your 30-day routine", d: "A day-by-day plan for healthy hair." },
+      ]
+    : [
+        { icon: IconSparkle, t: "Une analyse de tes cheveux", d: "Type, état, points forts et axes d'amélioration." },
+        { icon: IconScissors, t: "Des coupes faites pour toi", d: "Une sélection à essayer, ou la confirmation de garder la tienne." },
+        { icon: IconCalendar, t: "Ta routine de 30 jours", d: "Un plan jour après jour pour des cheveux sains." },
+      ];
   return (
     <div className="grid items-center gap-12 lg:grid-cols-2">
       <div>
         <StepTitle
-          kicker="Le scan capillaire"
-          title="2 minutes pour comprendre tes cheveux."
-          sub="Prends-toi en photo, laisse l'analyse faire le reste, et repars avec une routine sur-mesure."
+          kicker={en ? "The hair scan" : "Le scan capillaire"}
+          title={en ? "2 minutes to understand your hair." : "2 minutes pour comprendre tes cheveux."}
+          sub={
+            en
+              ? "Take a selfie, let the analysis do the rest, and walk away with a made-to-measure routine."
+              : "Prends-toi en photo, laisse l'analyse faire le reste, et repars avec une routine sur-mesure."
+          }
         />
         <ul className="mt-8 space-y-4">
           {items.map(({ icon: Icon, t, d }, i) => (
@@ -124,11 +137,13 @@ export function Intro({ next }: StepProps) {
           ))}
         </ul>
         <button onClick={next} className="btn-primary group mt-10">
-          Lancer le scan
+          {en ? "Start the scan" : "Lancer le scan"}
           <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </button>
         <p className="mt-4 text-sm text-cocoa-600">
-          Sans engagement — tu ne paies que pour générer ta routine.
+          {en
+            ? "No commitment — you only pay to generate your routine."
+            : "Sans engagement — tu ne paies que pour générer ta routine."}
         </p>
       </div>
 
@@ -159,19 +174,28 @@ export function Intro({ next }: StepProps) {
 
 /* ── 2. Guide photo ───────────────────────────────────────────── */
 export function Guide({ next, back }: StepProps) {
-  const tips = [
-    "Place-toi face à une lumière naturelle",
-    "Dégage le front et les oreilles",
-    "Cadre la tête et le haut des épaules",
-    "Cheveux secs, dans leur état naturel",
-  ];
+  const [lang] = useLang();
+  const en = lang === "en";
+  const tips = en
+    ? [
+        "Face natural light",
+        "Clear your forehead and ears",
+        "Frame your head and upper shoulders",
+        "Dry hair, in its natural state",
+      ]
+    : [
+        "Place-toi face à une lumière naturelle",
+        "Dégage le front et les oreilles",
+        "Cadre la tête et le haut des épaules",
+        "Cheveux secs, dans leur état naturel",
+      ];
   return (
     <div className="grid items-center gap-12 lg:grid-cols-2">
       <div>
         <StepTitle
-          kicker="Avant de commencer"
-          title="Une bonne photo = une bonne analyse."
-          sub="Suis ces quelques repères pour un résultat fidèle."
+          kicker={en ? "Before you start" : "Avant de commencer"}
+          title={en ? "A good photo = a good analysis." : "Une bonne photo = une bonne analyse."}
+          sub={en ? "Follow these quick pointers for an accurate result." : "Suis ces quelques repères pour un résultat fidèle."}
         />
         <ul className="mt-8 space-y-3">
           {tips.map((t, i) => (
@@ -190,23 +214,23 @@ export function Guide({ next, back }: StepProps) {
           ))}
         </ul>
         <div className="mt-10 flex gap-3">
-          <button onClick={back} className="btn-ghost">Retour</button>
+          <button onClick={back} className="btn-ghost">{en ? "Back" : "Retour"}</button>
           <button onClick={next} className="btn-primary group">
-            Prendre ma photo
+            {en ? "Take my photo" : "Prendre ma photo"}
             <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>
 
       <div className="relative mx-auto grid w-full max-w-sm grid-cols-2 gap-4">
-        <ExampleCard ok />
-        <ExampleCard />
+        <ExampleCard ok en={en} />
+        <ExampleCard en={en} />
       </div>
     </div>
   );
 }
 
-function ExampleCard({ ok }: { ok?: boolean }) {
+function ExampleCard({ ok, en }: { ok?: boolean; en?: boolean }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-clay-200 bg-paper">
       <div className={`relative aspect-[3/4] ${ok ? "bg-grad-warm" : "bg-sand"}`}>
@@ -228,7 +252,9 @@ function ExampleCard({ ok }: { ok?: boolean }) {
         </span>
       </div>
       <p className="px-3 py-2.5 text-center text-xs font-medium text-cocoa-700">
-        {ok ? "Net & de face" : "Flou / mal cadré"}
+        {ok
+          ? en ? "Sharp & facing camera" : "Net & de face"
+          : en ? "Blurry / badly framed" : "Flou / mal cadré"}
       </p>
     </div>
   );
@@ -236,6 +262,8 @@ function ExampleCard({ ok }: { ok?: boolean }) {
 
 /* ── 3. Capture ───────────────────────────────────────────────── */
 export function Capture({ update, next, back }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -304,7 +332,7 @@ export function Capture({ update, next, back }: StepProps) {
 
   return (
     <div className="mx-auto max-w-2xl text-center">
-      <StepTitle title="Ta photo" />
+      <StepTitle title={en ? "Your photo" : "Ta photo"} />
       <OpenInBrowserNotice className="mx-auto mt-6 max-w-sm" />
       <div className="mt-8">
         <div className="relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-[2rem] border border-clay-200 bg-sand">
@@ -329,24 +357,24 @@ export function Capture({ update, next, back }: StepProps) {
                 onClick={() => setPreview(null)}
                 className="btn-ghost"
               >
-                Reprendre
+                {en ? "Retake" : "Reprendre"}
               </button>
               <button onClick={confirm} disabled={busy} className="btn-primary group">
-                {busy ? "Préparation…" : "Analyser"}
+                {busy ? (en ? "Preparing…" : "Préparation…") : en ? "Analyze" : "Analyser"}
                 {!busy && <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
               </button>
             </>
           ) : camOn ? (
             <button onClick={snap} className="btn-primary">
-              <IconCamera className="h-4 w-4" /> Capturer
+              <IconCamera className="h-4 w-4" /> {en ? "Capture" : "Capturer"}
             </button>
           ) : (
             <>
               <button onClick={startCam} className="btn-primary">
-                <IconCamera className="h-4 w-4" /> Prendre une photo
+                <IconCamera className="h-4 w-4" /> {en ? "Take a photo" : "Prendre une photo"}
               </button>
               <button onClick={() => fileRef.current?.click()} className="btn-ghost">
-                Importer une photo
+                {en ? "Upload a photo" : "Importer une photo"}
               </button>
             </>
           )}
@@ -356,12 +384,16 @@ export function Capture({ update, next, back }: StepProps) {
         {camError && (
           <p className="mt-4 text-sm text-cocoa-600">
             {inApp
-              ? "L'appareil photo est bloqué dans ce navigateur intégré. Ouvre la page dans ton navigateur (⋯ en haut à droite → « Ouvrir dans le navigateur ») ou importe une photo."
-              : "Caméra indisponible — utilise « Importer une photo »."}
+              ? en
+                ? "The camera is blocked in this in-app browser. Open the page in your browser (⋯ top right → “Open in browser”) or upload a photo."
+                : "L'appareil photo est bloqué dans ce navigateur intégré. Ouvre la page dans ton navigateur (⋯ en haut à droite → « Ouvrir dans le navigateur ») ou importe une photo."
+              : en
+                ? "Camera unavailable — use “Upload a photo”."
+                : "Caméra indisponible — utilise « Importer une photo »."}
           </p>
         )}
         <button onClick={back} className="mt-6 text-sm text-cocoa-600 underline-offset-4 hover:underline">
-          Revenir au guide
+          {en ? "Back to the guide" : "Revenir au guide"}
         </button>
       </div>
     </div>
@@ -369,14 +401,24 @@ export function Capture({ update, next, back }: StepProps) {
 }
 
 /* ── 4. Analyse ───────────────────────────────────────────────── */
-const SCAN_STEPS = [
-  "Lecture de la fibre capillaire",
-  "Détection du type de cheveux",
-  "Analyse du cuir chevelu",
-  "Évaluation de l'hydratation",
-  "Repérage des pointes abîmées",
-  "Préparation de tes recommandations",
-];
+const SCAN_STEPS_I18N = {
+  fr: [
+    "Lecture de la fibre capillaire",
+    "Détection du type de cheveux",
+    "Analyse du cuir chevelu",
+    "Évaluation de l'hydratation",
+    "Repérage des pointes abîmées",
+    "Préparation de tes recommandations",
+  ],
+  en: [
+    "Reading the hair fiber",
+    "Detecting your hair type",
+    "Analyzing the scalp",
+    "Assessing hydration",
+    "Spotting damaged ends",
+    "Preparing your recommendations",
+  ],
+};
 
 const DETECT_POINTS = [
   { l: "32%", t: "16%" },
@@ -387,6 +429,9 @@ const DETECT_POINTS = [
 ];
 
 export function Analyzing({ data, update, next }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
+  const SCAN_STEPS = SCAN_STEPS_I18N[lang];
   const started = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [stepIdx, setStepIdx] = useState(0);
@@ -402,7 +447,7 @@ export function Analyzing({ data, update, next }: StepProps) {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: data.photo, quiz: data.quizAnswers }),
+        body: JSON.stringify({ image: data.photo, quiz: data.quizAnswers, lang }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error || "Échec de l'analyse");
@@ -447,7 +492,9 @@ export function Analyzing({ data, update, next }: StepProps) {
   if (error) {
     return (
       <div className="mx-auto max-w-md text-center">
-        <p className="font-display text-2xl text-ink">L'analyse a échoué</p>
+        <p className="font-display text-2xl text-ink">
+          {en ? "The analysis failed" : "L'analyse a échoué"}
+        </p>
         <p className="mt-2 text-sm text-cocoa-600">{error}</p>
         <button
           onClick={() => {
@@ -456,7 +503,7 @@ export function Analyzing({ data, update, next }: StepProps) {
           }}
           className="btn-primary mt-6"
         >
-          Réessayer
+          {en ? "Try again" : "Réessayer"}
         </button>
       </div>
     );
@@ -518,7 +565,7 @@ export function Analyzing({ data, update, next }: StepProps) {
             animate={{ opacity: [1, 0.25, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
           />
-          Analyse IA
+          {en ? "AI analysis" : "Analyse IA"}
         </div>
 
         {/* pourcentage */}
@@ -555,6 +602,8 @@ export function Analyzing({ data, update, next }: StepProps) {
 
 /* ── 1bis. Création de compte (dès l'entrée dans le scan) ─────── */
 export function SignupGate({ update, next }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -592,7 +641,7 @@ export function SignupGate({ update, next }: StepProps) {
       }).then((r) => r.json());
 
       if (!reg.ok && !reg.exists) {
-        setError(reg.error || "Inscription impossible.");
+        setError(reg.error || (en ? "Sign-up failed." : "Inscription impossible."));
         setBusy(false);
         return;
       }
@@ -604,7 +653,9 @@ export function SignupGate({ update, next }: StepProps) {
       if (signInError) {
         setError(
           reg.exists
-            ? "Cet email a déjà un compte — mauvais mot de passe ?"
+            ? en
+              ? "This email already has an account — wrong password?"
+              : "Cet email a déjà un compte — mauvais mot de passe ?"
             : signInError.message,
         );
         setBusy(false);
@@ -616,23 +667,24 @@ export function SignupGate({ update, next }: StepProps) {
       update({ leadEmail: email.trim().toLowerCase() });
       next();
     } catch {
-      setError("Une erreur est survenue. Réessaie.");
+      setError(en ? "Something went wrong. Try again." : "Une erreur est survenue. Réessaie.");
       setBusy(false);
     }
   }
 
-  if (checking) return <Loader label="Un instant…" />;
+  if (checking) return <Loader label={en ? "One moment…" : "Un instant…"} />;
 
   return (
     <div className="mx-auto max-w-md">
       <div className="text-center">
         <StepTitle
-          kicker="Ton scan gratuit"
-          title="Crée ton compte pour commencer."
+          kicker={en ? "Your free scan" : "Ton scan gratuit"}
+          title={en ? "Create your account to start." : "Crée ton compte pour commencer."}
         />
         <p className="mt-3 text-cocoa-700">
-          Ton diagnostic et ta progression seront sauvegardés — tu les
-          retrouveras à chaque connexion.
+          {en
+            ? "Your diagnosis and progress are saved — you'll find them every time you log in."
+            : "Ton diagnostic et ta progression seront sauvegardés — tu les retrouveras à chaque connexion."}
         </p>
       </div>
 
@@ -655,7 +707,7 @@ export function SignupGate({ update, next }: StepProps) {
 
       <div className="my-6 flex items-center gap-3 text-xs text-cocoa-500">
         <span className="h-px flex-1 bg-clay-200" />
-        ou avec ton email
+        {en ? "or with your email" : "ou avec ton email"}
         <span className="h-px flex-1 bg-clay-200" />
       </div>
 
@@ -664,7 +716,7 @@ export function SignupGate({ update, next }: StepProps) {
           type="email"
           required
           autoComplete="email"
-          placeholder="Ton email"
+          placeholder={en ? "Your email" : "Ton email"}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-ink outline-none focus:border-cocoa-400"
@@ -674,23 +726,26 @@ export function SignupGate({ update, next }: StepProps) {
           required
           minLength={6}
           autoComplete="new-password"
-          placeholder="Mot de passe (6 caractères min.)"
+          placeholder={en ? "Password (6 characters min.)" : "Mot de passe (6 caractères min.)"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-ink outline-none focus:border-cocoa-400"
         />
         {error && <p className="text-center text-sm text-clay-600">{error}</p>}
         <button type="submit" disabled={busy} className="btn-primary group w-full disabled:opacity-60">
-          {busy ? "Création…" : "Commencer mon scan gratuit"}
+          {busy
+            ? en ? "Creating…" : "Création…"
+            : en ? "Start my free scan" : "Commencer mon scan gratuit"}
           {!busy && <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
         </button>
       </form>
 
       <p className="mt-4 text-center text-xs leading-relaxed text-cocoa-500">
-        Gratuit, sans engagement. En continuant tu acceptes nos{" "}
-        <a href="/cgv" className="underline" target="_blank">CGV</a> et notre{" "}
+        {en ? "Free, no commitment. By continuing you accept our " : "Gratuit, sans engagement. En continuant tu acceptes nos "}
+        <a href="/cgv" className="underline" target="_blank">{en ? "terms" : "CGV"}</a>
+        {en ? " and our " : " et notre "}
         <a href="/confidentialite" className="underline" target="_blank">
-          politique de confidentialité
+          {en ? "privacy policy" : "politique de confidentialité"}
         </a>.
       </p>
     </div>
@@ -791,6 +846,8 @@ export function EmailGate({ data, update, next }: StepProps) {
 
 /* ── 5. Révélation (avant / après) ────────────────────────────── */
 export function Reveal({ data, next }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const a = data.analysis;
 
   return (
@@ -798,7 +855,7 @@ export function Reveal({ data, next }: StepProps) {
       <div>
         <Image
           src="/onboarding/diagnostic.jpg"
-          alt="Avant / Après — la transformation Capilatyx"
+          alt={en ? "Before / After — the Capilatyx transformation" : "Avant / Après — la transformation Capilatyx"}
           width={968}
           height={1307}
           sizes="(max-width: 480px) 92vw, 420px"
@@ -806,39 +863,39 @@ export function Reveal({ data, next }: StepProps) {
           priority
         />
         <p className="mt-3 text-center text-xs text-cocoa-600">
-          La transformation Capilatyx, en 30 jours.
+          {en ? "The Capilatyx transformation, in 30 days." : "La transformation Capilatyx, en 30 jours."}
         </p>
       </div>
       <div>
         <div className="flex items-center gap-3">
-          <span className="eyebrow">Ton diagnostic</span>
+          <span className="eyebrow">{en ? "Your diagnosis" : "Ton diagnostic"}</span>
           <DemoBadge show={data.analysisDemo} />
         </div>
         <h2 className="display-2 mt-4 text-balance text-3xl text-ink sm:text-4xl">
-          Voici ce que disent tes cheveux.
+          {en ? "Here's what your hair is saying." : "Voici ce que disent tes cheveux."}
         </h2>
         {a && (
           <>
             <p className="mt-4 leading-relaxed text-cocoa-700">{a.summary}</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <InfoCard label="Type" value={a.hairType} />
-              <InfoCard label="État" value={a.condition} />
+              <InfoCard label={en ? "Condition" : "État"} value={a.condition} />
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <TagList title="Points forts" items={a.strengths} tone="good" />
-              <TagList title="À travailler" items={a.concerns} tone="warn" />
+              <TagList title={en ? "Strengths" : "Points forts"} items={a.strengths} tone="good" />
+              <TagList title={en ? "To work on" : "À travailler"} items={a.concerns} tone="warn" />
             </div>
             <div className="mt-5 rounded-2xl border border-clay-200 bg-sand/50 p-4 text-sm text-cocoa-800">
-              <b className="font-medium">Coupe actuelle : </b>
+              <b className="font-medium">{en ? "Current cut: " : "Coupe actuelle : "}</b>
               {a.keepCurrentCut
-                ? "elle te va déjà très bien. "
-                : "elle peut être optimisée. "}
+                ? en ? "it already suits you well. " : "elle te va déjà très bien. "
+                : en ? "it can be improved. " : "elle peut être optimisée. "}
               {a.keepReason}
             </div>
           </>
         )}
         <button onClick={next} className="btn-primary group mt-8">
-          Découvrir mes coupes & ma routine
+          {en ? "See my haircuts & routine" : "Découvrir mes coupes & ma routine"}
           <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </button>
       </div>
@@ -998,25 +1055,44 @@ function BeforeAfter({
 
 /* ── 6. Paywall ───────────────────────────────────────────────── */
 export function Paywall({ data, next, back }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const a = data.analysis;
   const concern = a?.concerns?.[0];
 
   // Accroche personnalisée à partir du diagnostic.
   const headline = concern
-    ? "Tes cheveux ont un vrai potentiel — il faut juste la bonne méthode."
-    : "Ta transformation commence aujourd'hui.";
+    ? en
+      ? "Your hair has real potential — it just needs the right method."
+      : "Tes cheveux ont un vrai potentiel — il faut juste la bonne méthode."
+    : en
+      ? "Your transformation starts today."
+      : "Ta transformation commence aujourd'hui.";
   const sub = a
-    ? `D'après ton diagnostic${a.hairType ? ` (${a.hairType.toLowerCase()})` : ""}, on a construit un programme précis pour ${
-        concern ? `corriger « ${concern.toLowerCase()} »` : "révéler tes cheveux"
-      } jour après jour.`
-    : "Ton analyse est prête. Débloque ta sélection de coupes et ton programme de 30 jours.";
+    ? en
+      ? `Based on your diagnosis${a.hairType ? ` (${a.hairType.toLowerCase()})` : ""}, we built a precise program to ${
+          concern ? `fix “${concern.toLowerCase()}”` : "unlock your hair"
+        }, day after day.`
+      : `D'après ton diagnostic${a.hairType ? ` (${a.hairType.toLowerCase()})` : ""}, on a construit un programme précis pour ${
+          concern ? `corriger « ${concern.toLowerCase()} »` : "révéler tes cheveux"
+        } jour après jour.`
+    : en
+      ? "Your analysis is ready. Unlock your haircut selection and your 30-day program."
+      : "Ton analyse est prête. Débloque ta sélection de coupes et ton programme de 30 jours.";
 
-  const perks = [
-    { t: "15 coupes générées sur TON visage", d: "essaie-les avant d'aller chez le coiffeur" },
-    { t: "Ton programme jour par jour, 30 jours", d: "une routine précise, pas un PDF générique" },
-    { t: "Suivi photo avant / après quotidien", d: "vois tes cheveux s'améliorer en temps réel" },
-    { t: "Ton score capillaire qui progresse", d: "une preuve concrète, semaine après semaine" },
-  ];
+  const perks = en
+    ? [
+        { t: "15 haircuts generated on YOUR face", d: "try them before going to the barber" },
+        { t: "Your day-by-day program, 30 days", d: "a precise routine, not a generic PDF" },
+        { t: "Daily before/after photo tracking", d: "watch your hair improve in real time" },
+        { t: "Your hair score going up", d: "concrete proof, week after week" },
+      ]
+    : [
+        { t: "15 coupes générées sur TON visage", d: "essaie-les avant d'aller chez le coiffeur" },
+        { t: "Ton programme jour par jour, 30 jours", d: "une routine précise, pas un PDF générique" },
+        { t: "Suivi photo avant / après quotidien", d: "vois tes cheveux s'améliorer en temps réel" },
+        { t: "Ton score capillaire qui progresse", d: "une preuve concrète, semaine après semaine" },
+      ];
 
   const { amount, period, original, discount } = siteConfig.price;
   const item = {
@@ -1059,7 +1135,7 @@ export function Paywall({ data, next, back }: StepProps) {
               >
                 <IconCheck className="h-2.5 w-2.5" />
               </motion.span>
-              Diagnostic terminé
+              {en ? "Diagnosis complete" : "Diagnostic terminé"}
             </span>
           </motion.div>
 
@@ -1075,7 +1151,7 @@ export function Paywall({ data, next, back }: StepProps) {
             <div className="flex items-end gap-2">
               {original && <span className="pb-2 text-lg text-clay-300/70 line-through">{original}</span>}
               <span className="font-display text-6xl font-light tracking-tight text-cream">{amount}</span>
-              <span className="pb-2 text-clay-300">{period}</span>
+              <span className="pb-2 text-clay-300">{en ? "/ month" : period}</span>
             </div>
             {discount && (
               <motion.span
@@ -1083,7 +1159,7 @@ export function Paywall({ data, next, back }: StepProps) {
                 animate={{ scale: [1, 1.06, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
-                Offre de lancement · {discount}
+                {en ? "Launch offer" : "Offre de lancement"} · {discount}
               </motion.span>
             )}
           </motion.div>
@@ -1118,7 +1194,7 @@ export function Paywall({ data, next, back }: StepProps) {
               animate={{ x: ["-40%", "420%"] }}
               transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.1 }}
             />
-            <span className="relative">Débloquer mon programme</span>
+            <span className="relative">{en ? "Unlock my program" : "Débloquer mon programme"}</span>
             <IconArrow className="relative h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </motion.button>
 
@@ -1129,14 +1205,14 @@ export function Paywall({ data, next, back }: StepProps) {
                 <rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
                 <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.6" />
               </svg>
-              Paiement sécurisé Stripe
+              {en ? "Secure Stripe payment" : "Paiement sécurisé Stripe"}
             </span>
-            <span>· Sans engagement</span>
-            <span>· Annulable en 1 clic</span>
+            <span>· {en ? "No commitment" : "Sans engagement"}</span>
+            <span>· {en ? "Cancel in 1 click" : "Annulable en 1 clic"}</span>
           </motion.div>
 
           <button onClick={back} className="mt-4 block w-full text-center text-sm text-clay-300/70 transition hover:text-clay-200 hover:underline">
-            Revenir au diagnostic
+            {en ? "Back to my diagnosis" : "Revenir au diagnostic"}
           </button>
         </div>
       </motion.div>
@@ -1161,6 +1237,8 @@ export function Checkout(props: StepProps) {
 }
 
 function StripeCheckout({ data, update, next, back }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [noConfig, setNoConfig] = useState(false);
@@ -1310,10 +1388,10 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
 
   return (
     <div className="mx-auto max-w-md">
-      <StepTitle title="Paiement sécurisé" />
+      <StepTitle title={en ? "Secure payment" : "Paiement sécurisé"} />
       <div className="mt-6 rounded-[2rem] border border-clay-200 bg-paper p-6">
         <div className="flex items-center justify-between border-b border-clay-200 pb-4">
-          <span className="text-cocoa-700">Cycle Capilatyx</span>
+          <span className="text-cocoa-700">{en ? "Capilatyx cycle" : "Cycle Capilatyx"}</span>
           <span className="font-display text-xl text-ink">
             {siteConfig.price.amount}
             <span className="text-sm text-cocoa-600"> {siteConfig.price.period}</span>
@@ -1369,7 +1447,11 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
         ) : (
           <>
             <button onClick={pay} disabled={busy || authed === null} className="btn-primary mt-5 w-full disabled:opacity-60">
-              {busy ? "Redirection…" : `Payer par carte — ${siteConfig.price.amount}`}
+              {busy
+                ? en ? "Redirecting…" : "Redirection…"
+                : en
+                  ? `Pay by card — ${siteConfig.price.amount}`
+                  : `Payer par carte — ${siteConfig.price.amount}`}
             </button>
             {error && <p className="mt-3 text-center text-sm text-clay-600">{error}</p>}
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-cocoa-600">
@@ -1378,9 +1460,9 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
                   <rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
                   <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.6" />
                 </svg>
-                Paiement sécurisé via Stripe
+                {en ? "Secure payment via Stripe" : "Paiement sécurisé via Stripe"}
               </span>
-              <span>· Annulable à tout moment</span>
+              <span>· {en ? "Cancel anytime" : "Annulable à tout moment"}</span>
             </div>
           </>
         )}
@@ -1421,7 +1503,7 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
         </div>
       </div>
       <button onClick={back} className="mt-4 block w-full text-center text-sm text-cocoa-600 hover:underline">
-        Retour
+        {en ? "Back" : "Retour"}
       </button>
     </div>
   );
@@ -1560,6 +1642,8 @@ function Field({ label, placeholder }: { label: string; placeholder: string }) {
 
 /* ── 8. Sélection de coupes ───────────────────────────────────── */
 export function Cuts({ data, update, next }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const started = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | "keep" | null>(null);
@@ -1576,6 +1660,7 @@ export function Cuts({ data, update, next }: StepProps) {
           analysis: data.quizAnswers
             ? { ...data.analysis, quiz: data.quizAnswers }
             : data.analysis,
+          lang,
         }),
       });
       const json = await res.json();
@@ -1596,15 +1681,17 @@ export function Cuts({ data, update, next }: StepProps) {
   if (error)
     return (
       <div className="mx-auto max-w-md text-center">
-        <p className="font-display text-xl text-ink">Génération impossible</p>
+        <p className="font-display text-xl text-ink">
+          {en ? "Generation failed" : "Génération impossible"}
+        </p>
         <p className="mt-2 text-sm text-cocoa-600">{error}</p>
         <button onClick={() => { started.current = true; run(); }} className="btn-primary mt-6">
-          Réessayer
+          {en ? "Try again" : "Réessayer"}
         </button>
       </div>
     );
 
-  if (!data.cuts) return <Loader label="Sélection de tes coupes…" />;
+  if (!data.cuts) return <Loader label={en ? "Selecting your haircuts…" : "Sélection de tes coupes…"} />;
 
   const { cuts, keepCurrent, reason, currentCutName } = data.cuts;
 
@@ -1620,11 +1707,11 @@ export function Cuts({ data, update, next }: StepProps) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="eyebrow">Tes coupes</span>
+        <span className="eyebrow">{en ? "Your haircuts" : "Tes coupes"}</span>
         <DemoBadge show={data.cutsDemo} />
       </div>
       <h2 className="display-2 mt-4 text-balance text-3xl text-ink sm:text-4xl">
-        Choisis la coupe qui te parle.
+        {en ? "Pick the cut that speaks to you." : "Choisis la coupe qui te parle."}
       </h2>
 
       {/* recommandation : garder la coupe actuelle */}
@@ -1639,19 +1726,22 @@ export function Cuts({ data, update, next }: StepProps) {
         </span>
         <span className="flex-1">
           <span className="block font-medium text-ink">
-            Garder ma coupe actuelle{currentCutName ? ` — ${currentCutName}` : ""}
+            {en ? "Keep my current cut" : "Garder ma coupe actuelle"}
+            {currentCutName ? ` — ${currentCutName}` : ""}
           </span>
           <span className="text-sm text-cocoa-700">
-            {keepCurrent ? "Recommandé : " : ""}{reason}
+            {keepCurrent ? (en ? "Recommended: " : "Recommandé : ") : ""}{reason}
           </span>
         </span>
         {keepCurrent && (
-          <span className="rounded-full bg-cocoa-700 px-2.5 py-1 text-xs text-cream">Conseillé</span>
+          <span className="rounded-full bg-cocoa-700 px-2.5 py-1 text-xs text-cream">
+            {en ? "Advised" : "Conseillé"}
+          </span>
         )}
       </button>
 
       <p className="mt-8 text-sm font-semibold uppercase tracking-wider text-clay-600">
-        Ou essaie une nouvelle coupe ({cuts.length})
+        {en ? `Or try a new cut (${cuts.length})` : `Ou essaie une nouvelle coupe (${cuts.length})`}
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cuts.map((c, i) => (
@@ -1691,7 +1781,9 @@ export function Cuts({ data, update, next }: StepProps) {
             <div className="flex flex-col p-4">
               <span className="font-display text-lg text-ink">{c.name}</span>
               <span className="mt-1 text-sm text-cocoa-700">{c.description}</span>
-              <span className="mt-2 text-xs text-clay-600">Entretien : {c.maintenance}</span>
+              <span className="mt-2 text-xs text-clay-600">
+                {en ? "Upkeep" : "Entretien"} : {c.maintenance}
+              </span>
             </div>
           </motion.button>
         ))}
@@ -1703,7 +1795,9 @@ export function Cuts({ data, update, next }: StepProps) {
           disabled={!selected}
           className="btn-primary group shadow-soft disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {selected ? "Générer ma routine" : "Sélectionne une option"}
+          {selected
+            ? en ? "Generate my routine" : "Générer ma routine"
+            : en ? "Select an option" : "Sélectionne une option"}
           {selected && <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
         </button>
       </div>
@@ -1713,13 +1807,19 @@ export function Cuts({ data, update, next }: StepProps) {
 
 /* ── 9. Génération routine ────────────────────────────────────── */
 export function Generating({ data, update, next }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const started = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   async function run() {
     setError(null);
     const cut =
-      data.choice?.type === "cut" ? data.choice.cut.name : "Coupe actuelle conservée";
+      data.choice?.type === "cut"
+        ? data.choice.cut.name
+        : en
+          ? "Current cut kept"
+          : "Coupe actuelle conservée";
     try {
       const res = await fetch("/api/routine", {
         method: "POST",
@@ -1729,6 +1829,7 @@ export function Generating({ data, update, next }: StepProps) {
             ? { ...data.analysis, quiz: data.quizAnswers }
             : data.analysis,
           cut,
+          lang,
         }),
       });
       const json = await res.json();
@@ -1750,14 +1851,16 @@ export function Generating({ data, update, next }: StepProps) {
     <div className="mx-auto max-w-md text-center">
       {error ? (
         <>
-          <p className="font-display text-xl text-ink">Génération impossible</p>
+          <p className="font-display text-xl text-ink">
+            {en ? "Generation failed" : "Génération impossible"}
+          </p>
           <p className="mt-2 text-sm text-cocoa-600">{error}</p>
           <button onClick={() => { started.current = true; run(); }} className="btn-primary mt-6">
-            Réessayer
+            {en ? "Try again" : "Réessayer"}
           </button>
         </>
       ) : (
-        <Loader label="Construction de ta routine 30 jours…" />
+        <Loader label={en ? "Building your 30-day routine…" : "Construction de ta routine 30 jours…"} />
       )}
     </div>
   );
@@ -1765,13 +1868,23 @@ export function Generating({ data, update, next }: StepProps) {
 
 /* ── 10. Routine finale ───────────────────────────────────────── */
 /* ── Horaire de routine (question du quiz) ─────────────────────── */
-const TIME_PRESETS: { label: string; emoji: string; time: string; hint: string }[] = [
-  { label: "Matin", emoji: "🌅", time: "08:00", hint: "Au réveil" },
-  { label: "Midi", emoji: "☀️", time: "12:30", hint: "Pause déjeuner" },
-  { label: "Soir", emoji: "🌙", time: "20:00", hint: "Avant de dormir" },
-];
+const TIME_PRESETS_I18N = {
+  fr: [
+    { label: "Matin", emoji: "🌅", time: "08:00", hint: "Au réveil" },
+    { label: "Midi", emoji: "☀️", time: "12:30", hint: "Pause déjeuner" },
+    { label: "Soir", emoji: "🌙", time: "20:00", hint: "Avant de dormir" },
+  ],
+  en: [
+    { label: "Morning", emoji: "🌅", time: "08:00", hint: "When you wake up" },
+    { label: "Noon", emoji: "☀️", time: "12:30", hint: "Lunch break" },
+    { label: "Evening", emoji: "🌙", time: "20:00", hint: "Before bed" },
+  ],
+};
 
 export function Schedule({ data, update, next, back }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
+  const TIME_PRESETS = TIME_PRESETS_I18N[lang];
   const [time, setTime] = useState(data.routineTime || DEFAULT_ROUTINE_TIME);
 
   function confirm() {
@@ -1783,9 +1896,13 @@ export function Schedule({ data, update, next, back }: StepProps) {
   return (
     <div className="mx-auto max-w-xl text-center">
       <StepTitle
-        kicker="Ton rythme"
-        title="À quelle heure veux-tu faire ta routine ?"
-        sub="Chaque jour, ta séance se débloquera pile à cette heure-là. Tu pourras la changer quand tu veux."
+        kicker={en ? "Your rhythm" : "Ton rythme"}
+        title={en ? "What time do you want to do your routine?" : "À quelle heure veux-tu faire ta routine ?"}
+        sub={
+          en
+            ? "Each day, your session unlocks right at that time. You can change it whenever you want."
+            : "Chaque jour, ta séance se débloquera pile à cette heure-là. Tu pourras la changer quand tu veux."
+        }
       />
 
       <div className="mt-8 grid grid-cols-3 gap-3">
@@ -1812,7 +1929,7 @@ export function Schedule({ data, update, next, back }: StepProps) {
       </div>
 
       <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-clay-200 bg-sand/60 px-5 py-3">
-        <span className="text-sm text-cocoa-700">Heure précise</span>
+        <span className="text-sm text-cocoa-700">{en ? "Exact time" : "Heure précise"}</span>
         <input
           type="time"
           value={time}
@@ -1823,10 +1940,10 @@ export function Schedule({ data, update, next, back }: StepProps) {
 
       <div className="mt-9 flex items-center justify-center gap-3">
         <button onClick={back} className="btn-ghost">
-          Retour
+          {en ? "Back" : "Retour"}
         </button>
         <button onClick={confirm} className="btn-primary group">
-          Voir ma routine
+          {en ? "See my routine" : "Voir ma routine"}
           <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </button>
       </div>
@@ -1835,6 +1952,8 @@ export function Schedule({ data, update, next, back }: StepProps) {
 }
 
 export function RoutineView({ data }: StepProps) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const r = data.routine;
   const [open, setOpen] = useState<number | null>(1);
 
@@ -1869,7 +1988,7 @@ export function RoutineView({ data }: StepProps) {
         <IconHairBack className="h-5 w-5" />
       </a>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="eyebrow">Ta routine</span>
+        <span className="eyebrow">{en ? "Your routine" : "Ta routine"}</span>
         <DemoBadge show={data.routineDemo} />
       </div>
       <h2 className="display-2 mt-4 text-balance text-3xl text-ink sm:text-4xl">{r.title}</h2>
@@ -1879,8 +1998,8 @@ export function RoutineView({ data }: StepProps) {
         <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-clay-200 bg-sand/60 px-4 py-2 text-sm text-cocoa-800">
           <IconScissors className="h-4 w-4 text-cocoa-700" />
           {data.choice.type === "keep"
-            ? "Coupe actuelle conservée"
-            : `Coupe choisie : ${data.choice.cut.name}`}
+            ? en ? "Current cut kept" : "Coupe actuelle conservée"
+            : en ? `Chosen cut: ${data.choice.cut.name}` : `Coupe choisie : ${data.choice.cut.name}`}
         </div>
       )}
 
@@ -1947,11 +2066,13 @@ export function RoutineView({ data }: StepProps) {
 
       <div className="mt-10">
         <a href="/espace" className="btn-primary group w-full justify-center sm:w-auto">
-          Accéder à mon espace
+          {en ? "Go to my dashboard" : "Accéder à mon espace"}
           <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </a>
         <p className="mt-3 text-sm text-cocoa-600">
-          Ta routine et ton suivi t'attendent dans ton espace, jour après jour.
+          {en
+            ? "Your routine and tracking are waiting in your dashboard, day after day."
+            : "Ta routine et ton suivi t'attendent dans ton espace, jour après jour."}
         </p>
       </div>
     </div>

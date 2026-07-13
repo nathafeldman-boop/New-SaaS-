@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { track } from "@/lib/track";
+import { writeLang } from "@/lib/i18n";
 
 /**
  * Tracking global, monté une fois dans le layout :
@@ -15,6 +16,14 @@ export function Analytics() {
   useEffect(() => {
     track("pageview");
   }, [pathname]);
+
+  // /?lang=en|fr force la langue (liens affiliés anglophones).
+  useEffect(() => {
+    try {
+      const lang = new URLSearchParams(window.location.search).get("lang");
+      if (lang === "en" || lang === "fr") writeLang(lang);
+    } catch {}
+  }, []);
 
   // Lien d'affiliation /?ref=pseudo : cookie 30 jours (attribution à
   // l'inscription) + un événement de clic par session.

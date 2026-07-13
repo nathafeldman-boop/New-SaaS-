@@ -1,48 +1,79 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLang } from "@/lib/i18n";
 import { Reveal } from "./Reveal";
 import { IconCamera, IconScissors, IconSparkle } from "./Illustrations";
 import { LivingStrands } from "./LivingStrands";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-const steps = [
-  {
-    n: "01",
-    icon: IconCamera,
-    word: "Capture",
-    title: "Prends-toi en photo",
-    text: "Une photo suffit. Chaque jour, tu captures l'état réel de tes cheveux depuis l'app web — aucune installation.",
-  },
-  {
-    n: "02",
-    icon: IconSparkle,
-    word: "Analyse",
-    title: "Reçois ta routine",
-    text: "On lit ta photo et on génère ta routine du jour, pensée sur 30 jours, pour des cheveux sains et faciles à coiffer.",
-  },
-  {
-    n: "03",
-    icon: IconScissors,
-    word: "Style",
-    title: "Essaie des coupes",
-    text: "Teste des coupes sur ton visage, garde celle qui te va, et montre-la au coiffeur — sans avoir à l'expliquer.",
-  },
-];
+const STEPS_I18N = {
+  fr: [
+    {
+      n: "01",
+      icon: IconCamera,
+      word: "Capture",
+      title: "Prends-toi en photo",
+      text: "Une photo suffit. Chaque jour, tu captures l'état réel de tes cheveux depuis l'app web — aucune installation.",
+    },
+    {
+      n: "02",
+      icon: IconSparkle,
+      word: "Analyse",
+      title: "Reçois ta routine",
+      text: "On lit ta photo et on génère ta routine du jour, pensée sur 30 jours, pour des cheveux sains et faciles à coiffer.",
+    },
+    {
+      n: "03",
+      icon: IconScissors,
+      word: "Style",
+      title: "Essaie des coupes",
+      text: "Teste des coupes sur ton visage, garde celle qui te va, et montre-la au coiffeur — sans avoir à l'expliquer.",
+    },
+  ],
+  en: [
+    {
+      n: "01",
+      icon: IconCamera,
+      word: "Capture",
+      title: "Take a selfie",
+      text: "One photo is enough. Every day, you capture your hair's real condition from the web app — nothing to install.",
+    },
+    {
+      n: "02",
+      icon: IconSparkle,
+      word: "Analysis",
+      title: "Get your routine",
+      text: "We read your photo and generate your routine for the day, designed over 30 days, for healthy, easy-to-style hair.",
+    },
+    {
+      n: "03",
+      icon: IconScissors,
+      word: "Style",
+      title: "Try on haircuts",
+      text: "Test haircuts on your own face, keep the one that suits you, and just show it to your barber.",
+    },
+  ],
+};
 
 export function HowItWorks() {
+  const [lang] = useLang();
+  const en = lang === "en";
+  const steps = STEPS_I18N[lang];
   return (
     <section id="methode" className="relative overflow-hidden py-24 sm:py-32">
       <LivingStrands delay={1} className="pointer-events-none absolute -left-16 top-24 h-[460px] w-[460px] rotate-180 text-clay-300/30" />
       <div className="container-page relative">
         <div className="max-w-2xl">
           <Reveal>
-            <span className="eyebrow">La méthode</span>
+            <span className="eyebrow">{en ? "The method" : "La méthode"}</span>
           </Reveal>
           <Reveal delay={0.05}>
             <h2 className="display-2 mt-5 text-balance text-4xl text-ink sm:text-5xl">
-              Trois gestes. Un cheveu qui reprend vie.
+              {en
+                ? "Three habits. Hair that comes back to life."
+                : "Trois gestes. Un cheveu qui reprend vie."}
             </h2>
           </Reveal>
         </div>

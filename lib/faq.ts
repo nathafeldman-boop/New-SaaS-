@@ -26,3 +26,27 @@ export const faqs: { q: string; a: string }[] = [
     a: "Tes photos servent uniquement à générer ta routine et tes essais de coupes. Elles t'appartiennent.",
   },
 ];
+
+// Version anglaise (affichée quand la langue EN est active).
+export const faqsEn: { q: string; a: string }[] = [
+  {
+    q: "How does the photo diagnosis work?",
+    a: "You take a selfie from the web app. From that image, we build a routine tailored to your hair's condition, and you retake a photo each day to refine what comes next.",
+  },
+  {
+    q: "What happens after the 30 days?",
+    a: "The cycle ends. You can start a new one whenever you want to keep progressing — nothing is charged automatically, you decide.",
+  },
+  {
+    q: "What's the haircut try-on for?",
+    a: "To visualize different cuts on your own photo before deciding. Keep the one you like and simply show it to your barber, no explaining needed.",
+  },
+  {
+    q: "Do I need to install an app?",
+    a: `No. ${siteConfig.name} is a web app, designed and optimized for mobile. You access it from your browser, nothing to download.`,
+  },
+  {
+    q: "Are my photos private?",
+    a: "Your photos are only used to generate your routine and haircut try-ons. They belong to you.",
+  },
+];

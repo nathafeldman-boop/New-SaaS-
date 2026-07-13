@@ -1,6 +1,11 @@
+"use client";
+
 import { siteConfig } from "@/lib/site";
+import { useLang } from "@/lib/i18n";
 
 export function Footer() {
+  const [lang] = useLang();
+  const en = lang === "en";
   return (
     <footer className="border-t border-clay-200 bg-cream">
       <div className="container-page py-14">
@@ -13,31 +18,36 @@ export function Footer() {
               </span>
             </a>
             <p className="mt-4 text-sm leading-relaxed text-cocoa-700">
-              {siteConfig.tagline}
+              {en ? "Your AI hair coach" : siteConfig.tagline}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
             <FooterCol
-              title="Produit"
-              links={siteConfig.nav.map((n) => ({ label: n.label, href: n.href }))}
+              title={en ? "Product" : "Produit"}
+              links={siteConfig.nav.map((n) => ({
+                label: en
+                  ? { "#methode": "How it works", "#app": "The app", "#coupes": "Haircuts", "#tarif": "Pricing" }[n.href] ?? n.label
+                  : n.label,
+                href: n.href,
+              }))}
             />
             <FooterCol
               title="Guides"
               links={[
-                { label: "Tous les guides cheveux", href: "/guides" },
-                { label: "Routine capillaire homme", href: "/guides/routine-capillaire-homme" },
-                { label: "Quel type de cheveux ?", href: "/guides/type-de-cheveux" },
-                { label: "Coupes de cheveux homme", href: "/coupes" },
-                { label: "Échelle de Norwood", href: "/calvitie" },
+                { label: en ? "All hair guides" : "Tous les guides cheveux", href: "/guides" },
+                { label: en ? "Men's hair routine" : "Routine capillaire homme", href: "/guides/routine-capillaire-homme" },
+                { label: en ? "What's my hair type?" : "Quel type de cheveux ?", href: "/guides/type-de-cheveux" },
+                { label: en ? "Men's haircuts" : "Coupes de cheveux homme", href: "/coupes" },
+                { label: en ? "Norwood scale" : "Échelle de Norwood", href: "/calvitie" },
               ]}
             />
             <FooterCol
-              title="Ressources"
+              title={en ? "Resources" : "Ressources"}
               links={[
-                { label: "Mentions légales", href: "/mentions-legales" },
-                { label: "CGV", href: "/cgv" },
-                { label: "Confidentialité", href: "/confidentialite" },
+                { label: en ? "Legal notice" : "Mentions légales", href: "/mentions-legales" },
+                { label: en ? "Terms of sale" : "CGV", href: "/cgv" },
+                { label: en ? "Privacy" : "Confidentialité", href: "/confidentialite" },
                 { label: "Contact", href: "mailto:nathanaelsaas@gmail.com" },
               ]}
             />
@@ -46,9 +56,12 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-clay-200 pt-6 text-sm text-cocoa-600 sm:flex-row sm:items-center">
           <p>
-            © {new Date().getFullYear()} {siteConfig.name}. Tous droits réservés.
+            © {new Date().getFullYear()} {siteConfig.name}.{" "}
+            {en ? "All rights reserved." : "Tous droits réservés."}
           </p>
-          <p className="text-clay-600">Application web — conçue pour le mobile.</p>
+          <p className="text-clay-600">
+            {en ? "Web app — built for mobile." : "Application web — conçue pour le mobile."}
+          </p>
         </div>
       </div>
     </footer>

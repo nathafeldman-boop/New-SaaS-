@@ -20,12 +20,13 @@ import {
   SignupGate,
 } from "./Steps";
 import {
-  POST_QUESTIONS,
-  PRE_QUESTIONS,
+  getPostQuestions,
+  getPreQuestions,
   QuizScreen,
   StoryScreen,
   typeConfirmQuestion,
 } from "./Onboarding";
+import { LangSwitch, useLang } from "@/lib/i18n";
 
 type Step = {
   id: string;
@@ -39,12 +40,28 @@ const story =
   (p) =>
     <StoryScreen {...p} src={src} width={width} height={height} />;
 
+// Écrans de quiz sensibles à la langue (les questions changent avec FR/EN).
+function PreQuizStep({ index, ...p }: StepProps & { index: number }) {
+  const [lang] = useLang();
+  return <QuizScreen {...p} question={getPreQuestions(lang)[index]} />;
+}
+function PostQuizStep({ index, ...p }: StepProps & { index: number }) {
+  const [lang] = useLang();
+  return <QuizScreen {...p} question={getPostQuestions(lang)[index]} />;
+}
+function TypeConfirmStep(p: StepProps) {
+  const [lang] = useLang();
+  return (
+    <QuizScreen {...p} question={typeConfirmQuestion(p.data.analysis?.hairType, lang)} />
+  );
+}
+
 // Quiz AVANT paiement : uniquement les objectifs de l'utilisateur — rien de
 // descriptif, pour que l'IA prouve d'elle-même ce qu'elle lit sur la photo.
-const preQuizSteps: Step[] = PRE_QUESTIONS.map((q) => ({
+const preQuizSteps: Step[] = getPreQuestions("fr").map((q, i) => ({
   id: `quiz-pre-${q.id}`,
   label: "Objectifs",
-  Component: (p: StepProps) => <QuizScreen {...p} question={q} />,
+  Component: (p: StepProps) => <PreQuizStep {...p} index={i} />,
 }));
 
 // Quiz APRÈS paiement : ouvre sur la confirmation du type détecté par l'IA
@@ -53,14 +70,12 @@ const postQuizSteps: Step[] = [
   {
     id: "quiz-post-type",
     label: "Vérification",
-    Component: (p: StepProps) => (
-      <QuizScreen {...p} question={typeConfirmQuestion(p.data.analysis?.hairType)} />
-    ),
+    Component: TypeConfirmStep,
   },
-  ...POST_QUESTIONS.map((q) => ({
+  ...getPostQuestions("fr").map((q, i) => ({
     id: `quiz-post-${q.id}`,
     label: "Personnalisation",
-    Component: (p: StepProps) => <QuizScreen {...p} question={q} />,
+    Component: (p: StepProps) => <PostQuizStep {...p} index={i} />,
   })),
 ];
 
@@ -86,9 +101,39 @@ const STEPS: Step[] = [
   { id: "routine", label: "Routine", Component: RoutineView },
 ];
 
+// Libellés du header en anglais (par id d'étape ; les quiz par préfixe).
+const LABELS_EN: Record<string, string> = {
+  intro: "Welcome",
+  signup: "Your account",
+  "story-transfo": "Transformation",
+  "story-ia": "AI analysis",
+  guide: "Photo",
+  capture: "Photo",
+  analyze: "Analysis",
+  "story-ready": "Recommendations",
+  reveal: "Diagnosis",
+  paywall: "Access",
+  checkout: "Payment",
+  "quiz-post-type": "Verification",
+  cuts: "Haircuts",
+  generate: "Generating",
+  schedule: "Schedule",
+  routine: "Routine",
+};
+
+function stepLabel(step: Step, en: boolean): string {
+  if (!en) return step.label;
+  if (LABELS_EN[step.id]) return LABELS_EN[step.id];
+  if (step.id.startsWith("quiz-pre")) return "Goals";
+  if (step.id.startsWith("quiz-post")) return "Personalization";
+  return step.label;
+}
+
 export function Funnel() {
   const [index, setIndex] = useState(0);
   const [data, setData] = useState<FunnelData>({});
+  const [lang] = useLang();
+  const en = lang === "en";
 
   const update = useCallback(
     (patch: Partial<FunnelData>) => setData((d) => ({ ...d, ...patch })),
@@ -190,9 +235,12 @@ export function Funnel() {
               {siteConfig.name}
             </span>
           </a>
-          <span className="text-sm text-cocoa-600">
-            Étape {index + 1} / {STEPS.length} · {step.label}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-cocoa-600">
+              {en ? "Step" : "Étape"} {index + 1} / {STEPS.length} · {stepLabel(step, en)}
+            </span>
+            <LangSwitch />
+          </div>
         </div>
         <div className="h-1 w-full bg-clay-200/60">
           <motion.div

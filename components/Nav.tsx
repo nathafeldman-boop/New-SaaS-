@@ -3,10 +3,24 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { siteConfig } from "@/lib/site";
+import { LangSwitch, useLang } from "@/lib/i18n";
+
+const NAV_EN: Record<string, string> = {
+  "#methode": "How it works",
+  "#app": "The app",
+  "#coupes": "Haircuts",
+  "#tarif": "Pricing",
+};
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [lang] = useLang();
+  const en = lang === "en";
+  const navLabel = (item: { href: string; label: string }) =>
+    en ? NAV_EN[item.href] ?? item.label : item.label;
+  const ctaLabel = en ? "Get my free scan" : siteConfig.cta.primary;
+  const loginLabel = en ? "Log in" : "Se connecter";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -38,20 +52,21 @@ export function Nav() {
               href={item.href}
               className="rounded-full px-3.5 py-2 text-sm text-cocoa-700 transition-colors hover:bg-sand/70 hover:text-ink"
             >
-              {item.label}
+              {navLabel(item)}
             </a>
           ))}
         </nav>
 
         <div className="flex items-center gap-2">
+          <LangSwitch />
           <a
             href="/login"
             className="hidden rounded-full px-3.5 py-2 text-sm text-cocoa-700 transition-colors hover:bg-sand/70 hover:text-ink sm:inline-flex"
           >
-            Se connecter
+            {loginLabel}
           </a>
           <a href="/scan" className="btn-primary hidden px-5 py-2.5 sm:inline-flex">
-            {siteConfig.cta.primary}
+            {ctaLabel}
           </a>
           <button
             type="button"
@@ -104,7 +119,7 @@ export function Nav() {
                     onClick={() => setOpen(false)}
                     className="group flex items-center justify-between px-5 py-3.5 text-[0.95rem] text-cocoa-700 transition-colors hover:bg-sand/60 hover:text-ink"
                   >
-                    <span>{item.label}</span>
+                    <span>{navLabel(item)}</span>
                     <svg
                       viewBox="0 0 24 24"
                       className="h-4 w-4 text-clay-400 transition-transform group-hover:translate-x-0.5"
@@ -127,14 +142,14 @@ export function Nav() {
               className="space-y-2 p-3"
             >
               <a href="/scan" onClick={() => setOpen(false)} className="btn-primary w-full">
-                {siteConfig.cta.primary}
+                {ctaLabel}
               </a>
               <a
                 href="/login"
                 onClick={() => setOpen(false)}
                 className="block w-full rounded-full border border-clay-300 py-3 text-center text-sm font-medium text-cocoa-700 transition hover:bg-sand/60"
               >
-                Se connecter
+                {loginLabel}
               </a>
             </motion.div>
           </motion.div>

@@ -199,9 +199,16 @@ const HAIR_TYPE_LABELS: Record<string, string> = {
   crepus: "crépus (type 4)",
 };
 
+// Consigne de langue ajoutée aux prompts (le schéma JSON reste identique).
+const langNote = (lang?: string) =>
+  lang === "en"
+    ? "\n\nLANGUAGE: write ALL user-facing text (every JSON string value) in ENGLISH. Keep the JSON keys unchanged."
+    : "";
+
 export async function analyzeHair(
   imageDataUrl: string,
   quiz?: Record<string, string>,
+  lang?: string,
 ): Promise<HairAnalysis> {
   const declaredType = quiz?.type ? HAIR_TYPE_LABELS[quiz.type] : null;
   const system =
@@ -248,7 +255,8 @@ export async function analyzeHair(
     '"norwoodStage": number (1 à 7, estimation de la calvitie/ligne frontale sur ' +
     "l'échelle de Norwood : 1 = aucun recul, 2-3 = golfes qui se creusent, " +
     "4-5 = dégarnissement frontal + vertex, 6-7 = avancé), " +
-    '"keepCurrentCut": boolean, "keepReason": string (une phrase motivante qui justifie le choix de coupe)}.';
+    '"keepCurrentCut": boolean, "keepReason": string (une phrase motivante qui justifie le choix de coupe)}.' +
+    langNote(lang);
 
   const messages: Message[] = [
     { role: "system", content: system },
@@ -275,6 +283,7 @@ export async function analyzeHair(
 /* ── Recommandation de 15 coupes ─────────────────────────────── */
 export async function recommendCuts(
   analysis: HairAnalysis,
+  lang?: string,
 ): Promise<CutsResult> {
   const system =
     HAIR_KNOWLEDGE +
@@ -291,7 +300,8 @@ export async function recommendCuts(
     "Tiens compte du champ 'quiz' de l'analyse : privilégie des coupes à ENTRETIEN FAIBLE si le " +
     "temps dispo est court (time), oriente le style vers l'objectif (goal) et le niveau de confiance " +
     "(confidence), et si le stade de Norwood est élevé propose des coupes qui masquent malinement le " +
-    "recul frontal. Dans chaque 'why', explique pourquoi CETTE coupe lui va (visage + type + objectif).";
+    "recul frontal. Dans chaque 'why', explique pourquoi CETTE coupe lui va (visage + type + objectif)." +
+    langNote(lang);
 
   const messages: Message[] = [
     { role: "system", content: system },
@@ -342,6 +352,7 @@ const fallbackPattern: PatternDay[] = [
 export async function generateRoutine(
   analysis: HairAnalysis,
   chosenCut: string,
+  lang?: string,
 ): Promise<Routine> {
   const system =
     HAIR_KNOWLEDGE +
@@ -371,7 +382,8 @@ export async function generateRoutine(
     "- part du niveau produits actuel (products) : ne surcharge pas un débutant, " +
     "enrichis un initié ;\n" +
     "- ton plus rassurant si la confiance (confidence) est basse ;\n" +
-    "- l'overview et les weeklyTips parlent DIRECTEMENT de son objectif (goal).";
+    "- l'overview et les weeklyTips parlent DIRECTEMENT de son objectif (goal)." +
+    langNote(lang);
 
   const messages: Message[] = [
     { role: "system", content: system },
@@ -424,7 +436,7 @@ export async function generateRoutine(
   });
 
   return {
-    title: plan.title || "Ta routine 30 jours",
+    title: plan.title || (lang === "en" ? "Your 30-day routine" : "Ta routine 30 jours"),
     overview: plan.overview || "",
     weeklyTips: plan.weeklyTips ?? [],
     days,

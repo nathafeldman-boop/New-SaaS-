@@ -14,8 +14,9 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   let analysis: HairAnalysis | undefined;
+  let lang: string | undefined;
   try {
-    ({ analysis } = await req.json());
+    ({ analysis, lang } = await req.json());
   } catch {
     return json({ ok: false, error: "Corps de requête invalide" }, 400);
   }
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await recommendCuts(analysis);
+    const data = await recommendCuts(analysis, lang === "en" ? "en" : "fr");
     return json({ ok: true, data: await withImages(data) });
   } catch (e) {
     return json({

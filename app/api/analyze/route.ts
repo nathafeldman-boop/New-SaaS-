@@ -9,8 +9,9 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   let image: string | undefined;
   let quiz: Record<string, string> | undefined;
+  let lang: string | undefined;
   try {
-    ({ image, quiz } = await req.json());
+    ({ image, quiz, lang } = await req.json());
   } catch {
     return json({ ok: false, error: "Corps de requête invalide" }, 400);
   }
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await analyzeHair(image, quiz);
+    const data = await analyzeHair(image, quiz, lang === "en" ? "en" : "fr");
     return json({ ok: true, data });
   } catch (e) {
     // La clé est configurée mais l'appel a échoué (clé invalide, quota, modèle,

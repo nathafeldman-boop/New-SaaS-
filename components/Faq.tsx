@@ -3,26 +3,32 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Reveal } from "./Reveal";
-import { faqs } from "@/lib/faq";
+import { faqs, faqsEn } from "@/lib/faq";
+import { useLang } from "@/lib/i18n";
 
 export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
+  const [lang] = useLang();
+  const en = lang === "en";
+  const items = en ? faqsEn : faqs;
   return (
     <section className="bg-cream py-24 sm:py-32">
       <div className="container-page grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <Reveal>
-            <span className="eyebrow">Questions</span>
+            <span className="eyebrow">{en ? "Questions" : "Questions"}</span>
           </Reveal>
           <Reveal delay={0.05}>
             <h2 className="display-2 mt-5 text-balance text-4xl text-ink sm:text-5xl">
-              Ce qu'on te demande le plus souvent.
+              {en
+                ? "What people ask us the most."
+                : "Ce qu'on te demande le plus souvent."}
             </h2>
           </Reveal>
         </div>
 
         <Reveal className="divide-y divide-clay-200" delay={0.1}>
-          {faqs.map((item, i) => {
+          {items.map((item, i) => {
             const isOpen = open === i;
             return (
               <div key={item.q} className="py-1">

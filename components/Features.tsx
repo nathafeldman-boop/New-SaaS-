@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLang } from "@/lib/i18n";
 import { Reveal } from "./Reveal";
 import { LivingStrands } from "./LivingStrands";
 import { IconCalendar, IconCamera, IconCheck, IconScissors } from "./Illustrations";
@@ -17,25 +18,36 @@ export function Features() {
 
 /* ── Web app mobile ─────────────────────────────────────────── */
 function AppFeature() {
+  const [lang] = useLang();
+  const en = lang === "en";
+  const week: [string, string, boolean][] = en
+    ? [
+        ["Mon", "Oil treatment", true],
+        ["Tue", "Light hydration", true],
+        ["Wed", "Scalp rest day", true],
+        ["Thu", "Protein mask", true],
+        ["Fri", "Ends care", false],
+      ]
+    : [
+        ["Lun", "Bain d'huile", true],
+        ["Mar", "Hydratation légère", true],
+        ["Mer", "Repos du cuir chevelu", true],
+        ["Jeu", "Masque protéiné", true],
+        ["Ven", "Soin des pointes", false],
+      ];
   return (
     <div id="app" className="bg-cream py-24 sm:py-28">
       <div className="container-page grid items-center gap-14 lg:grid-cols-2">
         <Reveal className="order-2 lg:order-1">
           <div className="relative rounded-5xl border border-clay-200/70 bg-grad-warm p-8 shadow-soft">
             <div className="flex items-center justify-between">
-              <p className="font-display text-xl text-ink">Cette semaine</p>
+              <p className="font-display text-xl text-ink">{en ? "This week" : "Cette semaine"}</p>
               <span className="rounded-full bg-paper px-3 py-1 text-xs font-medium text-cocoa-700">
-                4 / 7 jours
+                {en ? "4 / 7 days" : "4 / 7 jours"}
               </span>
             </div>
             <div className="mt-6 space-y-3">
-              {[
-                ["Lun", "Bain d'huile", true],
-                ["Mar", "Hydratation légère", true],
-                ["Mer", "Repos du cuir chevelu", true],
-                ["Jeu", "Masque protéiné", true],
-                ["Ven", "Soin des pointes", false],
-              ].map(([day, label, done]) => (
+              {week.map(([day, label, done]) => (
                 <div
                   key={day as string}
                   className="flex items-center gap-4 rounded-2xl border border-clay-200/70 bg-paper/80 px-4 py-3"
@@ -63,28 +75,36 @@ function AppFeature() {
 
         <div className="order-1 max-w-lg lg:order-2">
           <Reveal>
-            <span className="eyebrow">L'app web</span>
+            <span className="eyebrow">{en ? "The web app" : "L'app web"}</span>
           </Reveal>
           <Reveal delay={0.05}>
             <h2 className="display-2 mt-5 text-balance text-4xl text-ink sm:text-5xl">
-              Une routine qui s'ajuste, jour après jour.
+              {en
+                ? "A routine that adjusts, day after day."
+                : "Une routine qui s'ajuste, jour après jour."}
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mt-5 text-lg leading-relaxed text-cocoa-700">
-              Pas une liste figée. Chaque photo affine la suivante : la routine
-              s'adapte à l'évolution réelle de tes cheveux sur tout le cycle.
-              Tout se passe dans le navigateur, optimisé pour ton téléphone —
-              rien à télécharger.
+              {en
+                ? "Not a static checklist. Each photo refines the next step: the routine adapts to your hair's real progress across the whole cycle. Everything runs in the browser, optimized for your phone — nothing to download."
+                : "Pas une liste figée. Chaque photo affine la suivante : la routine s'adapte à l'évolution réelle de tes cheveux sur tout le cycle. Tout se passe dans le navigateur, optimisé pour ton téléphone — rien à télécharger."}
             </p>
           </Reveal>
           <Reveal delay={0.15}>
             <ul className="mt-7 space-y-3">
-              {[
-                "Routine quotidienne générée à partir de ta photo",
-                "Suivi de progression sur 30 jours",
-                "Pensée mobile, accessible depuis n'importe quel navigateur",
-              ].map((item) => (
+              {(en
+                ? [
+                    "Daily routine generated from your photo",
+                    "Progress tracking over 30 days",
+                    "Mobile-first, works in any browser",
+                  ]
+                : [
+                    "Routine quotidienne générée à partir de ta photo",
+                    "Suivi de progression sur 30 jours",
+                    "Pensée mobile, accessible depuis n'importe quel navigateur",
+                  ]
+              ).map((item) => (
                 <li key={item} className="flex items-start gap-3 text-cocoa-800">
                   <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-clay-300 text-ink">
                     <IconCheck className="h-3 w-3" />
@@ -102,6 +122,8 @@ function AppFeature() {
 
 /* ── Essayage de coupes ─────────────────────────────────────── */
 function CoupesFeature() {
+  const [lang] = useLang();
+  const en = lang === "en";
   return (
     <div id="coupes" className="bg-sand/40 py-24 sm:py-28">
       <div className="container-page grid items-center gap-14 lg:grid-cols-2">
@@ -109,28 +131,35 @@ function CoupesFeature() {
           <Reveal>
             <span className="eyebrow">
               <IconScissors className="h-3.5 w-3.5" />
-              Essaie avant de couper
+              {en ? "Try before you cut" : "Essaie avant de couper"}
             </span>
           </Reveal>
           <Reveal delay={0.05}>
             <h2 className="display-2 mt-5 text-balance text-4xl text-ink sm:text-5xl">
-              Trouve la coupe qui te va. Montre-la, c'est tout.
+              {en
+                ? "Find the cut that suits you. Just show it."
+                : "Trouve la coupe qui te va. Montre-la, c'est tout."}
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mt-5 text-lg leading-relaxed text-cocoa-700">
-              Parcours un catalogue de coupes et essaie-les sur ta propre photo.
-              Tu gardes celle qui te correspond, et tu la montres simplement à
-              ton coiffeur — plus besoin de trouver les mots. Ta routine s'adapte
-              ensuite pour entretenir la coupe choisie.
+              {en
+                ? "Browse a catalog of haircuts and try them on your own photo. Keep the one that fits you and simply show it to your barber — no more struggling for words. Your routine then adapts to maintain the chosen cut."
+                : "Parcours un catalogue de coupes et essaie-les sur ta propre photo. Tu gardes celle qui te correspond, et tu la montres simplement à ton coiffeur — plus besoin de trouver les mots. Ta routine s'adapte ensuite pour entretenir la coupe choisie."}
             </p>
           </Reveal>
           <Reveal delay={0.15}>
             <ul className="mt-7 space-y-3">
-              {[
-                "Un large choix de coupes, du dégradé au mi-long",
-                "Un visuel clair à montrer au coiffeur, sans expliquer",
-              ].map((item) => (
+              {(en
+                ? [
+                    "A wide range of cuts, from fades to medium-length",
+                    "A clear visual to show your barber, no explaining",
+                  ]
+                : [
+                    "Un large choix de coupes, du dégradé au mi-long",
+                    "Un visuel clair à montrer au coiffeur, sans expliquer",
+                  ]
+              ).map((item) => (
                 <li key={item} className="flex items-start gap-3 text-cocoa-800">
                   <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-clay-300 text-ink">
                     <IconCheck className="h-3 w-3" />
@@ -156,11 +185,11 @@ function CoupesFeature() {
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent from-70% to-ink/45" />
               <span className="absolute bottom-[18px] left-[18px] inline-flex items-center gap-2 rounded-full bg-cream/90 px-3.5 py-2 text-[13px] font-semibold text-ink shadow-[0_10px_24px_-14px_rgba(67,50,31,0.5)] backdrop-blur-sm">
                 <IconCamera className="h-3.5 w-3.5 text-cocoa-700" />
-                Essaie-les sur ta photo
+                {en ? "Try them on your photo" : "Essaie-les sur ta photo"}
               </span>
             </div>
             <span className="absolute -right-2.5 top-4 animate-float rounded-[14px] bg-ink px-3.5 py-2 text-xs text-cream shadow-[0_16px_36px_-20px_rgba(67,50,31,0.6)]">
-              + de choix chaque mois
+              {en ? "More cuts every month" : "+ de choix chaque mois"}
             </span>
           </div>
         </Reveal>
@@ -171,6 +200,8 @@ function CoupesFeature() {
 
 /* ── Plan 30 jours ──────────────────────────────────────────── */
 function Plan30() {
+  const [lang] = useLang();
+  const en = lang === "en";
   const days = Array.from({ length: 30 }, (_, i) => i + 1);
   const current = 12;
   return (
@@ -181,19 +212,21 @@ function Plan30() {
           <Reveal>
             <span className="eyebrow">
               <IconCalendar className="h-3.5 w-3.5" />
-              Le cycle de 30 jours
+              {en ? "The 30-day cycle" : "Le cycle de 30 jours"}
             </span>
           </Reveal>
           <Reveal delay={0.05}>
             <h2 className="display-2 mt-5 text-balance text-4xl text-ink sm:text-5xl">
-              Un programme complet, pas un conseil au hasard.
+              {en
+                ? "A complete program, not random advice."
+                : "Un programme complet, pas un conseil au hasard."}
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mt-5 text-lg leading-relaxed text-cocoa-700">
-              Chaque cycle dure 30 jours. À la fin, tu peux en relancer un
-              nouveau pour aller plus loin — la suite se construit sur ce que tu
-              as déjà accompli.
+              {en
+                ? "Each cycle lasts 30 days. When it ends, you can start a new one to go further — the next builds on what you've already achieved."
+                : "Chaque cycle dure 30 jours. À la fin, tu peux en relancer un nouveau pour aller plus loin — la suite se construit sur ce que tu as déjà accompli."}
             </p>
           </Reveal>
         </div>

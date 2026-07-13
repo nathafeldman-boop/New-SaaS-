@@ -1,35 +1,49 @@
 "use client";
 
 import { siteConfig } from "@/lib/site";
+import { useLang } from "@/lib/i18n";
 import { Reveal } from "./Reveal";
 import { IconArrow, IconCheck } from "./Illustrations";
 import { LivingStrands } from "./LivingStrands";
 
-const included = [
-  "Un cycle complet de 30 jours",
-  "Routine quotidienne générée par photo",
-  "Suivi de progression jour après jour",
-  "Essayage de coupes illimité",
-  "Accès depuis n'importe quel navigateur",
-];
+const INCLUDED = {
+  fr: [
+    "Un cycle complet de 30 jours",
+    "Routine quotidienne générée par photo",
+    "Suivi de progression jour après jour",
+    "Essayage de coupes illimité",
+    "Accès depuis n'importe quel navigateur",
+  ],
+  en: [
+    "A full 30-day cycle",
+    "Daily routine generated from your photo",
+    "Day-by-day progress tracking",
+    "Unlimited haircut try-ons",
+    "Access from any browser",
+  ],
+};
 
 export function Pricing() {
+  const [lang] = useLang();
+  const en = lang === "en";
+  const included = INCLUDED[lang];
   return (
     <section id="tarif" className="bg-sand/40 py-24 sm:py-32">
       <div className="container-page">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
-            <span className="eyebrow">Tarif</span>
+            <span className="eyebrow">{en ? "Pricing" : "Tarif"}</span>
           </Reveal>
           <Reveal delay={0.05}>
             <h2 className="display-2 mt-5 text-balance text-4xl text-ink sm:text-5xl">
-              Un cycle. Un prix clair.
+              {en ? "One cycle. One clear price." : "Un cycle. Un prix clair."}
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mt-5 text-lg text-cocoa-700">
-              Tu paies pour un cycle de 30 jours. Envie de continuer ? Tu
-              relances un nouveau cycle quand tu le souhaites.
+              {en
+                ? "You pay for a 30-day cycle. Want to keep going? Start a new cycle whenever you like."
+                : "Tu paies pour un cycle de 30 jours. Envie de continuer ? Tu relances un nouveau cycle quand tu le souhaites."}
             </p>
           </Reveal>
         </div>
@@ -38,21 +52,23 @@ export function Pricing() {
           <div className="relative mx-auto mt-12 max-w-md overflow-hidden rounded-5xl border border-clay-300/60 bg-paper p-8 shadow-soft sm:p-10">
             <LivingStrands delay={1.6} className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/50" />
             <div className="relative">
-              <p className="font-display text-xl text-ink">Cycle {siteConfig.name}</p>
+              <p className="font-display text-xl text-ink">
+                {en ? `${siteConfig.name} cycle` : `Cycle ${siteConfig.name}`}
+              </p>
               <div className="mt-4 flex items-end gap-2">
                 <span className="font-display text-6xl font-light text-ink">
                   {siteConfig.price.amount}
                 </span>
                 <span className="pb-2 text-cocoa-600">
-                  {siteConfig.price.period}
+                  {en ? "/ month" : siteConfig.price.period}
                 </span>
               </div>
               <p className="mt-2 text-xs italic text-clay-600">
-                {siteConfig.price.note}
+                {en ? "No commitment — cancel anytime." : siteConfig.price.note}
               </p>
 
               <a href="/scan" className="btn-primary group mt-7 w-full">
-                {siteConfig.cta.primary}
+                {en ? "Get my free scan" : siteConfig.cta.primary}
                 <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </a>
 

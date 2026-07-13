@@ -9,8 +9,9 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   let analysis: HairAnalysis | undefined;
   let cut: string | undefined;
+  let lang: string | undefined;
   try {
-    ({ analysis, cut } = await req.json());
+    ({ analysis, cut, lang } = await req.json());
   } catch {
     return json({ ok: false, error: "Corps de requête invalide" }, 400);
   }
@@ -21,7 +22,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await generateRoutine(analysis, cut ?? "coupe conservée");
+    const data = await generateRoutine(
+      analysis,
+      cut ?? "coupe conservée",
+      lang === "en" ? "en" : "fr",
+    );
     return json({ ok: true, data });
   } catch (e) {
     return json({

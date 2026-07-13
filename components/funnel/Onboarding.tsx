@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import type { StepProps } from "./types";
 import { IconArrow, IconCheck } from "@/components/Illustrations";
+import { useLang } from "@/lib/i18n";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -18,6 +19,7 @@ export function StoryScreen({
   height = 1376,
   next,
 }: StepProps & { src: string; width?: number; height?: number }) {
+  const [lang] = useLang();
   return (
     <div className="mx-auto flex max-w-sm flex-col items-center">
       <motion.div
@@ -53,7 +55,7 @@ export function StoryScreen({
         onClick={next}
         className="btn-primary group mt-6 w-full justify-center"
       >
-        Continuer
+        {lang === "en" ? "Continue" : "Continuer"}
         <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
       </motion.button>
     </div>
@@ -77,6 +79,7 @@ export function QuizScreen({
   next,
   back,
 }: StepProps & { question: QuizQuestion }) {
+  const [lang] = useLang();
   const selected = data.quizAnswers?.[question.id];
 
   function pick(value: string) {
@@ -124,7 +127,7 @@ export function QuizScreen({
       </div>
 
       <button onClick={back} className="btn-ghost mt-7">
-        Retour
+        {lang === "en" ? "Back" : "Retour"}
       </button>
     </div>
   );
@@ -134,66 +137,130 @@ export function QuizScreen({
  *  Quiz AVANT paiement — uniquement les OBJECTIFS de l'utilisateur.
  *  Rien de descriptif (type, frisottis, sébum…) : l'IA doit détecter tout ça
  *  sur la photo, seule — c'est ce qui fait sa preuve et crée la confiance.
+ *  Les `value` sont identiques dans les deux langues (clés pour l'IA).
  * ────────────────────────────────────────────────────────────────────────── */
-export const PRE_QUESTIONS: QuizQuestion[] = [
-  {
-    id: "goal",
-    kicker: "Ton objectif",
-    question: "Qu'est-ce que tu veux changer en premier ?",
-    options: [
-      { value: "sante", label: "Des cheveux plus sains", emoji: "🌿" },
-      { value: "coupe", label: "Trouver ma coupe idéale", emoji: "✂️" },
-      { value: "densite", label: "Plus de densité & de volume", emoji: "💪" },
-      { value: "chute", label: "Ralentir la chute", emoji: "🛡️" },
-    ],
-  },
-  {
-    id: "problem",
-    kicker: "Ton souci n°1",
-    question: "Ton principal problème en ce moment ?",
-    options: [
-      { value: "dryness", label: "Sécheresse" },
-      { value: "breakage", label: "Casse & fourches" },
-      { value: "loss", label: "Chute / perte de densité" },
-      { value: "volume", label: "Manque de volume" },
-      { value: "dandruff", label: "Pellicules" },
-    ],
-  },
-  {
-    id: "priority",
-    kicker: "Cap sur 30 jours",
-    question: "Ta priorité pour les 30 prochains jours ?",
-    options: [
-      { value: "repair", label: "Réparer", emoji: "🩹" },
-      { value: "hydrate", label: "Hydrater", emoji: "💦" },
-      { value: "grow", label: "Faire pousser", emoji: "🌱" },
-      { value: "style", label: "Mieux me coiffer", emoji: "✨" },
-    ],
-  },
-  {
-    id: "confidence",
-    kicker: "Ressenti",
-    question: "Tu te sens comment avec ta coiffure ?",
-    options: [
-      { value: "low", label: "Pas confiant du tout", emoji: "😕" },
-      { value: "mid", label: "Bof, ça dépend des jours" },
-      { value: "ok", label: "Plutôt bien", emoji: "🙂" },
-      { value: "high", label: "Très à l'aise", emoji: "😎" },
-    ],
-  },
-];
+type Lang = "fr" | "en";
+
+const PRE_QUESTIONS_I18N: Record<Lang, QuizQuestion[]> = {
+  fr: [
+    {
+      id: "goal",
+      kicker: "Ton objectif",
+      question: "Qu'est-ce que tu veux changer en premier ?",
+      options: [
+        { value: "sante", label: "Des cheveux plus sains", emoji: "🌿" },
+        { value: "coupe", label: "Trouver ma coupe idéale", emoji: "✂️" },
+        { value: "densite", label: "Plus de densité & de volume", emoji: "💪" },
+        { value: "chute", label: "Ralentir la chute", emoji: "🛡️" },
+      ],
+    },
+    {
+      id: "problem",
+      kicker: "Ton souci n°1",
+      question: "Ton principal problème en ce moment ?",
+      options: [
+        { value: "dryness", label: "Sécheresse" },
+        { value: "breakage", label: "Casse & fourches" },
+        { value: "loss", label: "Chute / perte de densité" },
+        { value: "volume", label: "Manque de volume" },
+        { value: "dandruff", label: "Pellicules" },
+      ],
+    },
+    {
+      id: "priority",
+      kicker: "Cap sur 30 jours",
+      question: "Ta priorité pour les 30 prochains jours ?",
+      options: [
+        { value: "repair", label: "Réparer", emoji: "🩹" },
+        { value: "hydrate", label: "Hydrater", emoji: "💦" },
+        { value: "grow", label: "Faire pousser", emoji: "🌱" },
+        { value: "style", label: "Mieux me coiffer", emoji: "✨" },
+      ],
+    },
+    {
+      id: "confidence",
+      kicker: "Ressenti",
+      question: "Tu te sens comment avec ta coiffure ?",
+      options: [
+        { value: "low", label: "Pas confiant du tout", emoji: "😕" },
+        { value: "mid", label: "Bof, ça dépend des jours" },
+        { value: "ok", label: "Plutôt bien", emoji: "🙂" },
+        { value: "high", label: "Très à l'aise", emoji: "😎" },
+      ],
+    },
+  ],
+  en: [
+    {
+      id: "goal",
+      kicker: "Your goal",
+      question: "What do you want to change first?",
+      options: [
+        { value: "sante", label: "Healthier hair", emoji: "🌿" },
+        { value: "coupe", label: "Find my ideal haircut", emoji: "✂️" },
+        { value: "densite", label: "More density & volume", emoji: "💪" },
+        { value: "chute", label: "Slow down hair loss", emoji: "🛡️" },
+      ],
+    },
+    {
+      id: "problem",
+      kicker: "Your #1 concern",
+      question: "Your main hair problem right now?",
+      options: [
+        { value: "dryness", label: "Dryness" },
+        { value: "breakage", label: "Breakage & split ends" },
+        { value: "loss", label: "Shedding / losing density" },
+        { value: "volume", label: "Lack of volume" },
+        { value: "dandruff", label: "Dandruff" },
+      ],
+    },
+    {
+      id: "priority",
+      kicker: "Next 30 days",
+      question: "Your priority for the next 30 days?",
+      options: [
+        { value: "repair", label: "Repair", emoji: "🩹" },
+        { value: "hydrate", label: "Hydrate", emoji: "💦" },
+        { value: "grow", label: "Grow it out", emoji: "🌱" },
+        { value: "style", label: "Style it better", emoji: "✨" },
+      ],
+    },
+    {
+      id: "confidence",
+      kicker: "How you feel",
+      question: "How do you feel about your hair right now?",
+      options: [
+        { value: "low", label: "Not confident at all", emoji: "😕" },
+        { value: "mid", label: "Depends on the day" },
+        { value: "ok", label: "Pretty good", emoji: "🙂" },
+        { value: "high", label: "Very confident", emoji: "😎" },
+      ],
+    },
+  ],
+};
+
+export function getPreQuestions(lang: Lang): QuizQuestion[] {
+  return PRE_QUESTIONS_I18N[lang];
+}
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  Quiz APRÈS paiement — cohérent avec le diagnostic déjà posé par l'IA.
  *  Il commence par la confirmation du type détecté (l'IA montre qu'elle a vu
  *  juste), puis affine les habitudes pour personnaliser coupes & routine.
  * ────────────────────────────────────────────────────────────────────────── */
-const TYPE_OPTIONS = [
-  { value: "raides", label: "Raides", emoji: "📏" },
-  { value: "ondules", label: "Ondulés", emoji: "🌊" },
-  { value: "boucles", label: "Bouclés", emoji: "🌀" },
-  { value: "crepus", label: "Crépus", emoji: "☁️" },
-];
+const TYPE_OPTIONS_I18N: Record<Lang, { value: string; label: string; emoji: string }[]> = {
+  fr: [
+    { value: "raides", label: "Raides", emoji: "📏" },
+    { value: "ondules", label: "Ondulés", emoji: "🌊" },
+    { value: "boucles", label: "Bouclés", emoji: "🌀" },
+    { value: "crepus", label: "Crépus", emoji: "☁️" },
+  ],
+  en: [
+    { value: "raides", label: "Straight", emoji: "📏" },
+    { value: "ondules", label: "Wavy", emoji: "🌊" },
+    { value: "boucles", label: "Curly", emoji: "🌀" },
+    { value: "crepus", label: "Coily", emoji: "☁️" },
+  ],
+};
 
 /** Déduit la valeur de type à partir du libellé libre renvoyé par l'IA. */
 export function detectedTypeValue(hairType?: string): string | null {
@@ -206,90 +273,157 @@ export function detectedTypeValue(hairType?: string): string | null {
 }
 
 /** Question de confirmation du type : l'IA annonce ce qu'elle a détecté. */
-export function typeConfirmQuestion(hairType?: string): QuizQuestion {
+export function typeConfirmQuestion(hairType?: string, lang: Lang = "fr"): QuizQuestion {
+  const en = lang === "en";
+  const OPTS = TYPE_OPTIONS_I18N[lang];
   const detected = detectedTypeValue(hairType);
   if (!detected) {
     return {
       id: "type",
-      kicker: "Ton type de cheveux",
-      question: "Tes cheveux sont plutôt…",
-      options: TYPE_OPTIONS,
+      kicker: en ? "Your hair type" : "Ton type de cheveux",
+      question: en ? "Your hair is mostly…" : "Tes cheveux sont plutôt…",
+      options: OPTS,
     };
   }
-  const detectedLabel = TYPE_OPTIONS.find((o) => o.value === detected)!.label.toLowerCase();
+  const detectedLabel = OPTS.find((o) => o.value === detected)!.label.toLowerCase();
   // L'option détectée passe en premier, marquée comme lecture de l'IA.
   const options = [
-    ...TYPE_OPTIONS.filter((o) => o.value === detected).map((o) => ({
+    ...OPTS.filter((o) => o.value === detected).map((o) => ({
       ...o,
-      label: `${o.label} — c'est bien ça ✅`,
+      label: en ? `${o.label} — that's right ✅` : `${o.label} — c'est bien ça ✅`,
     })),
-    ...TYPE_OPTIONS.filter((o) => o.value !== detected).map((o) => ({
+    ...OPTS.filter((o) => o.value !== detected).map((o) => ({
       ...o,
-      label: `Plutôt ${o.label.toLowerCase()}`,
+      label: en ? `More like ${o.label.toLowerCase()}` : `Plutôt ${o.label.toLowerCase()}`,
     })),
   ];
   return {
     id: "type",
-    kicker: "L'IA a analysé ta photo",
-    question: `Notre IA a détecté des cheveux ${detectedLabel}. On a bon ?`,
+    kicker: en ? "Our AI analyzed your photo" : "L'IA a analysé ta photo",
+    question: en
+      ? `Our AI detected ${detectedLabel} hair. Did we get it right?`
+      : `Notre IA a détecté des cheveux ${detectedLabel}. On a bon ?`,
     options,
   };
 }
 
-export const POST_QUESTIONS: QuizQuestion[] = [
-  {
-    id: "frizz",
-    kicker: "On affine ton diagnostic",
-    question: "Niveau de frisottis au quotidien ?",
-    options: [
-      { value: "aucun", label: "Aucun" },
-      { value: "legers", label: "Légers" },
-      { value: "moderes", label: "Modérés" },
-      { value: "importants", label: "Importants" },
-    ],
-  },
-  {
-    id: "oiliness",
-    kicker: "Cuir chevelu",
-    question: "Tes racines, c'est plutôt…",
-    options: [
-      { value: "gras", label: "Vite grasses", emoji: "💧" },
-      { value: "normal", label: "Normales" },
-      { value: "sec", label: "Plutôt sèches", emoji: "🍂" },
-      { value: "mixte", label: "Racines grasses, pointes sèches" },
-    ],
-  },
-  {
-    id: "washFreq",
-    kicker: "Tes habitudes",
-    question: "Tu te laves les cheveux…",
-    options: [
-      { value: "daily", label: "Tous les jours" },
-      { value: "2-3j", label: "Tous les 2-3 jours" },
-      { value: "weekly", label: "1 à 2 fois par semaine" },
-      { value: "rare", label: "Moins souvent" },
-    ],
-  },
-  {
-    id: "products",
-    kicker: "Tes produits",
-    question: "Aujourd'hui, tu utilises…",
-    options: [
-      { value: "none", label: "Rien de particulier" },
-      { value: "shampoo", label: "Juste un shampoing" },
-      { value: "shampoo-cond", label: "Shampoing + après-shampoing" },
-      { value: "routine", label: "Une vraie routine" },
-    ],
-  },
-  {
-    id: "time",
-    kicker: "Ta future routine",
-    question: "Combien de temps par jour pour tes cheveux ?",
-    options: [
-      { value: "lt2", label: "Moins de 2 min", emoji: "⚡" },
-      { value: "2-5", label: "2 à 5 min" },
-      { value: "5-10", label: "5 à 10 min" },
-      { value: "gt10", label: "Plus de 10 min" },
-    ],
-  },
-];
+const POST_QUESTIONS_I18N: Record<Lang, QuizQuestion[]> = {
+  fr: [
+    {
+      id: "frizz",
+      kicker: "On affine ton diagnostic",
+      question: "Niveau de frisottis au quotidien ?",
+      options: [
+        { value: "aucun", label: "Aucun" },
+        { value: "legers", label: "Légers" },
+        { value: "moderes", label: "Modérés" },
+        { value: "importants", label: "Importants" },
+      ],
+    },
+    {
+      id: "oiliness",
+      kicker: "Cuir chevelu",
+      question: "Tes racines, c'est plutôt…",
+      options: [
+        { value: "gras", label: "Vite grasses", emoji: "💧" },
+        { value: "normal", label: "Normales" },
+        { value: "sec", label: "Plutôt sèches", emoji: "🍂" },
+        { value: "mixte", label: "Racines grasses, pointes sèches" },
+      ],
+    },
+    {
+      id: "washFreq",
+      kicker: "Tes habitudes",
+      question: "Tu te laves les cheveux…",
+      options: [
+        { value: "daily", label: "Tous les jours" },
+        { value: "2-3j", label: "Tous les 2-3 jours" },
+        { value: "weekly", label: "1 à 2 fois par semaine" },
+        { value: "rare", label: "Moins souvent" },
+      ],
+    },
+    {
+      id: "products",
+      kicker: "Tes produits",
+      question: "Aujourd'hui, tu utilises…",
+      options: [
+        { value: "none", label: "Rien de particulier" },
+        { value: "shampoo", label: "Juste un shampoing" },
+        { value: "shampoo-cond", label: "Shampoing + après-shampoing" },
+        { value: "routine", label: "Une vraie routine" },
+      ],
+    },
+    {
+      id: "time",
+      kicker: "Ta future routine",
+      question: "Combien de temps par jour pour tes cheveux ?",
+      options: [
+        { value: "lt2", label: "Moins de 2 min", emoji: "⚡" },
+        { value: "2-5", label: "2 à 5 min" },
+        { value: "5-10", label: "5 à 10 min" },
+        { value: "gt10", label: "Plus de 10 min" },
+      ],
+    },
+  ],
+  en: [
+    {
+      id: "frizz",
+      kicker: "Refining your diagnosis",
+      question: "How much frizz day to day?",
+      options: [
+        { value: "aucun", label: "None" },
+        { value: "legers", label: "A little" },
+        { value: "moderes", label: "Moderate" },
+        { value: "importants", label: "A lot" },
+      ],
+    },
+    {
+      id: "oiliness",
+      kicker: "Scalp",
+      question: "Your roots are mostly…",
+      options: [
+        { value: "gras", label: "Quickly oily", emoji: "💧" },
+        { value: "normal", label: "Normal" },
+        { value: "sec", label: "Rather dry", emoji: "🍂" },
+        { value: "mixte", label: "Oily roots, dry ends" },
+      ],
+    },
+    {
+      id: "washFreq",
+      kicker: "Your habits",
+      question: "You wash your hair…",
+      options: [
+        { value: "daily", label: "Every day" },
+        { value: "2-3j", label: "Every 2-3 days" },
+        { value: "weekly", label: "1-2 times a week" },
+        { value: "rare", label: "Less often" },
+      ],
+    },
+    {
+      id: "products",
+      kicker: "Your products",
+      question: "Right now, you use…",
+      options: [
+        { value: "none", label: "Nothing in particular" },
+        { value: "shampoo", label: "Just shampoo" },
+        { value: "shampoo-cond", label: "Shampoo + conditioner" },
+        { value: "routine", label: "A real routine" },
+      ],
+    },
+    {
+      id: "time",
+      kicker: "Your future routine",
+      question: "How much time per day for your hair?",
+      options: [
+        { value: "lt2", label: "Under 2 min", emoji: "⚡" },
+        { value: "2-5", label: "2 to 5 min" },
+        { value: "5-10", label: "5 to 10 min" },
+        { value: "gt10", label: "Over 10 min" },
+      ],
+    },
+  ],
+};
+
+export function getPostQuestions(lang: Lang): QuizQuestion[] {
+  return POST_QUESTIONS_I18N[lang];
+}
