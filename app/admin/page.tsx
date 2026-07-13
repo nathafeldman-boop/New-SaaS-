@@ -562,9 +562,16 @@ function AffiliatesAdmin({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="font-display text-xl text-ink">{a.pseudo}</h3>
-              <p className="mt-0.5 text-xs text-cocoa-500">
-                Code d&apos;accès : <span className="font-mono font-semibold text-ink">{a.access_code}</span>
-                {" · "}lien : <span className="font-mono">{siteConfig.url.replace("https://", "")}/?ref={a.pseudo}</span>
+              <div className="mt-2 inline-flex items-center gap-2.5 rounded-xl bg-ink px-3.5 py-2 text-cream">
+                <span className="text-[11px] uppercase tracking-wide text-cream/60">
+                  Code d&apos;accès
+                </span>
+                <span className="font-mono text-lg font-bold tracking-[0.2em]">
+                  {a.access_code}
+                </span>
+              </div>
+              <p className="mt-1.5 text-xs text-cocoa-500">
+                Lien : <span className="font-mono">{siteConfig.url.replace("https://", "")}/?ref={a.pseudo}</span>
               </p>
             </div>
             <CopyButton
