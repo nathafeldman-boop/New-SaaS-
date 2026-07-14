@@ -13,6 +13,7 @@ import type {
   Routine,
 } from "./funnel-types";
 import { HAIR_KNOWLEDGE } from "./hair-knowledge";
+import { fallbackPattern, type PatternDay } from "./routine-pattern";
 
 const API_URL = "https://api.mistral.ai/v1/chat/completions";
 
@@ -321,16 +322,6 @@ export async function recommendCuts(
 // Pour rester rapide et fiable (pas de timeout serverless), on demande à
 // Mistral un PLAN COMPACT — un cycle de 7 jours réutilisable + des thèmes
 // hebdomadaires — puis on le déplie en 30 jours côté serveur.
-type PatternDay = {
-  phase: string;
-  title: string;
-  focus: string;
-  steps: string[];
-  why?: string;
-  tip?: string;
-  duration?: string;
-};
-
 type RoutinePlan = {
   title: string;
   overview: string;
@@ -338,16 +329,6 @@ type RoutinePlan = {
   weeks: string[]; // thème de chaque semaine
   pattern: PatternDay[]; // 7 jours
 };
-
-const fallbackPattern: PatternDay[] = [
-  { phase: "Nettoyage", title: "Lavage doux", focus: "Assainir sans agresser", duration: "8 min", why: "Un cuir chevelu propre et apaisé, c'est la base d'une fibre qui repousse plus saine.", tip: "Masse le cuir chevelu 30 s du bout des doigts pour activer la microcirculation.", steps: ["Shampoing sans sulfates", "Masser le cuir chevelu 30 s", "Eau tiède puis rinçage frais", "Sécher en tamponnant (pas frotter)"] },
-  { phase: "Hydratation", title: "Masque nourrissant", focus: "Réparer les longueurs", duration: "15 min", why: "Les longueurs déshydratées cassent : on reconstruit la réserve d'eau et de lipides.", tip: "Pose le masque sur cheveux essorés, jamais trempés, pour qu'il pénètre vraiment.", steps: ["Masque sur longueurs et pointes", "Démêler au peigne large", "Pose 10-15 min", "Rincer à l'eau fraîche"] },
-  { phase: "Repos", title: "Jour léger", focus: "Laisser respirer le cuir chevelu", duration: "3 min", why: "Le cheveu se renforce aussi quand on le laisse tranquille : pas de surcharge.", tip: "Zéro chaleur aujourd'hui : laisse sécher à l'air libre.", steps: ["Pas de chaleur ni de produit lourd", "Brossage doux tête en bas", "Photo du jour"] },
-  { phase: "Soin", title: "Huile sur pointes", focus: "Sceller l'hydratation", duration: "4 min", why: "L'huile scelle l'hydratation de la veille et protège les pointes du dessèchement.", tip: "1 à 2 gouttes max, chauffées entre les paumes : trop d'huile alourdit.", steps: ["1-2 gouttes d'huile végétale", "Chauffer entre les mains", "Appliquer pointes et mi-longueurs", "Sans rincer"] },
-  { phase: "Coiffage", title: "Définition", focus: "Structurer le mouvement", duration: "6 min", why: "Mettre en valeur ta coupe entretient la motivation et évite la chaleur agressive.", tip: "Coiffe sur cheveux légèrement humides pour une tenue souple et naturelle.", steps: ["Produit coiffant léger", "Répartir mèche par mèche", "Coiffer aux doigts", "Fixer sans figer"] },
-  { phase: "Hydratation", title: "Brume hydratante", focus: "Entretenir l'hydratation", duration: "3 min", why: "Une hydratation d'entretien en milieu de semaine évite l'effet paille des longueurs.", tip: "Vaporise à 20 cm et froisse les longueurs pour réveiller le mouvement.", steps: ["Brume hydratante sur longueurs", "Froisser avec les mains", "Laisser sécher à l'air"] },
-  { phase: "Repos", title: "Récupération", focus: "Préparer la semaine suivante", duration: "2 min", why: "Une bonne nuit limite la casse par friction : on prépare la fibre pour repartir.", tip: "Dors sur une taie en satin ou attache lâche en chouchou doux.", steps: ["Taie d'oreiller en satin", "Cheveux attachés sans serrer", "Photo du jour"] },
-];
 
 export async function generateRoutine(
   analysis: HairAnalysis,
@@ -367,10 +348,17 @@ export async function generateRoutine(
     '"weeks": string[4..5] (thème PROGRESSIF de chaque semaine, qui montre une ' +
     "évolution : réparation → renforcement → croissance → entretien), " +
     '"pattern": [{"phase": string, "title": string, "focus": string, ' +
-    '"duration": string (ex "8 min"), "why": string (1 phrase : pourquoi ce soin ' +
-    'aujourd\'hui, pédagogique et motivant), "tip": string (1 astuce concrète de pro), ' +
-    '"steps": string[3..5] (étapes précises et actionnables)}] (EXACTEMENT 7 jours, ' +
-    "variés : lavage, hydratation, repos, soin, coiffage). Sois concret, expert et " +
+    '"duration": string (ex "8 min"), "why": string (1-2 phrases : le MÉCANISME ' +
+    'derrière ce soin, pédagogique et motivant — pas juste "c\'est important"), ' +
+    '"tip": string (1 astuce concrète de pro, un détail que peu de gens connaissent), ' +
+    '"steps": string[4..6] (étapes précises, actionnables, dans l\'ordre d\'exécution : ' +
+    "préparation → application → temps de pose si besoin → rinçage/finition), " +
+    '"mistakes": string[2..3] (erreurs fréquentes et concrètes à éviter CE JOUR-LÀ, ' +
+    'avec la conséquence — ex "X → Y"), ' +
+    '"expected": string (1 phrase concrète : ce que la personne doit ressentir ou observer ' +
+    "après ce soin, pour qu'elle sache que ça marche)}] (EXACTEMENT 7 jours, " +
+    "variés : lavage, hydratation, repos, soin, coiffage). CHAQUE JOUR DOIT ÊTRE DENSE : " +
+    "beaucoup de contenu concret, pas de généralités. Sois expert, précis et " +
     "encourageant. Adapte tout à l'analyse et à la coupe choisie.\n\n" +
     "PERSONNALISE À FOND avec le champ 'quiz' de l'analyse (s'il existe) — la routine " +
     "doit sembler faite SUR-MESURE pour cette personne. Si 'quiz.type' contredit " +
@@ -394,7 +382,8 @@ export async function generateRoutine(
         JSON.stringify(analysis) +
         "\nCoupe choisie : " +
         chosenCut +
-        "\nDonne le cycle de 7 jours (riche : why, tip, duration, 3-5 étapes) et les thèmes hebdomadaires progressifs.",
+        "\nDonne le cycle de 7 jours — RICHE : why, tip, duration, 4-6 étapes, 2-3 mistakes, " +
+        "expected pour CHAQUE jour — et les thèmes hebdomadaires progressifs.",
     },
   ];
 
@@ -415,6 +404,8 @@ export async function generateRoutine(
       why: p.why || fb.why,
       tip: p.tip || fb.tip,
       steps: p.steps?.length ? p.steps : fb.steps,
+      mistakes: p.mistakes?.length ? p.mistakes : fb.mistakes,
+      expected: p.expected || fb.expected,
     };
   });
   const weeks = plan.weeks?.length ? plan.weeks : [];
@@ -432,6 +423,8 @@ export async function generateRoutine(
       why: base.why,
       tip: base.tip,
       duration: base.duration,
+      mistakes: base.mistakes,
+      expected: base.expected,
     };
   });
 

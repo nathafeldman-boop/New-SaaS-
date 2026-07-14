@@ -2048,6 +2048,9 @@ export function RoutineView({ data }: StepProps) {
                 >
                   <div className="px-5 pb-5 pl-[4.75rem]">
                     <p className="text-sm text-cocoa-700">{d.focus}</p>
+                    {d.why && (
+                      <p className="mt-2 text-sm leading-relaxed text-cocoa-600">{d.why}</p>
+                    )}
                     <ul className="mt-3 space-y-2">
                       {d.steps.map((s) => (
                         <li key={s} className="flex items-center gap-2 text-sm text-cocoa-800">
@@ -2056,6 +2059,27 @@ export function RoutineView({ data }: StepProps) {
                         </li>
                       ))}
                     </ul>
+                    {d.mistakes && d.mistakes.length > 0 && (
+                      <div className="mt-3 rounded-xl border border-clay-300/70 bg-clay-100/40 px-3.5 py-2.5">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-cocoa-700">
+                          ⚠️ À éviter
+                        </p>
+                        <ul className="mt-1.5 space-y-1">
+                          {d.mistakes.map((m) => (
+                            <li key={m} className="flex items-start gap-2 text-xs leading-relaxed text-cocoa-700">
+                              <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-clay-500" />
+                              {m}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {d.expected && (
+                      <p className="mt-3 text-xs leading-relaxed text-cocoa-600">
+                        <span className="font-medium">✨ À quoi t&apos;attendre : </span>
+                        {d.expected}
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               )}

@@ -10,6 +10,7 @@ import type {
   Routine,
   RoutineDay,
 } from "./funnel-types";
+import { fallbackPattern } from "./routine-pattern";
 
 export const demoAnalysis: HairAnalysis = {
   summary:
@@ -134,19 +135,10 @@ export const demoProductAnalysis: ProductAnalysis = {
 };
 
 function demoDay(day: number): RoutineDay {
-  const cycle: Omit<RoutineDay, "day">[] = [
-    { phase: "Nettoyage", title: "Lavage doux", focus: "Assainir sans agresser", duration: "8 min", why: "Un cuir chevelu propre et apaisé, c'est la base d'une fibre qui repousse plus saine.", tip: "Masse le cuir chevelu 30 s du bout des doigts pour activer la microcirculation.", steps: ["Shampoing sans sulfates", "Masser le cuir chevelu 30 s", "Eau tiède puis rinçage frais", "Sécher en tamponnant (pas frotter)"] },
-    { phase: "Hydratation", title: "Masque nourrissant", focus: "Réparer les pointes", duration: "15 min", why: "Les longueurs déshydratées cassent : on reconstruit la réserve d'eau et de lipides.", tip: "Pose le masque sur cheveux essorés, jamais trempés, pour qu'il pénètre vraiment.", steps: ["Masque sur longueurs et pointes", "Démêler au peigne large", "Pose 10-15 min", "Rincer à l'eau fraîche"] },
-    { phase: "Repos", title: "Jour léger", focus: "Laisser respirer le cuir chevelu", duration: "3 min", why: "Le cheveu se renforce aussi quand on le laisse tranquille : pas de surcharge.", tip: "Zéro chaleur aujourd'hui : laisse sécher à l'air libre.", steps: ["Pas de chaleur ni de produit lourd", "Brossage doux tête en bas", "Photo du jour"] },
-    { phase: "Soin", title: "Huile sur pointes", focus: "Sceller l'hydratation", duration: "4 min", why: "L'huile scelle l'hydratation de la veille et protège les pointes du dessèchement.", tip: "1 à 2 gouttes max, chauffées entre les paumes : trop d'huile alourdit.", steps: ["1-2 gouttes d'huile végétale", "Chauffer entre les mains", "Appliquer pointes et mi-longueurs", "Sans rincer"] },
-    { phase: "Coiffage", title: "Définition", focus: "Structurer le mouvement", duration: "6 min", why: "Mettre en valeur ta coupe entretient la motivation et évite la chaleur agressive.", tip: "Coiffe sur cheveux légèrement humides pour une tenue souple et naturelle.", steps: ["Produit coiffant léger", "Répartir mèche par mèche", "Coiffer aux doigts", "Fixer sans figer"] },
-    { phase: "Hydratation", title: "Brume hydratante", focus: "Entretenir l'hydratation", duration: "3 min", why: "Une hydratation d'entretien en milieu de semaine évite l'effet paille des longueurs.", tip: "Vaporise à 20 cm et froisse les longueurs pour réveiller le mouvement.", steps: ["Brume hydratante sur longueurs", "Froisser avec les mains", "Laisser sécher à l'air"] },
-    { phase: "Repos", title: "Récupération", focus: "Préparer la semaine suivante", duration: "2 min", why: "Une bonne nuit limite la casse par friction : on prépare la fibre pour repartir.", tip: "Dors sur une taie en satin ou attache lâche en chouchou doux.", steps: ["Taie d'oreiller en satin", "Cheveux attachés sans serrer", "Photo du jour"] },
-  ];
   const weeks = ["Semaine 1 · Réparation", "Semaine 2 · Renforcement", "Semaine 3 · Croissance", "Semaine 4 · Entretien", "Semaine 5 · Entretien"];
   const i = day - 1;
   const week = Math.floor(i / 7);
-  const c = cycle[(i + week) % cycle.length];
+  const c = fallbackPattern[(i + week) % fallbackPattern.length];
   return { day, ...c, focus: `${weeks[Math.min(week, weeks.length - 1)]} · ${c.focus}` };
 }
 

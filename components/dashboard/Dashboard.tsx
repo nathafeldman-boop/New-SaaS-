@@ -363,6 +363,30 @@ export function Dashboard(props: Props) {
                             </span>
                           </p>
                         )}
+                        {routineDay.mistakes && routineDay.mistakes.length > 0 && (
+                          <div className="mt-4 rounded-2xl border border-clay-300/70 bg-clay-100/40 px-4 py-3">
+                            <p className="flex items-center gap-1.5 text-[0.8rem] font-semibold uppercase tracking-wide text-cocoa-700">
+                              ⚠️ Erreurs à éviter aujourd&apos;hui
+                            </p>
+                            <ul className="mt-2 space-y-1.5">
+                              {routineDay.mistakes.map((m, i) => (
+                                <li key={i} className="flex items-start gap-2 text-[0.88rem] leading-relaxed text-cocoa-800">
+                                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-clay-500" />
+                                  <span>{m}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {routineDay.expected && (
+                          <p className="mt-4 flex items-start gap-2 rounded-2xl bg-cocoa-700/[0.06] px-4 py-3 text-[0.9rem] leading-relaxed text-cocoa-800">
+                            <span className="shrink-0">✨</span>
+                            <span>
+                              <span className="font-medium">À quoi t&apos;attendre : </span>
+                              {routineDay.expected}
+                            </span>
+                          </p>
+                        )}
                         <button
                           onClick={() => setTab("products")}
                           className="mt-5 flex w-full items-center justify-between rounded-2xl bg-cocoa-700 px-4 py-3 text-left text-sm font-medium text-cream transition hover:opacity-90"
@@ -785,6 +809,9 @@ function CooldownSection({
             Jour {day} · {routineDay.title}
           </h3>
           <p className="mt-1.5 text-[0.92rem] text-cocoa-600">{routineDay.focus}</p>
+          {routineDay.why && (
+            <p className="mt-3 text-[0.88rem] leading-relaxed text-cocoa-700">{routineDay.why}</p>
+          )}
           <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-cocoa-500">
             Ce qu'il te faudra
           </p>

@@ -93,6 +93,10 @@ export type RoutineDay = {
   why?: string;
   tip?: string;
   duration?: string;
+  /** Erreurs fréquentes à éviter pour cette séance (1 à 3). */
+  mistakes?: string[];
+  /** À quoi s'attendre / signe de progrès à surveiller. */
+  expected?: string;
 };
 
 export type Routine = {
