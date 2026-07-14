@@ -42,6 +42,7 @@ export const siteConfig = {
     { label: "Comment ça marche", href: "#methode" },
     { label: "L'app", href: "#app" },
     { label: "Coupes", href: "#coupes" },
+    { label: "Guides", href: "/guides" },
     { label: "Tarif", href: "#tarif" },
   ],
   cta: {
