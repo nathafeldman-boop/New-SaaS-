@@ -28,10 +28,10 @@ export function Hero() {
             transition={{ duration: 0.7, ease }}
             className="display-1 text-balance text-[2.8rem] text-ink sm:text-6xl lg:text-[4.2rem]"
           >
-            {en ? "Get back " : "Retrouve des cheveux "}
+            {en ? "Get back thick, " : "Retrouve des cheveux "}
             <span className="relative whitespace-nowrap">
               <span className="italic text-cocoa-700">
-                {en ? "thick, healthy hair" : "denses et sains"}
+                {en ? "healthy hair" : "denses et sains"}
               </span>
               <svg
                 className="absolute -bottom-2 left-0 w-full text-clay-400"
