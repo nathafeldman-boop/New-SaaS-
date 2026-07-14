@@ -16,6 +16,12 @@ import {
   createAffiliate,
   listAffiliatesWithStats,
 } from "@/lib/affiliates";
+import {
+  createAccessCode,
+  listAccessCodes,
+  setCodeActive,
+  type AccessCode,
+} from "@/lib/access-codes";
 import { siteConfig } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -43,13 +49,14 @@ const euro = (n: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
 const pct = (n: number) => `${(n * 100).toFixed(1)} %`;
 
-type Tab = "overview" | "funnel" | "revenue" | "signups" | "affiliates";
+type Tab = "overview" | "funnel" | "revenue" | "signups" | "affiliates" | "codes";
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Vue d'ensemble" },
   { id: "funnel", label: "Funnel" },
   { id: "revenue", label: "Revenus" },
   { id: "signups", label: "Inscrits" },
   { id: "affiliates", label: "Affiliés" },
+  { id: "codes", label: "Codes" },
 ];
 
 /** Garde-fou des actions admin : vérifie le cookie avant d'agir. */
@@ -75,10 +82,32 @@ async function addPayoutAction(formData: FormData) {
   redirect("/admin?tab=affiliates");
 }
 
+async function createCodeAction(formData: FormData) {
+  "use server";
+  await assertAdmin();
+  const rawMax = String(formData.get("max_uses") ?? "").trim();
+  const maxUses = rawMax === "" ? null : Math.max(1, Number(rawMax) || 1);
+  const res = await createAccessCode({
+    code: String(formData.get("code") ?? "").trim() || undefined,
+    label: String(formData.get("label") ?? "").trim() || undefined,
+    maxUses,
+  });
+  redirect(res.ok ? "/admin?tab=codes" : "/admin?tab=codes&cerror=1");
+}
+
+async function toggleCodeAction(formData: FormData) {
+  "use server";
+  await assertAdmin();
+  const code = String(formData.get("code") ?? "");
+  const active = String(formData.get("active") ?? "") === "1";
+  if (code) await setCodeActive(code, active);
+  redirect("/admin?tab=codes");
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: { error?: string; tab?: string; aerror?: string };
+  searchParams: { error?: string; tab?: string; aerror?: string; cerror?: string };
 }) {
   const cookieStore = await cookies();
   const authed = cookieStore.get("cpx_admin")?.value === ADMIN_CODE;
@@ -96,6 +125,7 @@ export default async function AdminPage({
   const signups = tab === "signups" ? await getSignups() : [];
   const leads = tab === "signups" ? await getLeads() : [];
   const affiliates = tab === "affiliates" ? await listAffiliatesWithStats() : [];
+  const codes = tab === "codes" ? await listAccessCodes() : [];
 
   return (
     <Shell>
@@ -228,6 +258,10 @@ export default async function AdminPage({
           rows={affiliates}
           error={searchParams?.aerror === "1"}
         />
+      )}
+
+      {tab === "codes" && (
+        <CodesAdmin codes={codes} error={searchParams?.cerror === "1"} />
       )}
     </Shell>
   );
@@ -557,7 +591,7 @@ function AffiliatesAdmin({
         )}
       </section>
 
-      {rows.map(({ affiliate: a, stats: s }) => (
+      {rows.map(({ affiliate: a, stats: s, freeCode }) => (
         <section key={a.id} className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -572,10 +606,12 @@ function AffiliatesAdmin({
               </div>
               <p className="mt-1.5 text-xs text-cocoa-500">
                 Lien : <span className="font-mono">{siteConfig.url.replace("https://", "")}/?ref={a.pseudo}</span>
+                {" · "}Code produit gratuit :{" "}
+                <span className="font-mono font-semibold text-ink">{freeCode}</span>
               </p>
             </div>
             <CopyButton
-              text={`Ton espace affilié Capilatyx : ${siteConfig.url}/affilie\nPseudo : ${a.pseudo}\nCode d'accès : ${a.access_code}\nTon lien à partager : ${siteConfig.url}/?ref=${a.pseudo}`}
+              text={`Ton espace affilié Capilatyx : ${siteConfig.url}/affilie\nPseudo : ${a.pseudo}\nCode d'accès (espace affilié) : ${a.access_code}\nTon lien à partager : ${siteConfig.url}/?ref=${a.pseudo}\nTon code produit gratuit (30 j offerts, à entrer à l'étape paiement du scan) : ${freeCode}`}
               label="Copier ses accès"
             />
           </div>
@@ -627,6 +663,100 @@ function MiniStat({ label, value, strong }: { label: string; value: string; stro
         {label}
       </p>
     </div>
+  );
+}
+
+function CodesAdmin({ codes, error }: { codes: AccessCode[]; error: boolean }) {
+  return (
+    <>
+      <section className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
+        <h2 className="font-display text-lg text-ink">Créer un code d&apos;accès</h2>
+        <p className="mt-1 text-sm text-cocoa-600">
+          Un code actif = 30 jours d&apos;accès offerts (validé à l&apos;étape paiement du
+          funnel, « J&apos;ai un code d&apos;accès »). Laisse le champ code vide pour en
+          générer un automatiquement.
+        </p>
+        <form action={createCodeAction} className="mt-4 flex flex-wrap gap-2">
+          <input
+            name="code"
+            placeholder="Code (optionnel, ex : PROMO-YT)"
+            className="w-48 rounded-xl border border-clay-200 bg-cream px-4 py-2.5 text-sm uppercase text-ink outline-none focus:border-cocoa-700"
+          />
+          <input
+            name="label"
+            placeholder="Note (ex : giveaway TikTok)"
+            className="flex-1 rounded-xl border border-clay-200 bg-cream px-4 py-2.5 text-sm text-ink outline-none focus:border-cocoa-700"
+          />
+          <input
+            name="max_uses"
+            inputMode="numeric"
+            placeholder="Utilisations max (vide = illimité)"
+            className="w-56 rounded-xl border border-clay-200 bg-cream px-4 py-2.5 text-sm text-ink outline-none focus:border-cocoa-700"
+          />
+          <button className="rounded-xl bg-ink px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90">
+            Créer le code
+          </button>
+        </form>
+        {error && (
+          <p className="mt-2 text-sm text-red-600">
+            Création impossible — ce code existe déjà ou est invalide.
+          </p>
+        )}
+      </section>
+
+      <section className="mt-4 rounded-3xl bg-paper/80 p-5 ring-1 ring-clay-200/60">
+        <h2 className="font-display text-lg text-ink">Tous les codes ({codes.length})</h2>
+        {codes.length === 0 ? (
+          <p className="mt-4 rounded-2xl bg-sand/40 px-4 py-4 text-center text-sm text-cocoa-500">
+            Aucun code pour l&apos;instant.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-2xl ring-1 ring-clay-200/60">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-sand/60 text-cocoa-600">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">Code</th>
+                  <th className="px-4 py-2.5 font-medium">Note</th>
+                  <th className="px-4 py-2.5 font-medium">Utilisé</th>
+                  <th className="px-4 py-2.5 font-medium">Statut</th>
+                  <th className="px-4 py-2.5 font-medium" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-clay-200/70">
+                {codes.map((c) => (
+                  <tr key={c.code} className="text-ink">
+                    <td className="px-4 py-2.5 font-mono font-semibold">{c.code}</td>
+                    <td className="px-4 py-2.5 text-cocoa-700">{c.label || "—"}</td>
+                    <td className="px-4 py-2.5 text-cocoa-700">
+                      {c.used_count}
+                      {c.max_uses != null ? ` / ${c.max_uses}` : " / ∞"}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs ${
+                          c.active ? "bg-cocoa-700 text-cream" : "bg-sand text-cocoa-600"
+                        }`}
+                      >
+                        {c.active ? "Actif" : "Désactivé"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <form action={toggleCodeAction}>
+                        <input type="hidden" name="code" value={c.code} />
+                        <input type="hidden" name="active" value={c.active ? "0" : "1"} />
+                        <button className="text-xs font-medium text-cocoa-600 underline-offset-4 hover:text-ink hover:underline">
+                          {c.active ? "Désactiver" : "Réactiver"}
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
   );
 }
 

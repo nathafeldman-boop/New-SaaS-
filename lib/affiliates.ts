@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { MONTHLY_PRICE } from "@/lib/admin-metrics";
+import { getOrCreateAffiliateCode } from "@/lib/access-codes";
 
 // ──────────────────────────────────────────────────────────────────────────
 //  Programme d'affiliation — helpers serveur uniquement.
@@ -164,9 +165,9 @@ export async function addPayout(
   });
 }
 
-/** Tous les affiliés avec leurs stats (pour le dashboard admin). */
+/** Tous les affiliés avec leurs stats + code produit gratuit (dashboard admin). */
 export async function listAffiliatesWithStats(): Promise<
-  { affiliate: Affiliate; stats: AffiliateStats }[]
+  { affiliate: Affiliate; stats: AffiliateStats; freeCode: string }[]
 > {
   const admin = createAdminClient();
   const { data } = await admin
@@ -175,9 +176,12 @@ export async function listAffiliatesWithStats(): Promise<
     .order("created_at", { ascending: true });
   const affiliates = (data ?? []) as Affiliate[];
   return Promise.all(
-    affiliates.map(async (affiliate) => ({
-      affiliate,
-      stats: await getAffiliateStats(affiliate),
-    })),
+    affiliates.map(async (affiliate) => {
+      const [stats, freeCode] = await Promise.all([
+        getAffiliateStats(affiliate),
+        getOrCreateAffiliateCode(affiliate.pseudo),
+      ]);
+      return { affiliate, stats, freeCode };
+    }),
   );
 }

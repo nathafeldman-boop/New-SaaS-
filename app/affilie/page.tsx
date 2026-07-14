@@ -6,6 +6,7 @@ import {
   verifyAffiliate,
   type AffiliatePayout,
 } from "@/lib/affiliates";
+import { getOrCreateAffiliateCode } from "@/lib/access-codes";
 import { CopyButton } from "@/components/admin/CopyButton";
 
 export const dynamic = "force-dynamic";
@@ -89,6 +90,7 @@ export default async function AffiliePage({
             pseudo={affiliate.pseudo}
             rate={Number(affiliate.rate)}
             statsPromise={getAffiliateStats(affiliate)}
+            freeCodePromise={getOrCreateAffiliateCode(affiliate.pseudo)}
           />
         )}
       </div>
@@ -133,12 +135,14 @@ async function AffiliateDashboard({
   pseudo,
   rate,
   statsPromise,
+  freeCodePromise,
 }: {
   pseudo: string;
   rate: number;
   statsPromise: ReturnType<typeof getAffiliateStats>;
+  freeCodePromise: Promise<string>;
 }) {
-  const stats = await statsPromise;
+  const [stats, freeCode] = await Promise.all([statsPromise, freeCodePromise]);
   const link = `${siteConfig.url}/?ref=${pseudo}`;
 
   return (
@@ -178,6 +182,29 @@ async function AffiliateDashboard({
         <DarkStat label="Clics" value={String(stats.clicks)} />
         <DarkStat label="Comptes amenés" value={String(stats.signups)} />
         <DarkStat label="Ventes" value={String(stats.sales)} />
+      </section>
+
+      {/* Accès gratuit au produit */}
+      <section className="rounded-3xl bg-cream/5 p-5 ring-1 ring-cream/10">
+        <p className="text-[11px] uppercase tracking-[0.18em] text-clay-400">
+          Ton accès gratuit à {siteConfig.name}
+        </p>
+        <p className="mt-2 font-mono text-2xl font-bold tracking-[0.15em] text-cream">
+          {freeCode}
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-clay-300/80">
+          Pour tester le produit que tu promeus : fais le scan sur{" "}
+          {siteConfig.url.replace("https://", "")}/scan, et à l&apos;étape paiement
+          clique « J&apos;ai un code d&apos;accès » puis entre ce code — 30 jours
+          offerts. Valable une fois, pour toi.
+        </p>
+        <div className="mt-3">
+          <CopyButton
+            text={freeCode}
+            label="Copier le code"
+            className="rounded-xl bg-cream/10 px-4 py-2 text-sm font-semibold text-cream ring-1 ring-cream/15 transition hover:bg-cream/20"
+          />
+        </div>
       </section>
 
       {/* Historique des versements */}
