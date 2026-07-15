@@ -239,22 +239,35 @@ export async function analyzeHair(
         "Walker) : ne le classe JAMAIS dans un autre type, même si la photo prête à confusion " +
         "(lumière, humidité, coiffage). Affine seulement l'état, la santé et les coupes. "
       : "") +
-    "Sois bienveillant, précis et concret.\n\n" +
-    "RÈGLES DU DIAGNOSTIC — il est lu JUSTE avant l'offre payante, il doit donner " +
-    "envie d'agir SANS jamais mentir, exagérer ni évoquer une maladie :\n" +
-    "1) Personnalise à fond : parle à CETTE personne en t'appuyant sur son type, " +
+    "Sois direct, précis et concret — la bienveillance c'est la franchise, pas " +
+    "l'indulgence.\n\n" +
+    "RÈGLES DU DIAGNOSTIC — la priorité ABSOLUE est l'EXACTITUDE, avant la conversion " +
+    "ou le confort du lecteur. Ce diagnostic doit sonner comme celui d'un vrai " +
+    "trichologue senior qui a vu des centaines de cas, pas comme un texte qui cherche " +
+    "à faire plaisir. Un avis trop gentil n'aide personne et détruit la crédibilité " +
+    "dès que la personne compare avec ce qu'elle voit dans le miroir :\n" +
+    "1) ZÉRO complaisance : si l'état est mauvais, dis-le clairement, sans minimiser " +
+    "ni adoucir. N'utilise PAS de scores ou d'euphémismes optimistes non mérités — " +
+    "utilise toute l'étendue de la sévérité réellement visible, y compris le pire cas. " +
+    "Un problème réel n'est jamais « léger » par gentillesse.\n" +
+    "2) Personnalise à fond : parle à CETTE personne en t'appuyant sur son type, " +
     "l'état visible ET ses réponses au quiz (objectif, problème n°1, temps dispo, " +
     "niveau de confiance). Cite implicitement ce qui la concerne.\n" +
-    "2) Éduque : explique brièvement le POURQUOI (mécanisme) de chaque point faible " +
-    "→ ça crée la crédibilité et la confiance.\n" +
-    "3) Crée l'écart : montre le vrai potentiel atteignable et ce qui l'empêche " +
-    "AUJOURD'HUI (mauvaises habitudes, produits pris au hasard, entretien inadapté) " +
-    "pour donner envie de combler cet écart.\n" +
-    "4) Urgence honnête : rappelle que prévenir vaut mieux que réparer, surtout tôt " +
-    "(densité, casse), sans jamais faire peur.\n" +
-    "5) Cadre la solution : la clé n'est pas PLUS de produits, c'est LA BONNE MÉTHODE " +
+    "3) Précision clinique, pas de généralités : nomme le mécanisme exact avec le " +
+    "vocabulaire du référentiel ci-dessus (ex. miniaturisation, écaillage cuticulaire, " +
+    "sébum qui n'atteint pas les pointes) plutôt que des formules vagues type « pas " +
+    "top » ou « à améliorer ». C'est ce qui distingue un expert d'un texte générique.\n" +
+    "4) Crée l'écart honnêtement : montre le vrai potentiel ATTEIGNABLE (jamais gonflé) " +
+    "et ce qui empêche d'y arriver AUJOURD'HUI (mauvaises habitudes, produits pris au " +
+    "hasard, entretien inadapté).\n" +
+    "5) Urgence honnête, jamais dramatisée artificiellement : nomme la sévérité sans " +
+    "détour (« recul frontal marqué », « casse importante », pas « petit désagrément ») " +
+    "tout en restant strictement cosmétique/informatif — jamais de terme de maladie " +
+    "diagnostiquée, jamais de promesse médicale.\n" +
+    "6) Cadre la solution : la clé n'est pas PLUS de produits, c'est LA BONNE MÉTHODE " +
     "adaptée à son type, jour après jour — précisément ce qu'apporte un programme suivi.\n" +
-    "6) Ton expert, franc et encourageant ; jamais culpabilisant ni de promesse médicale.\n\n" +
+    "7) Ton d'expert senior : direct, factuel, jamais mielleux. Encourageant seulement " +
+    "quand les faits le permettent réellement — jamais de fausse note d'optimisme.\n\n" +
     "Schéma attendu : " +
     '{"summary": string (2 phrases PERCUTANTES et personnalisées : ce qui va + le potentiel à débloquer), ' +
     '"hairType": string, "condition": string, ' +
@@ -477,13 +490,22 @@ type ScorePair = { current?: number; potential?: number };
 export async function computeScores(analysis: HairAnalysis): Promise<HairScores> {
   const system =
     HAIR_KNOWLEDGE +
-    "\n\nTu es un trichologue et barbier-conseil. À partir d'une analyse capillaire, tu " +
-    "notes l'état du cheveu sur 6 axes, de 0 à 100, avec une valeur ACTUELLE et une " +
-    "valeur POTENTIELLE (atteignable après 30 jours de routine, toujours ≥ à l'actuelle, " +
-    "réaliste : +5 à +25). Réponds STRICTEMENT en JSON français, sans texte autour. Schéma : " +
+    "\n\nTu es un trichologue et barbier-conseil senior, réputé pour la rigueur de " +
+    "ses notes — jamais complaisant. À partir d'une analyse capillaire, tu notes " +
+    "l'état du cheveu sur 6 axes, de 0 à 100, avec une valeur ACTUELLE et une " +
+    "valeur POTENTIELLE. Réponds STRICTEMENT en JSON français, sans texte autour. Schéma : " +
     '{"scores": {"coupe": {"current": number, "potential": number}, ' +
     '"couverture": {...}, "hydratation": {...}, "sante_cheveu": {...}, ' +
     '"sante_cuir": {...}, "brillance": {...}}}. ' +
+    "RÈGLE GÉNÉRALE ANTI-COMPLAISANCE (s'applique à TOUS les axes, pas seulement " +
+    "'couverture') : n'arrondis JAMAIS une note vers le haut par gentillesse. Utilise " +
+    "toute l'étendue de l'échelle 0-100, y compris les notes basses (<30) quand " +
+    "l'analyse décrit un problème réel sur cet axe (ex. 'concerns' mentionne " +
+    "sécheresse marquée → hydratation basse ; casse importante → santé du cheveu " +
+    "basse ; cuir chevelu irrité/pelliculaire → cuir chevelu bas). Le POTENTIEL doit " +
+    "rester réaliste et atteignable en 30 jours de routine cosmétique (+5 à +25 pour " +
+    "la plupart des axes) — ne le gonfle pas non plus pour rendre l'écart plus " +
+    "spectaculaire qu'il ne l'est réellement.\n" +
     "L'axe 'coupe' évalue à quel point la coupe ACTUELLE (avant tout changement) met en " +
     "valeur cette personne, en te basant sur keepCurrentCut et keepReason de l'analyse : " +
     "note haute si keepCurrentCut est vrai ; note plus modeste et potentiel nettement plus " +
