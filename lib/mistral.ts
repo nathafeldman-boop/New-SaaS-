@@ -356,10 +356,28 @@ export async function generateRoutine(
     '"mistakes": string[2..3] (erreurs fréquentes et concrètes à éviter CE JOUR-LÀ, ' +
     'avec la conséquence — ex "X → Y"), ' +
     '"expected": string (1 phrase concrète : ce que la personne doit ressentir ou observer ' +
-    "après ce soin, pour qu'elle sache que ça marche)}] (EXACTEMENT 7 jours, " +
-    "variés : lavage, hydratation, repos, soin, coiffage). CHAQUE JOUR DOIT ÊTRE DENSE : " +
-    "beaucoup de contenu concret, pas de généralités. Sois expert, précis et " +
-    "encourageant. Adapte tout à l'analyse et à la coupe choisie.\n\n" +
+    "après ce soin, pour qu'elle sache que ça marche)}] (EXACTEMENT 7 jours). " +
+    "CHAQUE JOUR DOIT ÊTRE DENSE : beaucoup de contenu concret, pas de généralités. " +
+    "Sois expert, précis et encourageant. Adapte tout à l'analyse et à la coupe choisie.\n\n" +
+    "CHOIX DES 7 THÈMES DE JOUR — règle stricte, c'est le point qui fait le plus " +
+    "d'écarts perçus comme « pas personnalisés » : NE PARS PAS d'une liste figée de " +
+    "thèmes. Garde 1 jour lavage et 1 jour repos (indispensables pour tous), puis " +
+    "choisis les 5 AUTRES thèmes en fonction du problème n°1 déclaré (quiz.problem) et " +
+    "de la priorité (quiz.priority) — pas par défaut :\n" +
+    "- dryness/hydrate → masques et soins hydratants, oui.\n" +
+    "- loss (chute/perte de densité) → stimulation du cuir chevelu, massages, soins " +
+    "anti-chute, PAS de journée centrée sur l'hydratation des longueurs (sauf en soin " +
+    "secondaire mineur, jamais le focus principal du jour).\n" +
+    "- breakage (casse/fourches) → protection des longueurs, réduction des manipulations " +
+    "et de la chaleur, pointes.\n" +
+    "- volume (manque de volume) → allègement des racines, techniques anti-aplatissement, " +
+    "pas de soins lourds/nourrissants en excès.\n" +
+    "- dandruff (pellicules) → équilibre et apaisement du cuir chevelu, PAS de masque " +
+    "nourrissant classique sur cuir chevelu.\n" +
+    "N'utilise JAMAIS un thème qui contredit le problème n°1 déclaré (ex : proposer de " +
+    "l'hydratation comme axe principal à quelqu'un qui a coché « chute » ou « manque de " +
+    "volume » est une ERREUR à ne pas commettre). Si 'quiz.problem' est absent, reste " +
+    "généraliste et varié.\n\n" +
     "PERSONNALISE À FOND avec le champ 'quiz' de l'analyse (s'il existe) — la routine " +
     "doit sembler faite SUR-MESURE pour cette personne. Si 'quiz.type' contredit " +
     "'hairType', la réponse de l'utilisateur (quiz.type) fait foi :\n" +
