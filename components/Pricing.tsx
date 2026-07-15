@@ -36,14 +36,14 @@ export function Pricing() {
           </Reveal>
           <Reveal delay={0.05}>
             <h2 className="display-2 mt-5 text-balance text-4xl text-ink sm:text-5xl">
-              {en ? "One cycle. One clear price." : "Un cycle. Un prix clair."}
+              {en ? "One subscription. One clear price." : "Un abonnement. Un prix clair."}
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mt-5 text-lg text-cocoa-700">
               {en
-                ? "You pay for a 30-day cycle. Want to keep going? Start a new cycle whenever you like."
-                : "Tu paies pour un cycle de 30 jours. Envie de continuer ? Tu relances un nouveau cycle quand tu le souhaites."}
+                ? "10,90€ billed monthly to keep your program going — renews automatically, cancel anytime in one click from your account."
+                : "10,90 € prélevés chaque mois pour faire avancer ton programme — renouvellement automatique, résiliable à tout moment en 1 clic depuis ton espace."}
             </p>
           </Reveal>
         </div>
@@ -53,7 +53,7 @@ export function Pricing() {
             <LivingStrands delay={1.6} className="pointer-events-none absolute -right-16 -top-10 h-72 w-72 text-clay-300/50" />
             <div className="relative">
               <p className="font-display text-xl text-ink">
-                {en ? `${siteConfig.name} cycle` : `Cycle ${siteConfig.name}`}
+                {en ? `${siteConfig.name} subscription` : `Abonnement ${siteConfig.name}`}
               </p>
               <div className="mt-4 flex items-end gap-2">
                 <span className="font-display text-6xl font-light text-ink">
@@ -64,7 +64,9 @@ export function Pricing() {
                 </span>
               </div>
               <p className="mt-2 text-xs italic text-clay-600">
-                {en ? "No commitment — cancel anytime." : siteConfig.price.note}
+                {en
+                  ? "Auto-renews monthly — cancel anytime, no commitment."
+                  : "Renouvellement automatique chaque mois — résiliable à tout moment, sans engagement."}
               </p>
 
               <a href="/scan" className="btn-primary group mt-7 w-full">

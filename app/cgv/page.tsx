@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/cgv" },
 };
 
-const UPDATED = "janvier 2026";
+const UPDATED = "juillet 2026";
 
 export default function CgvPage() {
   return (
@@ -20,6 +20,20 @@ export default function CgvPage() {
           Conditions générales de vente
         </h1>
         <p className="mt-2 text-sm text-cocoa-600">Dernière mise à jour : {UPDATED}.</p>
+
+        <div className="mt-6 rounded-2xl border border-clay-400/50 bg-clay-100/60 px-5 py-4 text-sm leading-relaxed text-cocoa-900">
+          <p className="font-semibold">
+            ⚠️ En résumé : {siteConfig.name} est un ABONNEMENT mensuel, pas un achat unique.
+          </p>
+          <p className="mt-1.5">
+            En souscrivant, vous acceptez d&apos;être prélevé(e) de{" "}
+            {siteConfig.price.amount}
+            {siteConfig.price.period} <strong>chaque mois, automatiquement</strong>, jusqu&apos;à
+            résiliation. Vous pouvez résilier à tout moment, en un clic, depuis votre espace
+            personnel (article 7 ci-dessous) — la résiliation prend effet à la fin du mois déjà
+            payé.
+          </p>
+        </div>
 
         <div className="mt-10 space-y-9 text-[0.95rem] leading-relaxed text-cocoa-800">
           <Section title="1. Objet">
@@ -37,7 +51,16 @@ export default function CgvPage() {
               <a href="mailto:nathanaelsaas@gmail.com" className="underline">
                 nathanaelsaas@gmail.com
               </a>
-              . [Numéro SIRET à compléter après immatriculation.]
+              .
+            </p>
+            <p className="mt-2 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-800">
+              ⚠️ À la date de mise à jour de cette page, l&apos;éditeur n&apos;est pas immatriculé
+              (pas de numéro SIRET). Cette mention doit être complétée avant toute vente réelle —
+              voir la mention équivalente dans les{" "}
+              <a href="/mentions-legales" className="underline">
+                mentions légales
+              </a>
+              .
             </p>
           </Section>
 
@@ -53,11 +76,13 @@ export default function CgvPage() {
           <Section title="4. Prix">
             <p>
               L&apos;abonnement est proposé au tarif de {siteConfig.price.amount}{" "}
-              {siteConfig.price.period}, toutes taxes comprises. TVA non applicable, article 293 B
-              du Code général des impôts [à confirmer selon le statut d&apos;immatriculation]. Le
-              prix applicable est celui affiché au moment de la souscription. L&apos;éditeur se
-              réserve le droit de modifier ses prix ; toute évolution est sans effet sur les
-              abonnements en cours et notifiée avant reconduction.
+              {siteConfig.price.period}, toutes taxes comprises, prélevé automatiquement à date
+              anniversaire tant que l&apos;abonnement n&apos;est pas résilié — ce n&apos;est pas un
+              paiement unique. TVA non applicable, article 293 B du Code général des impôts
+              [statut de franchise en base à confirmer après immatriculation]. Le prix applicable
+              est celui affiché au moment de la souscription. L&apos;éditeur se réserve le droit
+              de modifier ses prix ; toute évolution est sans effet sur les abonnements en cours
+              et notifiée avant reconduction.
             </p>
           </Section>
 
@@ -125,7 +150,15 @@ export default function CgvPage() {
               </a>
               . Conformément au Code de la consommation, le client peut recourir gratuitement à un
               médiateur de la consommation en vue de la résolution amiable d&apos;un litige.
-              [Médiateur à désigner et à indiquer ici.]
+            </p>
+            <p className="mt-2 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-800">
+              ⚠️ Médiateur non encore désigné. C&apos;est une obligation légale pour tout
+              professionnel vendant à des consommateurs en France (adhésion à un médiateur agréé,
+              ex. via une liste officielle sur{" "}
+              <a href="https://www.mediation-conso.fr" className="underline">
+                mediation-conso.fr
+              </a>
+              ) — à faire dès l&apos;immatriculation, avant toute vente réelle.
             </p>
           </Section>
 

@@ -225,8 +225,8 @@ function Plan30() {
           <Reveal delay={0.1}>
             <p className="mt-5 text-lg leading-relaxed text-cocoa-700">
               {en
-                ? "Each cycle lasts 30 days. When it ends, you can start a new one to go further — the next builds on what you've already achieved."
-                : "Chaque cycle dure 30 jours. À la fin, tu peux en relancer un nouveau pour aller plus loin — la suite se construit sur ce que tu as déjà accompli."}
+                ? "Each program runs for 30 days. As long as your subscription is active, a new one picks up automatically to take you further — building on what you've already achieved."
+                : "Chaque programme dure 30 jours. Tant que ton abonnement est actif, un nouveau programme prend le relais automatiquement pour aller plus loin — la suite se construit sur ce que tu as déjà accompli."}
             </p>
           </Reveal>
         </div>

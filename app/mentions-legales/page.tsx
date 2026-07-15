@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/mentions-legales" },
 };
 
-const UPDATED = "janvier 2026";
+const UPDATED = "juillet 2026";
 
 export default function MentionsLegalesPage() {
   return (
@@ -82,9 +82,22 @@ export default function MentionsLegalesPage() {
           <Section title="Données personnelles" id="donnees">
             <p>
               {siteConfig.name} collecte des données pour fournir son service : adresse e-mail lors
-              de la création du compte, et photo transmise volontairement pour l&apos;analyse
-              capillaire. La photo est traitée pour générer le diagnostic ; elle est conservée dans
-              un espace de stockage privé, accessible uniquement par l&apos;utilisateur.
+              de la création du compte, votre photo transmise volontairement pour l&apos;analyse
+              capillaire, et les photos quotidiennes de suivi si vous êtes abonné(e).
+            </p>
+            <p className="mt-3">
+              Ces photos ne sont pas toutes traitées de la même façon. La photo de diagnostic est
+              transmise à notre sous-traitant Mistral AI pour générer votre analyse capillaire, et
+              n&apos;est pas conservée sur nos propres serveurs après traitement. Les photos
+              quotidiennes de suivi, elles, ne sont jamais envoyées à une IA et sont stockées dans un
+              espace privé accessible uniquement depuis votre compte. Le détail complet — sous-
+              traitants, durées de conservation et politique de Mistral AI en matière
+              d&apos;entraînement de ses modèles — est décrit dans la{" "}
+              <a href="/confidentialite#donnees" className="underline">
+                politique de confidentialité
+              </a>{" "}
+              (voir en particulier la section 4bis), qui prévaut en cas de différence avec le présent
+              résumé.
             </p>
             <p className="mt-3">
               Conformément au Règlement général sur la protection des données (RGPD) et à la loi

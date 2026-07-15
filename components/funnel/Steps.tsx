@@ -1194,12 +1194,24 @@ export function Paywall({ data, next, back }: StepProps) {
               animate={{ x: ["-40%", "420%"] }}
               transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.1 }}
             />
-            <span className="relative">{en ? "Unlock my program" : "Débloquer mon programme"}</span>
+            <span className="relative">
+              {en
+                ? `Subscribe — ${amount} / month`
+                : `S'abonner — ${amount} / mois`}
+            </span>
             <IconArrow className="relative h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </motion.button>
 
+          {/* Rappel explicite : abonnement à reconduction automatique, pas un
+              achat unique — obligatoire pour la clarté de l'offre. */}
+          <motion.p variants={item} className="mt-3 text-center text-[0.72rem] leading-relaxed text-clay-300/70">
+            {en
+              ? "Monthly subscription, renews automatically. Cancel anytime in 1 click from your account."
+              : siteConfig.price.billingDisclosure}
+          </motion.p>
+
           {/* réassurance */}
-          <motion.div variants={item} className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-clay-200/65">
+          <motion.div variants={item} className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-clay-200/65">
             <span className="flex items-center gap-1.5">
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none">
                 <rect x="5" y="10" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.6" />
@@ -1391,12 +1403,17 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
       <StepTitle title={en ? "Secure payment" : "Paiement sécurisé"} />
       <div className="mt-6 rounded-[2rem] border border-clay-200 bg-paper p-6">
         <div className="flex items-center justify-between border-b border-clay-200 pb-4">
-          <span className="text-cocoa-700">{en ? "Capilatyx cycle" : "Cycle Capilatyx"}</span>
+          <span className="text-cocoa-700">{en ? "Capilatyx subscription" : "Abonnement Capilatyx"}</span>
           <span className="font-display text-xl text-ink">
             {siteConfig.price.amount}
             <span className="text-sm text-cocoa-600"> {siteConfig.price.period}</span>
           </span>
         </div>
+        <p className="mt-3 text-xs leading-relaxed text-cocoa-600">
+          {en
+            ? "Monthly subscription, renews automatically. Cancel anytime in 1 click from your account."
+            : siteConfig.price.billingDisclosure}
+        </p>
 
         {noConfig ? (
           <div className="mt-5 text-center">
@@ -1440,7 +1457,9 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
               className="w-full rounded-xl border border-clay-200 bg-white px-4 py-3 text-ink outline-none focus:border-cocoa-400"
             />
             <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
-              {busy ? "Un instant…" : `Créer mon compte et payer — ${siteConfig.price.amount}`}
+              {busy
+                ? "Un instant…"
+                : `Créer mon compte et m'abonner — ${siteConfig.price.amount}${siteConfig.price.period}`}
             </button>
             {error && <p className="text-center text-sm text-clay-600">{error}</p>}
           </form>
@@ -1450,8 +1469,8 @@ function StripeCheckout({ data, update, next, back }: StepProps) {
               {busy
                 ? en ? "Redirecting…" : "Redirection…"
                 : en
-                  ? `Pay by card — ${siteConfig.price.amount}`
-                  : `Payer par carte — ${siteConfig.price.amount}`}
+                  ? `Subscribe — ${siteConfig.price.amount}${siteConfig.price.period}`
+                  : `S'abonner — ${siteConfig.price.amount}${siteConfig.price.period}`}
             </button>
             {error && <p className="mt-3 text-center text-sm text-clay-600">{error}</p>}
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-cocoa-600">

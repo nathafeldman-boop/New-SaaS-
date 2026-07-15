@@ -616,7 +616,7 @@ export function Dashboard(props: Props) {
               <p className="mt-1 text-sm text-cocoa-600">
                 {props.subscription.via === "code"
                   ? "Accès via code d'accès."
-                  : "Cycle Capilatyx — 10,90 € / mois, sans engagement."}
+                  : "Abonnement Capilatyx — 10,90 € / mois, renouvellement automatique, résiliable à tout moment."}
               </p>
               {props.subscription.via === "stripe" ? (
                 <button onClick={openPortal} disabled={busy} className="btn-ghost mt-5 w-full disabled:opacity-50">

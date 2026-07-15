@@ -37,6 +37,12 @@ export const siteConfig = {
     original: "13,63 €",
     discount: "−20 %",
     note: "Sans engagement — annulable à tout moment.",
+    // Rappel explicite affiché près de chaque bouton de paiement : le
+    // service est un ABONNEMENT à reconduction automatique (pas un achat
+    // unique). Obligatoire pour la clarté de l'offre (Code de la
+    // consommation) — ne jamais retirer ce rappel des écrans de paiement.
+    billingDisclosure:
+      "Abonnement mensuel à renouvellement automatique — prélevé chaque mois jusqu'à résiliation, possible à tout moment en 1 clic.",
   },
   nav: [
     { label: "Comment ça marche", href: "#methode" },
