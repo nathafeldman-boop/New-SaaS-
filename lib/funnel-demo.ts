@@ -61,9 +61,9 @@ export const demoCuts: CutsResult = {
 
 export const demoScores: HairScores = {
   axes: [
-    { key: "couverture", label: "Couverture", current: 72, potential: 80 },
+    { key: "coupe", label: "Coupe actuelle", current: 64, potential: 89 },
+    { key: "couverture", label: "Densité", current: 72, potential: 80 },
     { key: "hydratation", label: "Hydratation", current: 48, potential: 74 },
-    { key: "volume", label: "Volume", current: 58, potential: 70 },
     { key: "sante_cheveu", label: "Santé du cheveu", current: 52, potential: 76 },
     { key: "sante_cuir", label: "Cuir chevelu", current: 66, potential: 78 },
     { key: "brillance", label: "Brillance", current: 50, potential: 72 },

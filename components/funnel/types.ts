@@ -2,6 +2,7 @@ import type {
   CutSuggestion,
   CutsResult,
   HairAnalysis,
+  HairScores,
   Routine,
 } from "@/lib/funnel-types";
 
@@ -11,6 +12,8 @@ export type FunnelData = {
   photo?: string;
   analysis?: HairAnalysis;
   analysisDemo?: boolean;
+  scores?: HairScores;
+  scoresDemo?: boolean;
   cuts?: CutsResult;
   cutsDemo?: boolean;
   choice?: Choice;

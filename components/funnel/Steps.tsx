@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
 import { siteConfig } from "@/lib/site";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
 import {
@@ -15,6 +14,7 @@ import {
   IconHairBack,
   IconScissors,
   IconSparkle,
+  LogoMark,
 } from "@/components/Illustrations";
 import { LivingStrands } from "@/components/LivingStrands";
 import { OpenInBrowserNotice } from "@/components/OpenInBrowserNotice";
@@ -27,7 +27,7 @@ import {
   normalizeRoutineTime,
 } from "@/lib/routine-timer";
 import type { StepProps } from "./types";
-import type { CutSuggestion } from "@/lib/funnel-types";
+import type { CutSuggestion, HairScores } from "@/lib/funnel-types";
 import { createClient } from "@/lib/supabase/client";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -844,61 +844,193 @@ export function EmailGate({ data, update, next }: StepProps) {
   );
 }
 
-/* ── 5. Révélation (avant / après) ────────────────────────────── */
-export function Reveal({ data, next }: StepProps) {
+/* ── 5. Révélation (photo + score) ───────────────────────────── */
+const AXIS_LABELS_I18N: Record<string, { fr: string; en: string }> = {
+  coupe: { fr: "Coupe", en: "Cut" },
+  couverture: { fr: "Densité", en: "Density" },
+  hydratation: { fr: "Hydratation", en: "Hydration" },
+  sante_cheveu: { fr: "Cheveu", en: "Hair" },
+  sante_cuir: { fr: "Cuir chevelu", en: "Scalp" },
+  brillance: { fr: "Brillance", en: "Shine" },
+};
+
+export function Reveal({ data, next, update }: StepProps) {
   const [lang] = useLang();
   const en = lang === "en";
   const a = data.analysis;
+  const [scores, setScores] = useState<HairScores | null>(data.scores ?? null);
+  const requested = useRef(false);
+
+  useEffect(() => {
+    if (scores || !a || requested.current) return;
+    requested.current = true;
+    let cancelled = false;
+    fetch("/api/scores/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ analysis: a }),
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (cancelled || !json.ok || !json.data) return;
+        setScores(json.data);
+        update({ scores: json.data, scoresDemo: json.demo });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [a]);
+
+  const overallPotential = scores?.axes.length
+    ? Math.round(scores.axes.reduce((s, ax) => s + ax.potential, 0) / scores.axes.length)
+    : null;
 
   return (
-    <div className="grid items-center gap-12 lg:grid-cols-2">
-      <div>
-        <Image
-          src="/onboarding/diagnostic.jpg"
-          alt={en ? "Before / After — the Capilatyx transformation" : "Avant / Après — la transformation Capilatyx"}
-          width={968}
-          height={1307}
-          sizes="(max-width: 480px) 92vw, 420px"
-          className="mx-auto h-auto w-full max-w-sm rounded-[2rem] shadow-soft ring-1 ring-clay-200/60"
-          priority
-        />
-        <p className="mt-3 text-center text-xs text-cocoa-600">
-          {en ? "The Capilatyx transformation, in 30 days." : "La transformation Capilatyx, en 30 jours."}
-        </p>
+    <div className="mx-auto max-w-2xl">
+      <div className="flex items-center justify-center gap-3">
+        <span className="eyebrow">{en ? "Your diagnosis" : "Ton diagnostic"}</span>
+        <DemoBadge show={data.analysisDemo || data.scoresDemo} />
       </div>
-      <div>
-        <div className="flex items-center gap-3">
-          <span className="eyebrow">{en ? "Your diagnosis" : "Ton diagnostic"}</span>
-          <DemoBadge show={data.analysisDemo} />
+      <h2 className="display-2 mt-4 text-balance text-center text-3xl text-ink sm:text-4xl">
+        {en ? "Here's what your hair is saying." : "Voici ce que disent tes cheveux."}
+      </h2>
+
+      {/* Carte résultat — pensée pour être capturée en photo d'écran. */}
+      <div className="relative mx-auto mt-8 max-w-sm overflow-hidden rounded-[2rem] border border-clay-300/60 bg-paper shadow-soft">
+        <div className="relative aspect-[4/5] w-full bg-sand">
+          {data.photo && (
+            <img src={data.photo} alt="" className="h-full w-full object-cover" />
+          )}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/60 via-ink/0 to-ink/10" />
+
+          {scores && (
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.15, ease }}
+                className="absolute right-4 top-4 rounded-2xl bg-cream/90 px-3 py-1.5 text-center shadow-card backdrop-blur"
+              >
+                <p className="text-[8.5px] font-semibold uppercase tracking-wider text-cocoa-600">
+                  {en ? "Potential" : "Potentiel"}
+                </p>
+                <p className="font-display text-lg leading-none text-ink">
+                  {overallPotential}
+                  <span className="text-[11px] text-cocoa-500">/100</span>
+                </p>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease }}
+                className="absolute bottom-4 left-4 rounded-3xl bg-cream/95 px-4 py-3 shadow-card backdrop-blur"
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-cocoa-600">
+                  {en ? "Overall score" : "Note globale"}
+                </p>
+                <p className="font-display text-4xl leading-none text-ink">
+                  {scores.overall}
+                  <span className="text-base text-cocoa-500">/100</span>
+                </p>
+              </motion.div>
+            </>
+          )}
+          <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-ink/50 px-2.5 py-1 text-[10px] font-medium text-cream backdrop-blur">
+            <LogoMark className="h-3 w-3" />
+            {siteConfig.name}
+          </div>
         </div>
-        <h2 className="display-2 mt-4 text-balance text-3xl text-ink sm:text-4xl">
-          {en ? "Here's what your hair is saying." : "Voici ce que disent tes cheveux."}
-        </h2>
-        {a && (
-          <>
-            <p className="mt-4 leading-relaxed text-cocoa-700">{a.summary}</p>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <InfoCard label="Type" value={a.hairType} />
-              <InfoCard label={en ? "Condition" : "État"} value={a.condition} />
-            </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <TagList title={en ? "Strengths" : "Points forts"} items={a.strengths} tone="good" />
-              <TagList title={en ? "To work on" : "À travailler"} items={a.concerns} tone="warn" />
-            </div>
-            <div className="mt-5 rounded-2xl border border-clay-200 bg-sand/50 p-4 text-sm text-cocoa-800">
-              <b className="font-medium">{en ? "Current cut: " : "Coupe actuelle : "}</b>
-              {a.keepCurrentCut
-                ? en ? "it already suits you well. " : "elle te va déjà très bien. "
-                : en ? "it can be improved. " : "elle peut être optimisée. "}
-              {a.keepReason}
-            </div>
-          </>
-        )}
-        <button onClick={next} className="btn-primary group mt-8">
+
+        <div className="grid grid-cols-3 gap-x-2 gap-y-4 border-t border-clay-200/70 bg-sand/40 px-4 py-5">
+          {scores
+            ? scores.axes.map((ax) => (
+                <ScoreRing
+                  key={ax.key}
+                  value={ax.current}
+                  label={AXIS_LABELS_I18N[ax.key]?.[lang] ?? ax.label}
+                />
+              ))
+            : Array.from({ length: 6 }).map((_, i) => <ScoreRingSkeleton key={i} />)}
+        </div>
+      </div>
+
+      {a && (
+        <div className="mx-auto mt-9 max-w-xl">
+          <p className="text-center leading-relaxed text-cocoa-700">{a.summary}</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <InfoCard label="Type" value={a.hairType} />
+            <InfoCard label={en ? "Condition" : "État"} value={a.condition} />
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <TagList title={en ? "Strengths" : "Points forts"} items={a.strengths} tone="good" />
+            <TagList title={en ? "To work on" : "À travailler"} items={a.concerns} tone="warn" />
+          </div>
+          <div className="mt-5 rounded-2xl border border-clay-200 bg-sand/50 p-4 text-sm text-cocoa-800">
+            <b className="font-medium">{en ? "Current cut: " : "Coupe actuelle : "}</b>
+            {a.keepCurrentCut
+              ? en ? "it already suits you well. " : "elle te va déjà très bien. "
+              : en ? "it can be improved. " : "elle peut être optimisée. "}
+            {a.keepReason}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-8 flex justify-center">
+        <button onClick={next} className="btn-primary group">
           {en ? "See my haircuts & routine" : "Découvrir mes coupes & ma routine"}
           <IconArrow className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </button>
       </div>
+    </div>
+  );
+}
+
+function ScoreRing({ value, label }: { value: number; label: string }) {
+  const size = 60;
+  const stroke = 5;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const [filled, setFilled] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setFilled(true), 90);
+    return () => clearTimeout(t);
+  }, []);
+  const pct = Math.max(0, Math.min(100, value));
+  const offset = c - (filled ? pct / 100 : 0) * c;
+  return (
+    <div className="flex flex-col items-center gap-1.5 text-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(216,189,157,0.4)" strokeWidth={stroke} fill="none" />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            stroke="#5F4632"
+            strokeWidth={stroke}
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={c}
+            strokeDashoffset={offset}
+            style={{ transition: "stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1)" }}
+          />
+        </svg>
+        <span className="absolute inset-0 grid place-items-center font-display text-[14px] text-ink">
+          {value}
+        </span>
+      </div>
+      <span className="text-[10px] font-medium leading-tight text-cocoa-600">{label}</span>
+    </div>
+  );
+}
+
+function ScoreRingSkeleton() {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="h-[60px] w-[60px] animate-pulse rounded-full bg-clay-200/60" />
+      <div className="h-2 w-9 animate-pulse rounded-full bg-clay-200/60" />
     </div>
   );
 }

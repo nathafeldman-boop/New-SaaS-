@@ -457,9 +457,9 @@ export async function generateRoutine(
 /* ── Rapport de score capillaire (radar) ─────────────────────── */
 // On fixe les axes côté serveur ; Mistral ne renvoie que les valeurs.
 const SCORE_AXES: { key: string; label: string }[] = [
-  { key: "couverture", label: "Couverture" },
+  { key: "coupe", label: "Coupe actuelle" },
+  { key: "couverture", label: "Densité" },
   { key: "hydratation", label: "Hydratation" },
-  { key: "volume", label: "Volume" },
   { key: "sante_cheveu", label: "Santé du cheveu" },
   { key: "sante_cuir", label: "Cuir chevelu" },
   { key: "brillance", label: "Brillance" },
@@ -470,14 +470,18 @@ type ScorePair = { current?: number; potential?: number };
 export async function computeScores(analysis: HairAnalysis): Promise<HairScores> {
   const system =
     HAIR_KNOWLEDGE +
-    "\n\nTu es un trichologue. À partir d'une analyse capillaire, tu notes l'état du " +
-    "cheveu sur 6 axes, de 0 à 100, avec une valeur ACTUELLE et une valeur POTENTIELLE " +
-    "(atteignable après 30 jours de routine, toujours ≥ à l'actuelle, réaliste : +5 à +25). " +
-    "Réponds STRICTEMENT en JSON français, sans texte autour. Schéma : " +
-    '{"scores": {"couverture": {"current": number, "potential": number}, ' +
-    '"hydratation": {...}, "volume": {...}, "sante_cheveu": {...}, ' +
+    "\n\nTu es un trichologue et barbier-conseil. À partir d'une analyse capillaire, tu " +
+    "notes l'état du cheveu sur 6 axes, de 0 à 100, avec une valeur ACTUELLE et une " +
+    "valeur POTENTIELLE (atteignable après 30 jours de routine, toujours ≥ à l'actuelle, " +
+    "réaliste : +5 à +25). Réponds STRICTEMENT en JSON français, sans texte autour. Schéma : " +
+    '{"scores": {"coupe": {"current": number, "potential": number}, ' +
+    '"couverture": {...}, "hydratation": {...}, "sante_cheveu": {...}, ' +
     '"sante_cuir": {...}, "brillance": {...}}}. ' +
-    "Sois cohérent avec les forces et préoccupations décrites.";
+    "L'axe 'coupe' évalue à quel point la coupe ACTUELLE (avant tout changement) met en " +
+    "valeur cette personne, en te basant sur keepCurrentCut et keepReason de l'analyse : " +
+    "note haute si keepCurrentCut est vrai ; note plus modeste et potentiel nettement plus " +
+    "élevé si une nouvelle coupe est recommandée. Sois cohérent avec les forces et " +
+    "préoccupations décrites.";
 
   const messages: Message[] = [
     { role: "system", content: system },
