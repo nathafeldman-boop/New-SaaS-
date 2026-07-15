@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { NORWOOD_STAGES, getStage } from "@/lib/norwood";
+import { useLang } from "@/lib/i18n";
 
 // Le rendu WebGL ne doit jamais s'exécuter côté serveur.
 const ScalpHead3D = dynamic(() => import("@/components/three/ScalpHead3D"), {
@@ -28,22 +29,30 @@ export function ScalpTracker({
   currentStage: number | null | undefined;
   hasDiagnosis: boolean;
 }) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const youAreHere = Math.min(7, Math.max(1, Math.round(currentStage ?? 1)));
   const [stage, setStage] = useState(youAreHere);
-  const data = useMemo(() => getStage(stage), [stage]);
+  const data = useMemo(() => getStage(stage, en), [stage, en]);
 
   return (
     <div className="space-y-4">
       {/* En-tête */}
       <section className="rounded-5xl bg-ink p-6 text-cream shadow-soft">
-        <p className="text-xs uppercase tracking-[0.22em] text-clay-300">Suivi du cuir chevelu</p>
+        <p className="text-xs uppercase tracking-[0.22em] text-clay-300">
+          {en ? "Scalp tracking" : "Suivi du cuir chevelu"}
+        </p>
         <h2 className="display-2 mt-2 text-2xl leading-tight">
-          Suis ta calvitie et ta ligne frontale
+          {en ? "Track your baldness and hairline" : "Suis ta calvitie et ta ligne frontale"}
         </h2>
         <p className="mt-2 text-sm text-clay-300">
           {hasDiagnosis
-            ? `D'après ton scan, tu es au stade ${youAreHere} sur l'échelle de Norwood.`
-            : "Fais ton scan pour situer automatiquement ton stade. En attendant, explore l'échelle."}
+            ? en
+              ? `Based on your scan, you're at stage ${youAreHere} on the Norwood scale.`
+              : `D'après ton scan, tu es au stade ${youAreHere} sur l'échelle de Norwood.`
+            : en
+              ? "Do your scan to automatically place your stage. In the meantime, explore the scale."
+              : "Fais ton scan pour situer automatiquement ton stade. En attendant, explore l'échelle."}
         </p>
       </section>
 
@@ -52,17 +61,17 @@ export function ScalpTracker({
         <div className="relative h-72 w-full">
           <ScalpHead3D stage={stage} />
           <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-paper/85 px-3 py-1 text-[0.66rem] font-medium text-cocoa-600 shadow-sm backdrop-blur">
-            ✋ Fais pivoter la tête
+            ✋ {en ? "Rotate the head" : "Fais pivoter la tête"}
           </span>
           <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-[0.66rem] font-semibold text-cream backdrop-blur">
-            Stade {stage}
+            {en ? "Stage" : "Stade"} {stage}
           </span>
         </div>
 
         {/* Slider Norwood */}
         <div className="mt-4 px-1">
           <div className="mb-2 flex items-center justify-between text-[0.7rem] text-cocoa-500">
-            <span>Déplace le curseur pour voir chaque stade</span>
+            <span>{en ? "Drag the slider to see each stage" : "Déplace le curseur pour voir chaque stade"}</span>
             <span className="font-medium text-cocoa-700">Norwood {stage}/7</span>
           </div>
 
@@ -73,7 +82,7 @@ export function ScalpTracker({
               style={{ left: `${((youAreHere - 1) / 6) * 100}%` }}
             >
               <span className="whitespace-nowrap rounded-full bg-clay-500 px-2 py-0.5 text-[0.6rem] font-semibold text-cream shadow-sm">
-                Tu es ici
+                {en ? "You're here" : "Tu es ici"}
               </span>
             </div>
           </div>
@@ -86,7 +95,7 @@ export function ScalpTracker({
             value={stage}
             onChange={(e) => setStage(Number(e.target.value))}
             className="scalp-range w-full"
-            aria-label="Stade de Norwood"
+            aria-label={en ? "Norwood stage" : "Stade de Norwood"}
           />
 
           <div className="mt-1 flex justify-between px-0.5 text-[0.62rem] text-cocoa-400">
@@ -116,11 +125,11 @@ export function ScalpTracker({
         <div className="flex items-start justify-between gap-4">
           <div>
             <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-wider text-cream">
-              Stade {data.stage}
+              {en ? "Stage" : "Stade"} {data.stage}
             </span>
             <h3 className="display-2 mt-2 text-xl text-ink">{data.name}</h3>
           </div>
-          <CoverageGauge baldPct={data.baldPct} />
+          <CoverageGauge baldPct={data.baldPct} en={en} />
         </div>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
@@ -139,7 +148,7 @@ export function ScalpTracker({
         <div className="mt-4 flex items-start gap-2.5 rounded-2xl bg-sand/60 p-3.5">
           <span className="mt-0.5 text-base">💧</span>
           <p className="text-[0.85rem] leading-relaxed text-cocoa-700">
-            <span className="font-semibold text-ink">Conseil : </span>
+            <span className="font-semibold text-ink">{en ? "Advice: " : "Conseil : "}</span>
             {data.advice}
           </p>
         </div>
@@ -148,7 +157,7 @@ export function ScalpTracker({
   );
 }
 
-function CoverageGauge({ baldPct }: { baldPct: number }) {
+function CoverageGauge({ baldPct, en }: { baldPct: number; en: boolean }) {
   const r = 30;
   const c = 2 * Math.PI * r;
   const pct = Math.min(100, Math.max(0, baldPct)) / 100;
@@ -177,7 +186,9 @@ function CoverageGauge({ baldPct }: { baldPct: number }) {
       </svg>
       <div className="absolute flex flex-col items-center leading-none">
         <span className="font-display text-lg text-ink">{baldPct}%</span>
-        <span className="mt-0.5 text-[0.5rem] uppercase tracking-wider text-cocoa-400">dégarni</span>
+        <span className="mt-0.5 text-[0.5rem] uppercase tracking-wider text-cocoa-400">
+          {en ? "bald" : "dégarni"}
+        </span>
       </div>
     </div>
   );

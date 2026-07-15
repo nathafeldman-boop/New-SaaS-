@@ -14,6 +14,7 @@ import {
   routineTimeLabel,
 } from "@/lib/routine-timer";
 import { enrichRoutineDay } from "@/lib/routine-enrich";
+import { LangSwitch, useLang } from "@/lib/i18n";
 import type { CutsResult, HairAnalysis, Routine, RoutineDay } from "@/lib/funnel-types";
 
 type Entry = {
@@ -50,15 +51,26 @@ type CatalogCut = {
   tags: string[] | null;
 };
 
-const TABS = [
-  { key: "today", label: "Aujourd'hui", icon: "🌿", hint: "Ta routine & ta journée" },
-  { key: "evolution", label: "Évolution", icon: "📈", hint: "Score, radar & photos" },
-  { key: "scalp", label: "Calvitie", icon: "🪞", hint: "Suivi Norwood en 3D" },
-  { key: "products", label: "Produits", icon: "🧴", hint: "Reco & analyse d'ingrédients" },
-  { key: "cuts", label: "Coupes", icon: "✂️", hint: "Tes coupes & le catalogue" },
-  { key: "sub", label: "Abonnement", icon: "✨", hint: "Gérer ton accès" },
-  { key: "profile", label: "Profil", icon: "👤", hint: "Compte & diagnostic" },
-] as const;
+const TABS_I18N = {
+  fr: [
+    { key: "today", label: "Aujourd'hui", icon: "🌿", hint: "Ta routine & ta journée" },
+    { key: "evolution", label: "Évolution", icon: "📈", hint: "Score, radar & photos" },
+    { key: "scalp", label: "Calvitie", icon: "🪞", hint: "Suivi Norwood en 3D" },
+    { key: "products", label: "Produits", icon: "🧴", hint: "Reco & analyse d'ingrédients" },
+    { key: "cuts", label: "Coupes", icon: "✂️", hint: "Tes coupes & le catalogue" },
+    { key: "sub", label: "Abonnement", icon: "✨", hint: "Gérer ton accès" },
+    { key: "profile", label: "Profil", icon: "👤", hint: "Compte & diagnostic" },
+  ],
+  en: [
+    { key: "today", label: "Today", icon: "🌿", hint: "Your routine & your day" },
+    { key: "evolution", label: "Progress", icon: "📈", hint: "Score, radar & photos" },
+    { key: "scalp", label: "Baldness", icon: "🪞", hint: "3D Norwood tracking" },
+    { key: "products", label: "Products", icon: "🧴", hint: "Recommendations & ingredient analysis" },
+    { key: "cuts", label: "Haircuts", icon: "✂️", hint: "Your cuts & the catalog" },
+    { key: "sub", label: "Subscription", icon: "✨", hint: "Manage your access" },
+    { key: "profile", label: "Profile", icon: "👤", hint: "Account & diagnosis" },
+  ],
+} as const;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -71,7 +83,10 @@ const fadeUp = {
 
 export function Dashboard(props: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("today");
+  const [lang] = useLang();
+  const en = lang === "en";
+  const TABS = TABS_I18N[lang];
+  const [tab, setTab] = useState<(typeof TABS_I18N)["fr"][number]["key"]>("today");
   const [menuOpen, setMenuOpen] = useState(false);
   const current = TABS.find((t) => t.key === tab) ?? TABS[0];
   const [day, setDay] = useState(props.currentDay || 1);
@@ -119,10 +134,11 @@ export function Dashboard(props: Props) {
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
+    if (en) return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
     if (h < 12) return "Bonjour";
     if (h < 18) return "Bon après-midi";
     return "Bonsoir";
-  }, []);
+  }, [en]);
 
   async function uploadPhoto(kind: "before" | "after", file: File) {
     setBusy(true);
@@ -196,13 +212,14 @@ export function Dashboard(props: Props) {
           <a href="/" className="font-display text-[1.6rem] tracking-tight text-ink">
             Capilatyx
           </a>
-          {started && (
-            <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs">
+            {started && (
               <span className="rounded-full bg-paper/70 px-3 py-1.5 font-medium text-cocoa-700 ring-1 ring-clay-200">
-                🔥 {completedCount} {completedCount > 1 ? "jours" : "jour"}
+                🔥 {completedCount} {en ? (completedCount > 1 ? "days" : "day") : completedCount > 1 ? "jours" : "jour"}
               </span>
-            </div>
-          )}
+            )}
+            <LangSwitch />
+          </div>
         </header>
 
         {/* Navigation par menu (déclutter : un seul bouton) */}
@@ -236,7 +253,7 @@ export function Dashboard(props: Props) {
               <>
                 {/* Fond cliquable pour fermer */}
                 <button
-                  aria-label="Fermer le menu"
+                  aria-label={en ? "Close menu" : "Fermer le menu"}
                   onClick={() => setMenuOpen(false)}
                   className="fixed inset-0 z-20 cursor-default"
                 />
@@ -277,7 +294,7 @@ export function Dashboard(props: Props) {
           {/* ───── AUJOURD'HUI ───── */}
           {tab === "today" &&
             (!started ? (
-              <EmptyState />
+              <EmptyState en={en} />
             ) : (
               <div className="space-y-5">
                 {/* Héros : anneau de progression + score */}
@@ -293,17 +310,26 @@ export function Dashboard(props: Props) {
                   </p>
                   <div className="relative mt-4 flex items-center gap-5">
                     <Ring value={ringDay} max={30}>
-                      <span className="text-[0.62rem] uppercase tracking-widest text-clay-300">Jour</span>
+                      <span className="text-[0.62rem] uppercase tracking-widest text-clay-300">
+                        {en ? "Day" : "Jour"}
+                      </span>
                       <span className="font-display text-4xl leading-none">{ringDay}</span>
                       <span className="text-[0.62rem] text-clay-300">/ 30</span>
                     </Ring>
                     <div className="flex-1">
                       <p className="font-display text-2xl leading-tight">
-                        {inCooldown ? "Journée validée 🌿" : phaseTitle(routineDay?.phase, day)}
+                        {inCooldown
+                          ? en
+                            ? "Day validated 🌿"
+                            : "Journée validée 🌿"
+                          : phaseTitle(routineDay?.phase, day, en)}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Stat label="Score" value={score != null ? Math.round(score).toString() : "—"} />
-                        <Stat label="Série" value={`${completedCount} j`} />
+                        <Stat
+                          label={en ? "Streak" : "Série"}
+                          value={`${completedCount} ${en ? "d" : "j"}`}
+                        />
                       </div>
                     </div>
                   </div>
@@ -317,6 +343,7 @@ export function Dashboard(props: Props) {
                     now={now}
                     day={day}
                     routineDay={routineDay}
+                    en={en}
                   />
                 ) : (
                   <>
@@ -358,7 +385,9 @@ export function Dashboard(props: Props) {
                           <p className="mt-5 flex items-start gap-2 rounded-2xl border border-clay-200 bg-paper/70 px-4 py-3 text-[0.9rem] leading-relaxed text-cocoa-800">
                             <span className="shrink-0">💡</span>
                             <span>
-                              <span className="font-medium">Astuce du coach : </span>
+                              <span className="font-medium">
+                                {en ? "Coach's tip: " : "Astuce du coach : "}
+                              </span>
                               {routineDay.tip}
                             </span>
                           </p>
@@ -366,7 +395,7 @@ export function Dashboard(props: Props) {
                         {routineDay.mistakes && routineDay.mistakes.length > 0 && (
                           <div className="mt-4 rounded-2xl border border-clay-300/70 bg-clay-100/40 px-4 py-3">
                             <p className="flex items-center gap-1.5 text-[0.8rem] font-semibold uppercase tracking-wide text-cocoa-700">
-                              ⚠️ Erreurs à éviter aujourd&apos;hui
+                              ⚠️ {en ? "Mistakes to avoid today" : "Erreurs à éviter aujourd'hui"}
                             </p>
                             <ul className="mt-2 space-y-1.5">
                               {routineDay.mistakes.map((m, i) => (
@@ -382,7 +411,9 @@ export function Dashboard(props: Props) {
                           <p className="mt-4 flex items-start gap-2 rounded-2xl bg-cocoa-700/[0.06] px-4 py-3 text-[0.9rem] leading-relaxed text-cocoa-800">
                             <span className="shrink-0">✨</span>
                             <span>
-                              <span className="font-medium">À quoi t&apos;attendre : </span>
+                              <span className="font-medium">
+                                {en ? "What to expect: " : "À quoi t'attendre : "}
+                              </span>
                               {routineDay.expected}
                             </span>
                           </p>
@@ -391,7 +422,9 @@ export function Dashboard(props: Props) {
                           onClick={() => setTab("products")}
                           className="mt-5 flex w-full items-center justify-between rounded-2xl bg-cocoa-700 px-4 py-3 text-left text-sm font-medium text-cream transition hover:opacity-90"
                         >
-                          <span>🧴 Les produits conseillés pour cette routine</span>
+                          <span>
+                            🧴 {en ? "Recommended products for this routine" : "Les produits conseillés pour cette routine"}
+                          </span>
                           <span aria-hidden>→</span>
                         </button>
                       </motion.section>
@@ -413,9 +446,11 @@ export function Dashboard(props: Props) {
                         );
                         return (
                           <>
-                            <p className="eyebrow">Ton potentiel cheveux</p>
+                            <p className="eyebrow">{en ? "Your hair potential" : "Ton potentiel cheveux"}</p>
                             <h3 className="display-2 mt-2 text-xl text-ink">
-                              De {now}/100 à {potential}/100 en 30 jours
+                              {en
+                                ? `From ${now}/100 to ${potential}/100 in 30 days`
+                                : `De ${now}/100 à ${potential}/100 en 30 jours`}
                             </h3>
                             <div className="mt-5 grid grid-cols-2 gap-3">
                               <div className="rounded-2xl bg-sand/60 p-4 text-center">
@@ -423,14 +458,18 @@ export function Dashboard(props: Props) {
                                   {now}
                                   <span className="text-lg text-cocoa-500">/100</span>
                                 </p>
-                                <p className="mt-1 text-[0.8rem] text-cocoa-600">Ton score aujourd&apos;hui</p>
+                                <p className="mt-1 text-[0.8rem] text-cocoa-600">
+                                  {en ? "Your score today" : "Ton score aujourd'hui"}
+                                </p>
                               </div>
                               <div className="rounded-2xl bg-cocoa-700 p-4 text-center text-cream">
                                 <p className="font-display text-4xl">
                                   {potential}
                                   <span className="text-lg text-cream/70">/100</span>
                                 </p>
-                                <p className="mt-1 text-[0.8rem] text-cream/80">Ton potentiel avec Capilatyx</p>
+                                <p className="mt-1 text-[0.8rem] text-cream/80">
+                                  {en ? "Your potential with Capilatyx" : "Ton potentiel avec Capilatyx"}
+                                </p>
                               </div>
                             </div>
                             <div className="mt-4">
@@ -441,7 +480,9 @@ export function Dashboard(props: Props) {
                                 />
                               </div>
                               <p className="mt-2 text-[0.75rem] text-cocoa-500">
-                                Calculé par l&apos;IA d&apos;après ton diagnostic — et il monte à chaque jour validé. 📈
+                                {en
+                                  ? "Calculated by AI from your diagnosis — and it rises with each day validated. 📈"
+                                  : "Calculé par l'IA d'après ton diagnostic — et il monte à chaque jour validé. 📈"}
                               </p>
                             </div>
                           </>
@@ -459,31 +500,37 @@ export function Dashboard(props: Props) {
                     >
                       <div className="flex items-baseline justify-between">
                         <div>
-                          <p className="eyebrow">Suivi photo · obligatoire</p>
-                          <h3 className="display-2 mt-2 text-xl text-ink">Ta photo du jour</h3>
+                          <p className="eyebrow">{en ? "Photo tracking · required" : "Suivi photo · obligatoire"}</p>
+                          <h3 className="display-2 mt-2 text-xl text-ink">
+                            {en ? "Today's photo" : "Ta photo du jour"}
+                          </h3>
                         </div>
                         <span className="rounded-full bg-sand px-3 py-1 text-[0.66rem] font-medium text-cocoa-600">
-                          avant → après
+                          {en ? "before → after" : "avant → après"}
                         </span>
                       </div>
                       <div className="mt-5 grid grid-cols-2 gap-3.5">
                         <PhotoSlot
-                          label="Avant"
-                          hint="Avant ta routine"
+                          label={en ? "Before" : "Avant"}
+                          hint={en ? "Before your routine" : "Avant ta routine"}
                           url={beforeUrl}
                           busy={busy}
+                          en={en}
                           onPick={(f) => uploadPhoto("before", f)}
                         />
                         <PhotoSlot
-                          label="Après"
-                          hint="Après ta routine"
+                          label={en ? "After" : "Après"}
+                          hint={en ? "After your routine" : "Après ta routine"}
                           url={afterUrl}
                           busy={busy}
+                          en={en}
                           onPick={(f) => uploadPhoto("after", f)}
                         />
                       </div>
                       <p className="mt-3 text-center text-[0.72rem] text-cocoa-400">
-                        Tes photos restent privées — visibles seulement par toi.
+                        {en
+                          ? "Your photos stay private — visible only to you."
+                          : "Tes photos restent privées — visibles seulement par toi."}
                       </p>
                     </motion.section>
 
@@ -494,11 +541,13 @@ export function Dashboard(props: Props) {
                         disabled={busy || !beforeUrl}
                         className="btn-primary w-full disabled:opacity-50"
                       >
-                        {busy ? "Un instant…" : "Valider ma journée"}
+                        {busy ? (en ? "One moment…" : "Un instant…") : en ? "Validate my day" : "Valider ma journée"}
                       </button>
                       {!beforeUrl && (
                         <p className="mt-2 text-center text-xs text-cocoa-500">
-                          Ajoute ta photo du jour pour valider. 📸
+                          {en
+                            ? "Add today's photo to validate. 📸"
+                            : "Ajoute ta photo du jour pour valider. 📸"}
                         </p>
                       )}
                     </div>
@@ -511,9 +560,11 @@ export function Dashboard(props: Props) {
           {tab === "evolution" && (
             <div className="space-y-5">
               <section className="rounded-5xl bg-ink p-6 text-center text-cream shadow-soft">
-                <p className="text-xs uppercase tracking-[0.22em] text-clay-300">Ton score capillaire</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-clay-300">
+                  {en ? "Your hair score" : "Ton score capillaire"}
+                </p>
                 <p className="mt-2 font-display text-6xl leading-none">{score != null ? Math.round(score) : "—"}</p>
-                <p className="mt-1 text-xs text-clay-300">sur 100</p>
+                <p className="mt-1 text-xs text-clay-300">{en ? "out of 100" : "sur 100"}</p>
                 <Sparkline entries={props.entries} />
               </section>
 
@@ -525,7 +576,9 @@ export function Dashboard(props: Props) {
 
               {props.entries.filter((e) => e.beforeUrl || e.afterUrl).length === 0 ? (
                 <p className="rounded-4xl border border-dashed border-clay-300 bg-paper/50 p-8 text-center text-sm text-cocoa-500">
-                  Tes photos avant/après s'afficheront ici, jour après jour. Ta transformation se construit. 🌱
+                  {en
+                    ? "Your before/after photos will show up here, day after day. Your transformation is building. 🌱"
+                    : "Tes photos avant/après s'afficheront ici, jour après jour. Ta transformation se construit. 🌱"}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -534,7 +587,9 @@ export function Dashboard(props: Props) {
                     .map((e) => (
                       <div key={e.day_number} className="rounded-4xl bg-paper/80 p-4 shadow-card ring-1 ring-clay-200/60">
                         <div className="mb-2.5 flex items-center justify-between text-sm">
-                          <span className="font-medium text-ink">Jour {e.day_number}</span>
+                          <span className="font-medium text-ink">
+                            {en ? "Day" : "Jour"} {e.day_number}
+                          </span>
                           {e.score != null && (
                             <span className="rounded-full bg-sand px-2.5 py-0.5 text-xs text-cocoa-700">
                               Score {Math.round(e.score)}
@@ -542,8 +597,8 @@ export function Dashboard(props: Props) {
                           )}
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                          <Thumb label="Avant" url={e.beforeUrl} />
-                          <Thumb label="Après" url={e.afterUrl} />
+                          <Thumb label={en ? "Before" : "Avant"} url={e.beforeUrl} />
+                          <Thumb label={en ? "After" : "Après"} url={e.afterUrl} />
                         </div>
                       </div>
                     ))}
@@ -571,8 +626,12 @@ export function Dashboard(props: Props) {
               {/* Recommandées pour toi (issues du scan) */}
               {props.program?.cuts?.cuts?.length ? (
                 <section>
-                  <h2 className="display-2 text-xl text-ink">Recommandées pour toi</h2>
-                  <p className="mt-1 text-sm text-cocoa-600">D'après ton diagnostic.</p>
+                  <h2 className="display-2 text-xl text-ink">
+                    {en ? "Recommended for you" : "Recommandées pour toi"}
+                  </h2>
+                  <p className="mt-1 text-sm text-cocoa-600">
+                    {en ? "Based on your diagnosis." : "D'après ton diagnostic."}
+                  </p>
                   <div className="mt-3 space-y-2">
                     {props.program.cuts.cuts.slice(0, 5).map((c) => (
                       <div key={c.id} className="rounded-2xl bg-paper/80 p-4 shadow-card ring-1 ring-clay-200/60">
@@ -589,9 +648,11 @@ export function Dashboard(props: Props) {
 
               {/* Le grand catalogue */}
               <section>
-                <h2 className="display-2 text-xl text-ink">Le catalogue</h2>
+                <h2 className="display-2 text-xl text-ink">{en ? "The catalog" : "Le catalogue"}</h2>
                 <p className="mt-1 text-sm text-cocoa-600">
-                  {props.catalog?.length ?? 0} coupes à explorer — trouve ton prochain style.
+                  {en
+                    ? `${props.catalog?.length ?? 0} haircuts to explore — find your next style.`
+                    : `${props.catalog?.length ?? 0} coupes à explorer — trouve ton prochain style.`}
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   {(props.catalog ?? []).map((c, i) => (
@@ -605,26 +666,38 @@ export function Dashboard(props: Props) {
           {/* ───── ABONNEMENT ───── */}
           {tab === "sub" && (
             <section className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60">
-              <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">Statut</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">
+                {en ? "Status" : "Statut"}
+              </p>
               <p className="mt-1.5 font-display text-2xl text-ink">
                 {props.subscription.status === "active" || props.subscription.status === "trialing"
-                  ? "Abonnement actif"
+                  ? en
+                    ? "Active subscription"
+                    : "Abonnement actif"
                   : props.subscription.status === "past_due"
-                    ? "Paiement en attente"
-                    : "Inactif"}
+                    ? en
+                      ? "Payment pending"
+                      : "Paiement en attente"
+                    : en
+                      ? "Inactive"
+                      : "Inactif"}
               </p>
               <p className="mt-1 text-sm text-cocoa-600">
                 {props.subscription.via === "code"
-                  ? "Accès via code d'accès."
-                  : "Abonnement Capilatyx — 10,90 € / mois, renouvellement automatique, résiliable à tout moment."}
+                  ? en
+                    ? "Access via access code."
+                    : "Accès via code d'accès."
+                  : en
+                    ? "Capilatyx subscription — €10.90 / month, auto-renews, cancel anytime."
+                    : "Abonnement Capilatyx — 10,90 € / mois, renouvellement automatique, résiliable à tout moment."}
               </p>
               {props.subscription.via === "stripe" ? (
                 <button onClick={openPortal} disabled={busy} className="btn-ghost mt-5 w-full disabled:opacity-50">
-                  Gérer / annuler mon abonnement
+                  {en ? "Manage / cancel my subscription" : "Gérer / annuler mon abonnement"}
                 </button>
               ) : props.subscription.via === null ? (
                 <a href="/scan" className="btn-primary mt-5 w-full">
-                  Activer mon abonnement
+                  {en ? "Activate my subscription" : "Activer mon abonnement"}
                 </a>
               ) : null}
             </section>
@@ -634,13 +707,17 @@ export function Dashboard(props: Props) {
           {tab === "profile" && (
             <div className="space-y-3">
               <section className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60">
-                <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">Compte</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">
+                  {en ? "Account" : "Compte"}
+                </p>
                 <p className="mt-1.5 text-ink">{props.email}</p>
               </section>
-              <RoutineTimeSetting value={routineTime} onSave={saveSchedule} busy={busy} />
+              <RoutineTimeSetting value={routineTime} onSave={saveSchedule} busy={busy} en={en} />
               {props.diagnosis && (
                 <section className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60">
-                  <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">Ton diagnostic</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">
+                    {en ? "Your diagnosis" : "Ton diagnostic"}
+                  </p>
                   <p className="mt-2 leading-relaxed text-ink">{props.diagnosis.summary}</p>
                   {props.diagnosis.hairType && (
                     <p className="mt-3 inline-flex rounded-full bg-sand px-3 py-1 text-sm text-cocoa-700">
@@ -651,7 +728,7 @@ export function Dashboard(props: Props) {
               )}
               <form action="/auth/signout" method="post">
                 <button className="w-full rounded-full border border-clay-300 bg-paper/60 py-3 text-sm text-cocoa-700 transition hover:bg-paper">
-                  Déconnexion
+                  {en ? "Sign out" : "Déconnexion"}
                 </button>
               </form>
             </div>
@@ -668,10 +745,12 @@ function RoutineTimeSetting({
   value,
   onSave,
   busy,
+  en,
 }: {
   value: string;
   onSave: (time: string) => void;
   busy: boolean;
+  en: boolean;
 }) {
   const [time, setTime] = useState(value);
   useEffect(() => setTime(value), [value]);
@@ -679,9 +758,13 @@ function RoutineTimeSetting({
 
   return (
     <section className="rounded-4xl bg-paper/80 p-6 shadow-card ring-1 ring-clay-200/60">
-      <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">Heure de ma routine</p>
+      <p className="text-xs uppercase tracking-[0.2em] text-cocoa-500">
+        {en ? "My routine time" : "Heure de ma routine"}
+      </p>
       <p className="mt-1.5 text-sm text-cocoa-600">
-        Ta séance du jour se débloque à cette heure. Change-la quand tu veux.
+        {en
+          ? "Today's session unlocks at this time. Change it whenever you want."
+          : "Ta séance du jour se débloque à cette heure. Change-la quand tu veux."}
       </p>
       <div className="mt-4 flex items-center gap-3">
         <input
@@ -695,7 +778,7 @@ function RoutineTimeSetting({
           disabled={!dirty || busy}
           className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-cream transition enabled:hover:opacity-90 disabled:opacity-40"
         >
-          Enregistrer
+          {en ? "Save" : "Enregistrer"}
         </button>
       </div>
     </section>
@@ -709,6 +792,7 @@ function CooldownSection({
   now,
   day,
   routineDay,
+  en,
 }: {
   unlockMs: number;
   windowMs: number;
@@ -716,6 +800,7 @@ function CooldownSection({
   now: number;
   day: number;
   routineDay?: RoutineDay;
+  en: boolean;
 }) {
   const rem = Math.max(0, unlockMs - now);
   const pad = (n: number) => n.toString().padStart(2, "0");
@@ -739,8 +824,12 @@ function CooldownSection({
         <LivingStrands className="pointer-events-none absolute -right-12 -top-14 h-60 w-60 text-clay-400/15" />
         <div className="pointer-events-none absolute -bottom-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-clay-400/10 blur-3xl" />
 
-        <p className="relative text-[0.68rem] uppercase tracking-[0.28em] text-clay-300">Séance verrouillée</p>
-        <p className="relative mt-2 font-display text-lg">Bravo, journée validée ✨</p>
+        <p className="relative text-[0.68rem] uppercase tracking-[0.28em] text-clay-300">
+          {en ? "Session locked" : "Séance verrouillée"}
+        </p>
+        <p className="relative mt-2 font-display text-lg">
+          {en ? "Nice, day validated ✨" : "Bravo, journée validée ✨"}
+        </p>
 
         <div className="relative mx-auto mt-7 h-56 w-56">
           <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
@@ -769,14 +858,14 @@ function CooldownSection({
               {pad(h)}:{pad(m)}:{pad(s)}
             </span>
             <span className="mt-2 text-[0.6rem] uppercase tracking-[0.24em] text-clay-300">
-              avant déblocage
+              {en ? "until unlock" : "avant déblocage"}
             </span>
           </div>
         </div>
 
         <div className="relative mx-auto mt-7 flex max-w-xs items-center justify-center gap-5 text-clay-300">
           {[
-            ["Heures", pad(h)],
+            [en ? "Hours" : "Heures", pad(h)],
             ["Min", pad(m)],
             ["Sec", pad(s)],
           ].map(([label, val], i) => (
@@ -791,7 +880,9 @@ function CooldownSection({
         </div>
 
         <p className="relative mt-6 text-xs text-clay-300/90">
-          Ta prochaine séance se débloque à {routineTimeLabel(routineTime)}, ton heure de routine.
+          {en
+            ? `Your next session unlocks at ${routineTimeLabel(routineTime)}, your routine time.`
+            : `Ta prochaine séance se débloque à ${routineTimeLabel(routineTime)}, ton heure de routine.`}
         </p>
       </motion.section>
 
@@ -804,16 +895,16 @@ function CooldownSection({
           custom={2}
           className="rounded-4xl bg-sand/50 p-6 ring-1 ring-clay-200/60"
         >
-          <p className="eyebrow">À préparer pour demain</p>
+          <p className="eyebrow">{en ? "To prepare for tomorrow" : "À préparer pour demain"}</p>
           <h3 className="display-2 mt-3 text-xl text-ink">
-            Jour {day} · {routineDay.title}
+            {en ? "Day" : "Jour"} {day} · {routineDay.title}
           </h3>
           <p className="mt-1.5 text-[0.92rem] text-cocoa-600">{routineDay.focus}</p>
           {routineDay.why && (
             <p className="mt-3 text-[0.88rem] leading-relaxed text-cocoa-700">{routineDay.why}</p>
           )}
           <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-cocoa-500">
-            Ce qu'il te faudra
+            {en ? "What you'll need" : "Ce qu'il te faudra"}
           </p>
           <ul className="mt-2.5 space-y-2">
             {routineDay.steps.map((s, i) => (
@@ -829,8 +920,13 @@ function CooldownSection({
   );
 }
 
-function phaseTitle(phase: string | undefined, day: number) {
+function phaseTitle(phase: string | undefined, day: number, en: boolean) {
   if (phase) return phase;
+  if (en) {
+    if (day <= 7) return "Laying the foundations.";
+    if (day <= 21) return "Building it up, day by day.";
+    return "Final stretch 💪";
+  }
   if (day <= 7) return "On pose les fondations.";
   if (day <= 21) return "On consolide, jour après jour.";
   return "Dernière ligne droite 💪";
@@ -888,16 +984,20 @@ function Sparkline({ entries }: { entries: Entry[] }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({ en }: { en: boolean }) {
   return (
     <div className="rounded-5xl bg-paper/80 p-8 text-center shadow-card ring-1 ring-clay-200/60">
       <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-sand text-2xl">🌱</div>
-      <p className="mt-4 font-display text-xl text-ink">Ton programme t'attend</p>
+      <p className="mt-4 font-display text-xl text-ink">
+        {en ? "Your program is waiting" : "Ton programme t'attend"}
+      </p>
       <p className="mx-auto mt-1.5 max-w-xs text-sm text-cocoa-600">
-        Fais ton scan pour débloquer ta routine de 30 jours et commencer ton suivi.
+        {en
+          ? "Do your scan to unlock your 30-day routine and start tracking."
+          : "Fais ton scan pour débloquer ta routine de 30 jours et commencer ton suivi."}
       </p>
       <a href="/scan" className="btn-primary mt-5 inline-flex">
-        Faire mon scan
+        {en ? "Do my scan" : "Faire mon scan"}
       </a>
     </div>
   );
@@ -910,6 +1010,7 @@ function PhotoSlot({
   busy,
   done,
   onPick,
+  en,
 }: {
   label: string;
   hint: string;
@@ -917,6 +1018,7 @@ function PhotoSlot({
   busy: boolean;
   done?: boolean;
   onPick: (f: File) => void;
+  en?: boolean;
 }) {
   const filled = Boolean(url);
   return (
@@ -934,7 +1036,7 @@ function PhotoSlot({
           <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/5 to-transparent" />
           {!done && (
             <span className="absolute right-2.5 top-2.5 rounded-full bg-cream/95 px-3 py-1 text-[0.62rem] font-semibold text-ink opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100">
-              Changer
+              {en ? "Change" : "Changer"}
             </span>
           )}
           <span className="absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full bg-clay-500 text-sm text-cream shadow-sm transition group-hover:opacity-0">
@@ -947,7 +1049,9 @@ function PhotoSlot({
             📷
           </span>
           <span className="text-[0.82rem] font-medium text-cocoa-700">{hint}</span>
-          <span className="text-[0.66rem] text-cocoa-400">Appuie pour ajouter</span>
+          <span className="text-[0.66rem] text-cocoa-400">
+            {en ? "Tap to add" : "Appuie pour ajouter"}
+          </span>
         </div>
       )}
 

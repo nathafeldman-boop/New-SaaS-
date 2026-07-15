@@ -10,6 +10,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { fileToDataUrl, resizeDataUrl } from "@/lib/image";
+import { useLang } from "@/lib/i18n";
 import type { ProductAnalysis, ProductReco } from "@/lib/funnel-types";
 
 /** Lien d'achat : recherche Google Shopping sur la marque + le nom du produit. */
@@ -18,28 +19,32 @@ function buyUrl(p: ProductReco): string {
 }
 
 export function ProductsTab({ hasDiagnosis }: { hasDiagnosis: boolean }) {
+  const [lang] = useLang();
+  const en = lang === "en";
   if (!hasDiagnosis) {
     return (
       <section className="rounded-4xl border border-dashed border-clay-300 bg-paper/50 p-8 text-center">
         <p className="text-sm text-cocoa-600">
-          Fais ton scan pour débloquer tes recommandations produits sur mesure.
+          {en
+            ? "Do your scan to unlock your personalized product recommendations."
+            : "Fais ton scan pour débloquer tes recommandations produits sur mesure."}
         </p>
         <a href="/scan" className="btn-primary mt-4 inline-flex">
-          Faire mon scan
+          {en ? "Do my scan" : "Faire mon scan"}
         </a>
       </section>
     );
   }
   return (
     <div className="space-y-6">
-      <Recommendations />
-      <Analyzer />
+      <Recommendations en={en} />
+      <Analyzer en={en} />
     </div>
   );
 }
 
 /* ── 1. Recommandations ──────────────────────────────────────── */
-function Recommendations() {
+function Recommendations({ en }: { en: boolean }) {
   const [products, setProducts] = useState<ProductReco[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [demo, setDemo] = useState(false);
@@ -73,8 +78,12 @@ function Recommendations() {
     <section>
       <div className="flex items-baseline justify-between">
         <div>
-          <h2 className="display-2 text-xl text-ink">Recommandations personnalisées</h2>
-          <p className="mt-1 text-sm text-cocoa-600">Vraies marques, choisies pour ton profil.</p>
+          <h2 className="display-2 text-xl text-ink">
+            {en ? "Personalized recommendations" : "Recommandations personnalisées"}
+          </h2>
+          <p className="mt-1 text-sm text-cocoa-600">
+            {en ? "Real brands, chosen for your profile." : "Vraies marques, choisies pour ton profil."}
+          </p>
         </div>
         {products && (
           <button
@@ -82,7 +91,7 @@ function Recommendations() {
             disabled={loading}
             className="rounded-full bg-paper/70 px-3 py-1.5 text-xs text-cocoa-700 ring-1 ring-clay-200 transition hover:bg-paper disabled:opacity-50"
           >
-            ↻ Régénérer
+            ↻ {en ? "Regenerate" : "Régénérer"}
           </button>
         )}
       </div>
@@ -131,7 +140,7 @@ function Recommendations() {
                     rel="noopener noreferrer"
                     className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1 text-[0.72rem] font-medium text-cream transition hover:opacity-90"
                   >
-                    Acheter →
+                    {en ? "Buy →" : "Acheter →"}
                   </a>
                 </div>
               </div>
@@ -139,7 +148,7 @@ function Recommendations() {
                 onClick={() => setOpen(open === p.id ? null : p.id)}
                 className="flex w-full items-center justify-between border-t border-clay-200/60 bg-sand/40 px-4 py-2.5 text-left text-[0.82rem] font-medium text-cocoa-700"
               >
-                <span>👍 Pourquoi on le recommande</span>
+                <span>👍 {en ? "Why we recommend it" : "Pourquoi on le recommande"}</span>
                 <span className={`transition-transform ${open === p.id ? "rotate-180" : ""}`}>⌄</span>
               </button>
               {open === p.id && (
@@ -156,7 +165,9 @@ function Recommendations() {
           ))}
           {demo && (
             <p className="text-center text-[0.7rem] text-cocoa-400">
-              Exemple — connecte Mistral pour des recommandations sur mesure.
+              {en
+                ? "Example — connect Mistral for tailored recommendations."
+                : "Exemple — connecte Mistral pour des recommandations sur mesure."}
             </p>
           )}
         </div>
@@ -166,7 +177,7 @@ function Recommendations() {
 }
 
 /* ── 2. Analyse d'un produit ─────────────────────────────────── */
-function Analyzer() {
+function Analyzer({ en }: { en: boolean }) {
   const [name, setName] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -199,24 +210,28 @@ function Analyzer() {
 
   return (
     <section className="rounded-4xl bg-ink p-6 text-cream shadow-soft">
-      <p className="text-xs uppercase tracking-[0.22em] text-clay-300">Analyse d'ingrédients</p>
+      <p className="text-xs uppercase tracking-[0.22em] text-clay-300">
+        {en ? "Ingredient analysis" : "Analyse d'ingrédients"}
+      </p>
       <h2 className="display-2 mt-2 text-xl leading-tight">
-        Découvre ce qu'il y a dans tes produits
+        {en ? "Find out what's in your products" : "Découvre ce qu'il y a dans tes produits"}
       </h2>
       <p className="mt-1.5 text-sm text-clay-300">
-        Saisis un produit ou photographie l'étiquette — on te dit s'il est fait pour toi.
+        {en
+          ? "Enter a product or photograph the label — we'll tell you if it's right for you."
+          : "Saisis un produit ou photographie l'étiquette — on te dit s'il est fait pour toi."}
       </p>
 
       <div className="mt-4 space-y-2.5">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Ex : Kérastase Bain Satin…"
+          placeholder={en ? "E.g. Kérastase Bain Satin…" : "Ex : Kérastase Bain Satin…"}
           className="w-full rounded-2xl border border-cream/15 bg-cream/10 px-4 py-3 text-sm text-cream placeholder:text-clay-300 outline-none focus:border-clay-300"
         />
         <div className="flex gap-2.5">
           <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-cream/15 bg-cream/5 px-4 py-3 text-sm text-clay-200 transition hover:bg-cream/10">
-            📷 {image ? "Photo ajoutée" : "Photo de l'étiquette"}
+            📷 {image ? (en ? "Photo added" : "Photo ajoutée") : en ? "Label photo" : "Photo de l'étiquette"}
             <input
               type="file"
               accept="image/*"
@@ -233,17 +248,25 @@ function Analyzer() {
             disabled={busy || (!name.trim() && !image)}
             className="rounded-2xl bg-cream px-5 py-3 text-sm font-semibold text-ink transition hover:bg-clay-100 disabled:opacity-50"
           >
-            {busy ? "…" : "Analyser"}
+            {busy ? "…" : en ? "Analyze" : "Analyser"}
           </button>
         </div>
       </div>
 
-      {result && <AnalysisResult result={result} demo={demo} />}
+      {result && <AnalysisResult result={result} demo={demo} en={en} />}
     </section>
   );
 }
 
-function AnalysisResult({ result, demo }: { result: ProductAnalysis; demo: boolean }) {
+function AnalysisResult({
+  result,
+  demo,
+  en,
+}: {
+  result: ProductAnalysis;
+  demo: boolean;
+  en: boolean;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -252,7 +275,9 @@ function AnalysisResult({ result, demo }: { result: ProductAnalysis; demo: boole
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[0.7rem] uppercase tracking-wide text-cocoa-500">Compatibilité</p>
+          <p className="text-[0.7rem] uppercase tracking-wide text-cocoa-500">
+            {en ? "Compatibility" : "Compatibilité"}
+          </p>
           <h3 className="font-display text-lg text-ink">{result.productName}</h3>
         </div>
         <div className="text-right">
@@ -263,7 +288,9 @@ function AnalysisResult({ result, demo }: { result: ProductAnalysis; demo: boole
 
       {result.detected.length > 0 && (
         <>
-          <p className="mt-3 text-[0.72rem] text-cocoa-500">On a détecté chez toi :</p>
+          <p className="mt-3 text-[0.72rem] text-cocoa-500">
+            {en ? "We detected about you:" : "On a détecté chez toi :"}
+          </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {result.detected.map((d) => (
               <span key={d} className="rounded-full bg-sand px-2.5 py-0.5 text-[0.72rem] text-cocoa-700">
@@ -281,7 +308,7 @@ function AnalysisResult({ result, demo }: { result: ProductAnalysis; demo: boole
       {result.keyIngredients.length > 0 && (
         <div className="mt-4 space-y-2">
           <p className="text-[0.72rem] font-semibold uppercase tracking-wide text-cocoa-500">
-            Ingrédients clés
+            {en ? "Key ingredients" : "Ingrédients clés"}
           </p>
           {result.keyIngredients.map((ing, i) => (
             <div key={i} className="flex items-start gap-2.5">
@@ -322,7 +349,9 @@ function AnalysisResult({ result, demo }: { result: ProductAnalysis; demo: boole
 
       {demo && (
         <p className="mt-3 text-[0.7rem] text-cocoa-400">
-          Exemple — connecte Mistral pour une analyse réelle.
+          {en
+            ? "Example — connect Mistral for a real analysis."
+            : "Exemple — connecte Mistral pour une analyse réelle."}
         </p>
       )}
     </motion.div>

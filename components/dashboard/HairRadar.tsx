@@ -8,7 +8,17 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useLang } from "@/lib/i18n";
 import type { HairScores } from "@/lib/funnel-types";
+
+const AXIS_LABELS_I18N: Record<string, { fr: string; en: string }> = {
+  coupe: { fr: "Coupe actuelle", en: "Current cut" },
+  couverture: { fr: "Densité", en: "Density" },
+  hydratation: { fr: "Hydratation", en: "Hydration" },
+  sante_cheveu: { fr: "Cheveu", en: "Hair" },
+  sante_cuir: { fr: "Cuir chevelu", en: "Scalp" },
+  brillance: { fr: "Brillance", en: "Shine" },
+};
 
 export function HairRadar({
   initialScores,
@@ -17,6 +27,8 @@ export function HairRadar({
   initialScores: HairScores | null;
   hasDiagnosis: boolean;
 }) {
+  const [lang] = useLang();
+  const en = lang === "en";
   const [scores, setScores] = useState<HairScores | null>(initialScores);
   const [loading, setLoading] = useState(false);
   const [demo, setDemo] = useState(false);
@@ -44,10 +56,12 @@ export function HairRadar({
     return (
       <section className="rounded-4xl border border-dashed border-clay-300 bg-paper/50 p-8 text-center">
         <p className="text-sm text-cocoa-600">
-          Fais ton scan pour débloquer ton rapport de score capillaire.
+          {en
+            ? "Do your scan to unlock your hair score report."
+            : "Fais ton scan pour débloquer ton rapport de score capillaire."}
         </p>
         <a href="/scan" className="btn-primary mt-4 inline-flex">
-          Faire mon scan
+          {en ? "Do my scan" : "Faire mon scan"}
         </a>
       </section>
     );
@@ -70,8 +84,10 @@ export function HairRadar({
     >
       <div className="flex items-baseline justify-between">
         <div>
-          <p className="eyebrow">Rapport capillaire</p>
-          <h3 className="display-2 mt-2 text-xl text-ink">Ton score en un coup d'œil</h3>
+          <p className="eyebrow">{en ? "Hair report" : "Rapport capillaire"}</p>
+          <h3 className="display-2 mt-2 text-xl text-ink">
+            {en ? "Your score at a glance" : "Ton score en un coup d'œil"}
+          </h3>
         </div>
         <div className="text-right">
           <span className="font-display text-3xl text-ink">{scores.overall}</span>
@@ -79,28 +95,30 @@ export function HairRadar({
         </div>
       </div>
 
-      <RadarChart scores={scores} />
+      <RadarChart scores={scores} en={en} />
 
       <div className="mt-4 flex items-center justify-center gap-5 text-xs">
         <span className="inline-flex items-center gap-1.5 text-cocoa-700">
-          <span className="h-2.5 w-2.5 rounded-full bg-clay-400" /> Actuel
+          <span className="h-2.5 w-2.5 rounded-full bg-clay-400" /> {en ? "Current" : "Actuel"}
         </span>
         <span className="inline-flex items-center gap-1.5 text-cocoa-500">
           <span className="h-2.5 w-2.5 rounded-full border-2 border-cocoa-400 bg-transparent" />
-          Potentiel
+          {en ? "Potential" : "Potentiel"}
         </span>
       </div>
 
       {demo && (
         <p className="mt-3 text-center text-[0.7rem] text-cocoa-400">
-          Exemple — connecte Mistral pour ton rapport personnalisé.
+          {en
+            ? "Example — connect Mistral for your personalized report."
+            : "Exemple — connecte Mistral pour ton rapport personnalisé."}
         </p>
       )}
     </motion.section>
   );
 }
 
-function RadarChart({ scores }: { scores: HairScores }) {
+function RadarChart({ scores, en }: { scores: HairScores; en: boolean }) {
   const axes = scores.axes;
   const n = axes.length;
   const size = 280;
@@ -146,7 +164,7 @@ function RadarChart({ scores }: { scores: HairScores }) {
               className="fill-cocoa-600"
               style={{ fontSize: "9.5px", fontWeight: 600 }}
             >
-              {a.label}
+              {en ? AXIS_LABELS_I18N[a.key]?.en ?? a.label : a.label}
             </text>
             <text
               x={lx}
