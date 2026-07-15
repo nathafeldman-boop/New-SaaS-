@@ -218,14 +218,21 @@ export async function analyzeHair(
     "de cheveux et tu réponds STRICTEMENT en JSON, en français, sans texte autour. " +
     "Identifie le type Walker (1-4) et fonde ton analyse sur le référentiel ci-dessus. " +
     "CLASSIFICATION DU TYPE — sois rigoureux, c'est l'erreur la plus fréquente : " +
-    "observe le MOTIF de la fibre, pas seulement le volume global. " +
-    "Type 2 (ondulé) = vagues en S larges, PAS de boucle fermée. " +
+    "observe le MOTIF de la fibre, pas seulement le volume ou l'ordre de la coiffure. " +
+    "N'affirme un type que si tu vois une PREUVE VISUELLE claire, jamais par défaut. " +
+    "Type 1 (raide) = fibre plate, aucune ondulation visible même décoiffée. " +
+    "Type 2 (ondulé) = vagues en S larges et OUVERTES, PAS de boucle fermée. " +
     "Type 3 (bouclé) = vraies boucles en spirale/tire-bouchon (de la taille d'un doigt " +
-    "à un stylo), bien refermées sur elles-mêmes. " +
+    "à un stylo), nettement refermées sur elles-mêmes, visibles sur PLUSIEURS mèches. " +
     "Type 4 (crépu) = frisures très serrées en Z/ressort, motif dense et compact. " +
-    "En cas de doute entre ondulé et bouclé/crépu, si tu vois des spirales ou des " +
-    "frisures serrées c'est du 3 ou du 4, JAMAIS du 2. Ne sous-estime jamais la " +
-    "texture : mieux vaut reconnaître des boucles/crépus marqués que les aplatir en « ondulé ». " +
+    "NE CONFONDS JAMAIS désordre capillaire (cheveux décoiffés, en bataille, aplatis par " +
+    "le sommeil ou par manque de coiffage) avec une texture bouclée : des cheveux raides " +
+    "ou ondulés peuvent paraître « en pagaille » sans avoir la moindre vraie spirale. Si tu " +
+    "NE VOIS PAS de boucle nette et refermée sur plusieurs mèches, reste en type 1 ou 2, " +
+    "même si la coiffure semble en désordre sur la photo — le classement se base " +
+    "uniquement sur le motif de la fibre, jamais sur l'état de coiffage du jour. " +
+    "Si un recul ou un dégarnissement frontal est visible, il DOIT apparaître clairement " +
+    "dans 'concerns' et 'summary' — ne le passe pas sous silence au profit d'un autre sujet. " +
     (declaredType
       ? `IMPORTANT : l'utilisateur DÉCLARE lui-même avoir des cheveux ${declaredType}. ` +
         "Considère cette déclaration comme la VÉRITÉ pour le type (hairType / classification " +
@@ -480,8 +487,16 @@ export async function computeScores(analysis: HairAnalysis): Promise<HairScores>
     "L'axe 'coupe' évalue à quel point la coupe ACTUELLE (avant tout changement) met en " +
     "valeur cette personne, en te basant sur keepCurrentCut et keepReason de l'analyse : " +
     "note haute si keepCurrentCut est vrai ; note plus modeste et potentiel nettement plus " +
-    "élevé si une nouvelle coupe est recommandée. Sois cohérent avec les forces et " +
-    "préoccupations décrites.";
+    "élevé si une nouvelle coupe est recommandée. " +
+    "L'axe 'couverture' DOIT refléter fidèlement norwoodStage (recul frontal/vertex) : " +
+    "note ACTUELLE clairement basse (20-40) si norwoodStage ≥ 3, très basse (<25) si " +
+    "norwoodStage ≥ 5. Une routine cosmétique ne fait PAS repousser une calvitie " +
+    "génétique en 30 jours : si norwoodStage ≥ 3, limite le POTENTIEL de 'couverture' à " +
+    "un gain modeste (+3 à +8, entretien et densité perçue, jamais une repousse) au lieu " +
+    "de la fourchette standard — ne promets jamais une inversion de la calvitie. " +
+    "Sois cohérent avec les forces et préoccupations décrites, et avec toutes les valeurs " +
+    "numériques déjà présentes dans l'analyse (norwoodStage notamment) : ne les contredis " +
+    "jamais.";
 
   const messages: Message[] = [
     { role: "system", content: system },
