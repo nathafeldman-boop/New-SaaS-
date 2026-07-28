@@ -624,6 +624,13 @@ function AffiliatesAdmin({
             <MiniStat label="Versé" value={euro(s.paid)} />
             <MiniStat label="À verser" value={euro(s.pending)} strong />
           </div>
+          {s.holdbackSales > 0 && (
+            <p className="mt-3 text-xs text-cocoa-500">
+              ⏳ {s.holdbackSales} vente{s.holdbackSales > 1 ? "s" : ""} des 5 derniers jours pas
+              encore comptée{s.holdbackSales > 1 ? "s" : ""} dans « À verser » — le temps que le
+              paiement Stripe soit définitif.
+            </p>
+          )}
 
           <form action={addPayoutAction} className="mt-4 flex flex-wrap items-center gap-2">
             <input type="hidden" name="affiliate_id" value={a.id} />

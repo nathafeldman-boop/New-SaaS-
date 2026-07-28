@@ -28,8 +28,12 @@ export type AffiliatePayout = {
 export type AffiliateStats = {
   clicks: number;
   signups: number;
+  /** Ventes totales (payantes, hors codes), tous délais confondus. */
   sales: number;
-  /** Commission cumulée depuis le début (€). */
+  /** Parmi ces ventes, celles encore dans la fenêtre de sécurité (< HOLDBACK_DAYS),
+   *  pas encore comptées dans `gross` — le temps que le paiement Stripe soit définitif. */
+  holdbackSales: number;
+  /** Commission cumulée depuis le début (€) — hors ventes encore en attente. */
   gross: number;
   /** Déjà versé (€). */
   paid: number;
@@ -37,6 +41,11 @@ export type AffiliateStats = {
   pending: number;
   payouts: AffiliatePayout[];
 };
+
+/** Délai de sécurité avant qu'une vente compte dans la commission due : le temps
+ *  que le paiement Stripe soit réellement encaissé (et pas remboursé/contesté)
+ *  avant de s'engager à verser une commission dessus. */
+const HOLDBACK_DAYS = 5;
 
 /** Normalise un pseudo : minuscules, alphanumérique + tirets. */
 export function normalizePseudo(raw: string): string {
@@ -94,28 +103,36 @@ export async function getAffiliateStats(a: Affiliate): Promise<AffiliateStats> {
 
   const referredIds = (profilesRes.data ?? []).map((p) => p.id);
   let sales = 0;
+  let holdbackSales = 0;
   if (referredIds.length > 0) {
     const { data: subs } = await admin
       .from("subscriptions")
-      .select("user_id, price_id")
+      .select("user_id, price_id, created_at")
       .in("user_id", referredIds);
     // Vente = abonnement payant (les codes d'accès offerts ne comptent pas).
-    sales = (subs ?? []).filter(
+    const paidSubs = (subs ?? []).filter(
       (s) => !String(s.price_id ?? "").startsWith("access_code:"),
-    ).length;
+    );
+    const holdbackCutoff = Date.now() - HOLDBACK_DAYS * 24 * 60 * 60 * 1000;
+    const settledSales = paidSubs.filter(
+      (s) => new Date(s.created_at as string).getTime() <= holdbackCutoff,
+    );
+    sales = paidSubs.length;
+    holdbackSales = paidSubs.length - settledSales.length;
   }
 
   const payouts = ((payoutsRes.data ?? []) as AffiliatePayout[]).map((p) => ({
     ...p,
     amount: Number(p.amount),
   }));
-  const gross = round2(sales * MONTHLY_PRICE * Number(a.rate));
+  const gross = round2((sales - holdbackSales) * MONTHLY_PRICE * Number(a.rate));
   const paid = round2(payouts.reduce((s, p) => s + p.amount, 0));
 
   return {
     clicks: clicksRes.count ?? 0,
     signups: referredIds.length,
     sales,
+    holdbackSales,
     gross,
     paid,
     pending: Math.max(0, round2(gross - paid)),
